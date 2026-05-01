@@ -1,0 +1,82 @@
+// === Base Styles ===
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 16px;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: $font-primary;
+  font-size: $font-size-base;
+  line-height: 1.7;
+  color: $color-text;
+  background-color: $color-bg;
+}
+
+a {
+  color: $color-highlight;
+  text-decoration: none;
+  transition: color $transition-fast;
+
+  &:hover {
+    color: #cc2846;
+    text-decoration: underline;
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  line-height: 1.3;
+  font-weight: 700;
+  color: $color-primary;
+}
+
+h1 { font-size: $font-size-4xl; }
+h2 { font-size: $font-size-2xl; }
+h3 { font-size: $font-size-lg; }
+
+p {
+  margin-bottom: $spacing-md;
+}
+
+ul {
+  list-style: none;
+}
+
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+::selection {
+  background-color: $color-highlight;
+  color: #ffffff;
+}
+
+// Print styles
+@media print {
+  body {
+    background: white;
+    color: black;
+    font-size: 11pt;
+  }
+
+  .cv__section {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .animate__animated {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}

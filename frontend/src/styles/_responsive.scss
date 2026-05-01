@@ -1,0 +1,133 @@
+// === Responsive Design ===
+
+// Mobile (< 768px)
+@media (max-width: $bp-tablet - 1px) {
+  .cv {
+    padding: $spacing-xl $spacing-md;
+
+    &__section {
+      padding: $spacing-xl 0;
+    }
+  }
+
+  .cv__header {
+    padding: $spacing-2xl $spacing-md;
+
+    .header {
+      &__content {
+        padding: $spacing-xl $spacing-sm;
+      }
+
+      &__name {
+        font-size: $font-size-2xl;
+      }
+
+      &__title {
+        font-size: $font-size-base;
+      }
+
+      &__role {
+        font-size: $font-size-xl;
+      }
+
+      &__vision {
+        font-size: $font-size-sm;
+      }
+    }
+  }
+
+  .section__title {
+    font-size: $font-size-xl;
+  }
+
+  .timeline {
+    padding-left: $spacing-xl;
+
+    &__card {
+      padding: $spacing-md;
+    }
+  }
+
+  .card {
+    &__role {
+      font-size: $font-size-base;
+    }
+
+    &__highlights li {
+      font-size: $font-size-xs;
+    }
+  }
+
+  .certifications__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .conferences__list {
+    grid-template-columns: 1fr;
+  }
+
+  .projects__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact__info {
+    grid-template-columns: 1fr;
+  }
+
+  .skills__grid {
+    gap: $spacing-xs;
+  }
+}
+
+// Tablet (768px - 1023px)
+@media (min-width: $bp-tablet) and (max-width: $bp-desktop - 1px) {
+  .cv {
+    padding: $spacing-2xl;
+  }
+
+  .certifications__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .conferences__list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .projects__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .contact__info {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+// Desktop (>= 1024px)
+@media (min-width: $bp-desktop) {
+  .cv {
+    padding: $spacing-3xl;
+  }
+
+  .certifications__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .conferences__list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .projects__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .contact__info {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+// Wide screens
+@media (min-width: $bp-wide) {
+  .cv {
+    padding: $spacing-3xl 0;
+  }
+}

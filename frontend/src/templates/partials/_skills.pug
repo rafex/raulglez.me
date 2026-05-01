@@ -1,0 +1,11 @@
+section#skills.cv__section(data-animate="fadeInUp")
+  .section__container
+    h2.section__title Conocimientos Técnicos
+    .skills__grid
+      each skill in skills.technical
+        span.skill__badge(data-animate="zoomIn")= skill
+
+    h2.section__title.skills__subtitle Competencias
+    .skills__grid.skills__grid--soft
+      each comp in skills.competencies
+        span.skill__badge.skill__badge--soft(data-animate="zoomIn")= comp
