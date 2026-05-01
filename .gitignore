@@ -12,3 +12,8 @@ session-ses_*.md
 
 # SpecNative — venv is generated; do not commit
 .specnative/.venv/
+
+# Frontend build artifacts
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

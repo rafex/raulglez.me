@@ -1,0 +1,16 @@
+section#experience.cv__section(data-animate="fadeInUp")
+  .section__container
+    h2.section__title Experiencia Laboral
+    .timeline
+      each job, index in experience
+        .timeline__item(data-animate="fadeInLeft" style=`animation-delay: ${index * 0.1}s`)
+          .timeline__dot
+          .timeline__card
+            .card__header
+              h3.card__role= job.role
+              span.card__company= job.company
+              span.card__period= job.period
+              span.card__location= job.location
+            ul.card__highlights
+              each highlight in job.highlights
+                li= highlight
