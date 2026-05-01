@@ -39,8 +39,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=${{ github.event.workflow_run.head_branch }}" >> $GITHUB_OUTPUT
+        else
+          echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
       - name: Setup kubectl
