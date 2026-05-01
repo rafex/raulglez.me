@@ -1,37 +1,80 @@
 # CONVENTIONS.md
 
-Reglas operativas y de implementacion del proyecto.
+Convenciones de desarrollo del portal CV `raulglez.me`.
 
-## Debe cubrir
+## Código
 
-- Naming de archivos, carpetas, funciones y componentes.
-- Convenciones de testing.
-- Convenciones de branching y commits.
-- Convenciones de estructura por feature o capa.
-- Reglas de documentacion y actualizacion de contexto.
+### Naming
 
-## Template
+| Elemento | Convención | Ejemplo |
+|----------|-----------|---------|
+| Partials Pug | `_nombre.pug` (underscore prefix) | `_header.pug`, `_experience.pug` |
+| Partials Sass | `_nombre.scss` (underscore prefix) | `_variables.scss`, `_base.scss` |
+| Clases CSS | BEM-like: `bloque__elemento--modificador` | `cv__section`, `timeline__card`, `skill__badge--soft` |
+| IDs | kebab-case | `#about`, `#experience`, `#contact` |
+| Archivos JS | camelCase | `main.js` |
+| Directorios | kebab-case o plural | `partials/`, `styles/`, `templates/` |
 
-### Codigo
+### Estructura
 
-- Preferir cambios pequenos y locales.
-- Evitar duplicacion accidental.
-- Seguir la estructura definida en `ARCHITECTURE.md`.
+```
+frontend/
+├── index.html          ← entry point con tag <pug>
+├── vite.config.js       ← configuración Vite + Pug plugin
+├── package.json
+└── src/
+    ├── main.js          ← JS: animate.css + IntersectionObserver
+    ├── data/
+    │   └── cv.json      ← fuente de verdad de datos del CV
+    ├── styles/
+    │   ├── main.scss     ← entry point (importa todos los partials)
+    │   ├── _variables.scss  ← design tokens
+    │   ├── _base.scss       ← reset + estilos base + print
+    │   ├── _layout.scss     ← grid y secciones
+    │   ├── _components.scss ← componentes (timeline, badges, cards)
+    │   └── _responsive.scss ← media queries
+    └── templates/
+        ├── index.pug    ← layout principal
+        └── partials/
+            ├── _header.pug
+            ├── _about.pug
+            ├── _experience.pug
+            ├── _skills.pug
+            ├── _education.pug
+            ├── _conferences.pug
+            ├── _projects.pug
+            └── _contact.pug
+```
 
-### Tests
+### Principios
 
-- Cada cambio relevante debe definir su estrategia de validacion.
-- Los tests deben vivir cerca del codigo o donde el proyecto lo defina.
+- **Cambios pequeños y locales**: cada partial Pug es autónomo
+- **Separación contenido/presentación**: datos en `cv.json`, estructura en `.pug`, estilos en `.scss`
+- **Sin duplicación**: un solo lugar para cada dato
+- **Accesibilidad**: `prefers-reduced-motion`, etiquetas semánticas, contraste adecuado
+- **Print-friendly**: estilos de impresión en `_base.scss`
 
-### Documentacion
+## Commits
 
-- Los `README.md` indexan.
-- Los archivos en MAYUSCULAS contienen contexto fuente.
-- No duplicar hechos entre documentos sin una razon fuerte.
+- **Formato**: Conventional Commits con emojis
+  - `✨ feat:` nueva funcionalidad
+  - `🐛 fix:` corrección de bug
+  - `📦 build:` infraestructura, Docker, CI
+  - `📝 docs:` documentación
+  - `🎨 style:` cambios de estilo/formato
+- **Branching**: `feature/*`, `fix/*`, `chore/*`
+- **Atomicidad**: un commit = un propósito lógico
 
-### Agentes
+## Testing
 
-- Antes de editar, leer el `README.md` de la carpeta.
-- Actualizar el documento fuente si cambia una verdad compartida.
-- No cerrar una tarea sin estado final y evidencia de validacion.
-- No ejecutar una iniciativa sin referencia explicita a una spec.
+- **Build verification**: `npm run build` debe completar sin errores
+- **Helm lint**: `helm lint helm/raulglez-me/` debe pasar
+- **YAML lint**: workflows de GitHub Actions deben ser YAML válido
+- **Manual**: inspección visual en `npm run preview`
+
+## Documentación
+
+- Los `agents/*.md` contienen contexto fuente del proyecto
+- `tasks/TODO.md` es el tablero de tareas activas
+- `README.md` del root indexa todo
+- No duplicar información entre documentos
