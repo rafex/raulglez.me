@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "specnative": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "./.specnative/.venv/bin/python3",
+        "./.specnative/specnative_mcp.py"
+      ]
+    }
+  }
+}
