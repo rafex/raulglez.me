@@ -5,7 +5,7 @@ replicaCount: 1
 image:
   repository: ghcr.io/rafex/raulglez-me
   pullPolicy: IfNotPresent
-  tag: "latest"
+  tag: "1.0.0"
 
 imagePullSecrets:
   - name: ghcr-pull-secret
@@ -56,7 +56,7 @@ ingress:
 resources:
   limits:
     cpu: 100m
-    memory: 64Mi
+    memory: 128Mi
   requests:
     cpu: 50m
     memory: 32Mi
