@@ -1,6 +1,10 @@
+import { gsap, staggerZoomIn, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
 import { Project } from '../types/cv.types';
 
 class CVProjects extends HTMLElement {
+  private _hoverCleanups: Array<() => void> = [];
+
   connectedCallback(): void {
     const data: Project[] = JSON.parse(this.getAttribute('data') || '[]');
     const shadow = this.attachShadow({ mode: 'open' });
@@ -21,17 +25,38 @@ class CVProjects extends HTMLElement {
         @media (max-width: 767px) { .projects__grid { grid-template-columns: 1fr; } }
         @media (min-width: 768px) and (max-width: 1023px) { .projects__grid { grid-template-columns: repeat(2, 1fr); } }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Experiencia Digital</h2>
           <div class="projects__grid">${data.map(p => `
-            <a class="project__card" href="${p.url}" target="_blank" rel="noopener noreferrer" data-animate="zoomIn">
-              <h3 class="project__name">${p.name}</h3>
-              <p class="project__desc">${p.description}</p>
-              <span class="project__url">${p.url}</span>
+            <a class="project__card" href="${escHtml(p.url)}" target="_blank" rel="noopener noreferrer">
+              <h3 class="project__name">${escHtml(p.name)}</h3>
+              <p class="project__desc">${escHtml(p.description)}</p>
+              <span class="project__url">${escHtml(p.url)}</span>
             </a>`).join('')}</div>
         </div>
       </section>`;
+
+    // GSAP entrance
+    animateSectionTitle(this, shadow);
+    staggerZoomIn(this, shadow, '.project__card', { stagger: 0.1 });
+
+    // Hover lift effect (with cleanup)
+    shadow.querySelectorAll('.project__card').forEach((card) => {
+      const onEnter = () => gsap.to(card, { y: -6, duration: 0.3, ease: 'power2.out' });
+      const onLeave = () => gsap.to(card, { y: 0, duration: 0.3, ease: 'power2.out' });
+      card.addEventListener('mouseenter', onEnter);
+      card.addEventListener('mouseleave', onLeave);
+      this._hoverCleanups.push(() => {
+        card.removeEventListener('mouseenter', onEnter);
+        card.removeEventListener('mouseleave', onLeave);
+      });
+    });
+  }
+
+  disconnectedCallback(): void {
+    this._hoverCleanups.forEach(fn => fn());
+    this._hoverCleanups = [];
   }
 }
 

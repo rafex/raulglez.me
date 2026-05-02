@@ -1,3 +1,6 @@
+import { gsap, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
+
 class CVAbout extends HTMLElement {
   connectedCallback(): void {
     const text = this.getAttribute('text') || '';
@@ -11,12 +14,29 @@ class CVAbout extends HTMLElement {
         .section__title::after { content: ''; position: absolute; bottom: 0; left: 0; width: 60px; height: 3px; background: var(--color-highlight); border-radius: 2px; }
         .about__text { font-size: var(--font-size-md); line-height: 1.8; }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Sobre mí</h2>
-          <div class="section__content"><p class="about__text">${text}</p></div>
+          <div class="section__content"><p class="about__text">${escHtml(text)}</p></div>
         </div>
       </section>`;
+
+    animateSectionTitle(this, shadow);
+
+    const paragraph = shadow.querySelector('.about__text');
+    if (paragraph) {
+      gsap.from(paragraph, {
+        y: 30,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'power2.out',
+        scrollTrigger: {
+          trigger: this,
+          start: 'top 80%',
+          once: true,
+        },
+      });
+    }
   }
 }
 

@@ -15,6 +15,11 @@ class CVApp extends HTMLElement {
     }
   }
 
+  /** Called externally after render to trigger a global fade-in. */
+  public animateEntrance(): void {
+    // Handled by main.ts via the cv-loaded event — kept for API consistency.
+  }
+
   private render(): void {
     if (!this.data) return;
     const { header, about, experience, skills, certifications, conferences, projects, contact } = this.data;

@@ -1,20 +1,24 @@
+import { gsap, staggerFadeLeft, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
 import { ExperienceItem } from '../types/cv.types';
 
 class CVExperience extends HTMLElement {
+  private _pulses: gsap.core.Tween[] = [];
+
   connectedCallback(): void {
     const data: ExperienceItem[] = JSON.parse(this.getAttribute('data') || '[]');
     const shadow = this.attachShadow({ mode: 'open' });
-    const items = data.map((job, i) => `
-      <div class="timeline__item" data-animate="fadeInLeft" style="animation-delay: ${i * 0.1}s">
+    const items = data.map((job) => `
+      <div class="timeline__item">
         <div class="timeline__dot"></div>
         <div class="timeline__card">
           <div class="card__header">
-            <h3 class="card__role">${job.role}</h3>
-            <span class="card__company">${job.company}</span>
-            <span class="card__period">${job.period}</span>
-            <span class="card__location">${job.location}</span>
+            <h3 class="card__role">${escHtml(job.role)}</h3>
+            <span class="card__company">${escHtml(job.company)}</span>
+            <span class="card__period">${escHtml(job.period)}</span>
+            <span class="card__location">${escHtml(job.location)}</span>
           </div>
-          <ul class="card__highlights">${job.highlights.map(h => `<li>${h}</li>`).join('')}</ul>
+          <ul class="card__highlights">${job.highlights.map(h => `<li>${escHtml(h)}</li>`).join('')}</ul>
         </div>
       </div>`).join('');
 
@@ -40,12 +44,35 @@ class CVExperience extends HTMLElement {
         .card__highlights li { position: relative; margin-bottom: var(--spacing-sm); font-size: var(--font-size-sm); line-height: 1.6; color: var(--color-text); }
         .card__highlights li::before { content: '▸'; position: absolute; left: -1rem; color: var(--color-highlight); }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Experiencia Laboral</h2>
           <div class="timeline">${items}</div>
         </div>
       </section>`;
+
+    // GSAP entrance animations
+    animateSectionTitle(this, shadow);
+    staggerFadeLeft(this, shadow, '.timeline__item');
+
+    // Dot pulse animations
+    this._pulses = [];
+    shadow.querySelectorAll('.timeline__dot').forEach((dot, i) => {
+      const tween = gsap.to(dot, {
+        scale: 1.3,
+        repeat: -1,
+        yoyo: true,
+        duration: 1.2,
+        delay: i * 0.15,
+        ease: 'sine.inOut',
+      });
+      this._pulses.push(tween);
+    });
+  }
+
+  disconnectedCallback(): void {
+    this._pulses.forEach(t => t.kill());
+    this._pulses = [];
   }
 }
 

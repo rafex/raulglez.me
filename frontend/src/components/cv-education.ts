@@ -1,3 +1,5 @@
+import { staggerFlipInX, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
 import { Certification } from '../types/cv.types';
 
 class CVEducation extends HTMLElement {
@@ -23,20 +25,24 @@ class CVEducation extends HTMLElement {
         @media (max-width: 767px) { .certifications__grid { grid-template-columns: 1fr; } }
         @media (min-width: 768px) and (max-width: 1023px) { .certifications__grid { grid-template-columns: repeat(2, 1fr); } }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Certificaciones</h2>
           <div class="certifications__grid">${data.map(c => `
-            <div class="certification__card" data-animate="flipInX">
+            <div class="certification__card">
               <span class="cert__icon">🏅</span>
               <div class="cert__info">
-                <h3 class="cert__title">${c.title}</h3>
-                <p class="cert__details"><span class="cert__code">${c.code}</span> — <span class="cert__year">${c.year}</span></p>
-                <p class="cert__id">ID: ${c.id}</p>
+                <h3 class="cert__title">${escHtml(c.title)}</h3>
+                <p class="cert__details"><span class="cert__code">${escHtml(c.code)}</span> — <span class="cert__year">${escHtml(c.year)}</span></p>
+                <p class="cert__id">ID: ${escHtml(c.id)}</p>
               </div>
             </div>`).join('')}</div>
         </div>
       </section>`;
+
+    // GSAP entrance
+    animateSectionTitle(this, shadow);
+    staggerFlipInX(this, shadow, '.certification__card');
   }
 }
 
