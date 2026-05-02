@@ -1,6 +1,10 @@
+import { gsap, staggerFadeRight, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
 import { Contact } from '../types/cv.types';
 
 class CVContact extends HTMLElement {
+  private _hoverCleanups: Array<() => void> = [];
+
   connectedCallback(): void {
     const data: Contact = JSON.parse(this.getAttribute('data') || '{}');
     const shadow = this.attachShadow({ mode: 'open' });
@@ -21,17 +25,38 @@ class CVContact extends HTMLElement {
         @media (min-width: 768px) and (max-width: 1023px) { .contact__info { grid-template-columns: repeat(2, 1fr); } }
         @media (min-width: 1024px) { .contact__info { grid-template-columns: repeat(4, 1fr); } }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Contacto</h2>
           <div class="contact__info">
-            <div class="contact__item"><span class="contact__icon">📱</span><span>${data.phone}</span></div>
-            <div class="contact__item"><span class="contact__icon">✉️</span><a href="mailto:${data.email}">${data.email}</a></div>
-            <div class="contact__item"><span class="contact__icon">📍</span><span>${data.location}</span></div>
-            <div class="contact__item"><span class="contact__icon">🌐</span><a href="https://${data.website}" target="_blank" rel="noopener noreferrer">${data.website}</a></div>
+            <div class="contact__item"><span class="contact__icon">📱</span><span>${escHtml(data.phone)}</span></div>
+            <div class="contact__item"><span class="contact__icon">✉️</span><a href="mailto:${escHtml(data.email)}">${escHtml(data.email)}</a></div>
+            <div class="contact__item"><span class="contact__icon">📍</span><span>${escHtml(data.location)}</span></div>
+            <div class="contact__item"><span class="contact__icon">🌐</span><a href="https://${escHtml(data.website)}" target="_blank" rel="noopener noreferrer">${escHtml(data.website)}</a></div>
           </div>
         </div>
       </section>`;
+
+    // GSAP entrance
+    animateSectionTitle(this, shadow);
+    staggerFadeRight(this, shadow, '.contact__item');
+
+    // Pulse icons on hover (with cleanup)
+    shadow.querySelectorAll('.contact__icon').forEach((icon) => {
+      const onEnter = () => gsap.to(icon, { scale: 1.3, duration: 0.3, ease: 'elastic.out(1, 0.3)' });
+      const onLeave = () => gsap.to(icon, { scale: 1, duration: 0.3, ease: 'power2.out' });
+      icon.addEventListener('mouseenter', onEnter);
+      icon.addEventListener('mouseleave', onLeave);
+      this._hoverCleanups.push(() => {
+        icon.removeEventListener('mouseenter', onEnter);
+        icon.removeEventListener('mouseleave', onLeave);
+      });
+    });
+  }
+
+  disconnectedCallback(): void {
+    this._hoverCleanups.forEach(fn => fn());
+    this._hoverCleanups = [];
   }
 }
 

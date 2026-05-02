@@ -9,30 +9,28 @@ import './components/cv-conferences';
 import './components/cv-projects';
 import './components/cv-contact';
 
-// Animaciones scroll-triggered con IntersectionObserver y CSS nativo
-const observerOptions: IntersectionObserverInit = {
-  threshold: 0.15,
-  rootMargin: '0px 0px -50px 0px',
-};
+import { gsap, ScrollTrigger } from './animations/gsap';
 
-const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
-  entries.forEach((entry) => {
-    if (entry.isIntersecting) {
-      const el = entry.target as HTMLElement;
-      const animation = el.dataset.animate || 'fadeInUp';
-      el.style.animationName = animation;
-      el.style.animationDuration = '0.8s';
-      el.style.animationFillMode = 'both';
-      observer.unobserve(el);
-    }
-  });
-}, observerOptions);
+// ---------------------------------------------------------------------------
+// Global ScrollTrigger configuration
+// ---------------------------------------------------------------------------
+ScrollTrigger.defaults({
+  toggleActions: 'play none none none',
+});
 
-// Inicializar observer después de que cv-app termine de cargar datos
-function initAnimations(): void {
-  document.querySelectorAll<HTMLElement>('[data-animate]').forEach((el) => {
-    observer.observe(el);
-  });
-}
+// Refresh ScrollTrigger after DOM mutations (CV data loaded dynamically)
+document.addEventListener('cv-loaded', () => {
+  ScrollTrigger.refresh();
+});
 
-document.addEventListener('cv-loaded', initAnimations);
+// Optional: global entrance for the <cv-app> shell when data is ready
+document.addEventListener('cv-loaded', () => {
+  const app = document.querySelector('cv-app');
+  if (app) {
+    gsap.from(app, {
+      opacity: 0,
+      duration: 0.4,
+      ease: 'power2.out',
+    });
+  }
+});

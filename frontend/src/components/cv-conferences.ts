@@ -1,3 +1,5 @@
+import { staggerFadeRight, animateSectionTitle } from '../animations/gsap';
+import { escHtml } from '../utils/html';
 import { Conference } from '../types/cv.types';
 
 class CVConferences extends HTMLElement {
@@ -20,17 +22,21 @@ class CVConferences extends HTMLElement {
         @media (max-width: 767px) { .conferences__list { grid-template-columns: 1fr; } }
         @media (min-width: 768px) and (max-width: 1023px) { .conferences__list { grid-template-columns: repeat(2, 1fr); } }
       </style>
-      <section class="cv__section" data-animate="fadeInUp">
+      <section class="cv__section">
         <div class="section__container">
           <h2 class="section__title">Conferencias y Cursos Impartidos</h2>
           <div class="conferences__list">${data.map(c => `
-            <div class="conference__item" data-animate="fadeInRight">
-              <h3 class="conference__title">${c.title}</h3>
-              <p class="conference__event">${c.event}</p>
-              <p class="conference__location">${c.location}</p>
+            <div class="conference__item">
+              <h3 class="conference__title">${escHtml(c.title)}</h3>
+              <p class="conference__event">${escHtml(c.event)}</p>
+              <p class="conference__location">${escHtml(c.location)}</p>
             </div>`).join('')}</div>
         </div>
       </section>`;
+
+    // GSAP entrance
+    animateSectionTitle(this, shadow);
+    staggerFadeRight(this, shadow, '.conference__item');
   }
 }
 
