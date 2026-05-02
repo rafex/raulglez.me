@@ -1,5 +1,4 @@
-@import 'variables';
-@import 'base';
-@import 'layout';
-@import 'components';
-@import 'responsive';
+@use 'base';
+@use 'layout';
+@use 'components';
+@use 'responsive';
