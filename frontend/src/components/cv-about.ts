@@ -1,4 +1,4 @@
-import { gsap, animateSectionTitle } from '../animations/gsap';
+import { gsap, ScrollTrigger, animateSectionTitle } from '../animations/gsap';
 import { escHtml } from '../utils/html';
 
 class CVAbout extends HTMLElement {
@@ -24,19 +24,23 @@ class CVAbout extends HTMLElement {
     animateSectionTitle(this, shadow);
 
     const paragraph = shadow.querySelector('.about__text');
-    if (paragraph) {
-      gsap.from(paragraph, {
-        y: 30,
-        opacity: 0,
-        duration: 0.8,
-        ease: 'power2.out',
-        scrollTrigger: {
-          trigger: this,
-          start: 'top 80%',
-          once: true,
-        },
-      });
-    }
+    if (!paragraph) return;
+
+    gsap.set(paragraph, { opacity: 0, y: 30 });
+
+    ScrollTrigger.create({
+      trigger: this,
+      start: 'top 80%',
+      once: true,
+      onEnter: () => {
+        gsap.to(paragraph, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'power2.out',
+        });
+      },
+    });
   }
 }
 

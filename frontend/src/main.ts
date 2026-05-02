@@ -11,19 +11,19 @@ import './components/cv-contact';
 
 import { gsap, ScrollTrigger } from './animations/gsap';
 
-// ---------------------------------------------------------------------------
-// Global ScrollTrigger configuration
-// ---------------------------------------------------------------------------
-ScrollTrigger.defaults({
-  toggleActions: 'play none none none',
-});
-
-// Refresh ScrollTrigger after DOM mutations (CV data loaded dynamically)
+// After cv-app renders all children and their ScrollTriggers are registered,
+// double-refresh ensures positioning calculation is accurate even for
+// dynamically-created Shadow DOM hosts.
 document.addEventListener('cv-loaded', () => {
+  // Immediate refresh catches any sync-registered triggers
   ScrollTrigger.refresh();
+  // rAF refresh catches triggers that need a paint cycle to settle
+  requestAnimationFrame(() => {
+    ScrollTrigger.refresh();
+  });
 });
 
-// Optional: global entrance for the <cv-app> shell when data is ready
+// Global entrance for the <cv-app> shell
 document.addEventListener('cv-loaded', () => {
   const app = document.querySelector('cv-app');
   if (app) {

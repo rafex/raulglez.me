@@ -34,119 +34,120 @@ export function queryShadowAll(host: HTMLElement, selector: string): Element[] {
 
 // ---------------------------------------------------------------------------
 // Pre-built animation presets
+//
+// Pattern: gsap.set() for initial state + ScrollTrigger.create() + gsap.to()
+// in the onEnter callback.
+//
+// WHY: gsap.from() with inline scrollTrigger immediately applies "from" values
+// as inline styles. If ScrollTrigger doesn't fire for above-the-fold content
+// (common with dynamically-created Shadow DOM hosts), elements stay invisible.
+// The set + create + onEnter pattern guarantees control and visibility fallback.
 // ---------------------------------------------------------------------------
 
-/**
- * Stagger entrance from the left (perfect for timeline items).
- * @param host   The Web Component host element (used as ScrollTrigger trigger)
- * @param shadow ShadowRoot of the component
- * @param itemsSelector Selector for items to animate (relative to shadow root)
- * @param options Override defaults
- */
 export function staggerFadeLeft(
   host: HTMLElement,
   shadow: ShadowRoot,
   itemsSelector: string,
   options?: { start?: string; duration?: number; stagger?: number; x?: number }
 ): void {
-  const items = shadow.querySelectorAll(itemsSelector);
+  const items = Array.from(shadow.querySelectorAll(itemsSelector)) as HTMLElement[];
   if (!items.length) return;
 
-  gsap.from(items, {
-    opacity: 0,
-    x: options?.x ?? -40,
-    duration: options?.duration ?? 0.6,
-    stagger: { each: options?.stagger ?? 0.12, from: 'start' },
-    ease: 'back.out(1.2)',
-    scrollTrigger: {
-      trigger: host,
-      start: options?.start ?? 'top 78%',
-      once: true,
+  gsap.set(items, { opacity: 0, x: options?.x ?? -40 });
+
+  ScrollTrigger.create({
+    trigger: host,
+    start: options?.start ?? 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to(items, {
+        opacity: 1, x: 0,
+        duration: options?.duration ?? 0.6,
+        stagger: { each: options?.stagger ?? 0.12, from: 'start' },
+        ease: 'back.out(1.2)',
+      });
     },
   });
 }
 
-/**
- * Stagger zoom-in (perfect for badges, cards, grid items).
- */
 export function staggerZoomIn(
   host: HTMLElement,
   shadow: ShadowRoot,
   itemsSelector: string,
   options?: { start?: string; duration?: number; stagger?: number }
 ): void {
-  const items = shadow.querySelectorAll(itemsSelector);
+  const items = Array.from(shadow.querySelectorAll(itemsSelector)) as HTMLElement[];
   if (!items.length) return;
 
-  gsap.from(items, {
-    opacity: 0,
-    scale: 0.6,
-    duration: options?.duration ?? 0.5,
-    stagger: { each: options?.stagger ?? 0.08, from: 'start' },
-    ease: 'back.out(1.7)',
-    scrollTrigger: {
-      trigger: host,
-      start: options?.start ?? 'top 75%',
-      once: true,
+  gsap.set(items, { opacity: 0, scale: 0.6 });
+
+  ScrollTrigger.create({
+    trigger: host,
+    start: options?.start ?? 'top 75%',
+    once: true,
+    onEnter: () => {
+      gsap.to(items, {
+        opacity: 1, scale: 1,
+        duration: options?.duration ?? 0.5,
+        stagger: { each: options?.stagger ?? 0.08, from: 'start' },
+        ease: 'back.out(1.7)',
+      });
     },
   });
 }
 
-/**
- * Fade-in from the right (conferences, side elements).
- */
 export function staggerFadeRight(
   host: HTMLElement,
   shadow: ShadowRoot,
   itemsSelector: string,
   options?: { start?: string; duration?: number; stagger?: number }
 ): void {
-  const items = shadow.querySelectorAll(itemsSelector);
+  const items = Array.from(shadow.querySelectorAll(itemsSelector)) as HTMLElement[];
   if (!items.length) return;
 
-  gsap.from(items, {
-    opacity: 0,
-    x: 40,
-    duration: options?.duration ?? 0.6,
-    stagger: { each: options?.stagger ?? 0.1, from: 'center' },
-    ease: 'power2.out',
-    scrollTrigger: {
-      trigger: host,
-      start: options?.start ?? 'top 78%',
-      once: true,
+  gsap.set(items, { opacity: 0, x: 40 });
+
+  ScrollTrigger.create({
+    trigger: host,
+    start: options?.start ?? 'top 78%',
+    once: true,
+    onEnter: () => {
+      gsap.to(items, {
+        opacity: 1, x: 0,
+        duration: options?.duration ?? 0.6,
+        stagger: { each: options?.stagger ?? 0.1, from: 'center' },
+        ease: 'power2.out',
+      });
     },
   });
 }
 
-/**
- * Flip-3D entrance (certifications).
- */
 export function staggerFlipInX(
   host: HTMLElement,
   shadow: ShadowRoot,
   itemsSelector: string,
   options?: { start?: string; duration?: number; stagger?: number }
 ): void {
-  const items = shadow.querySelectorAll(itemsSelector);
+  const items = Array.from(shadow.querySelectorAll(itemsSelector)) as HTMLElement[];
   if (!items.length) return;
 
-  gsap.from(items, {
-    opacity: 0,
-    rotateX: 90,
-    duration: options?.duration ?? 0.6,
-    stagger: { each: options?.stagger ?? 0.1, from: 'start' },
-    ease: 'back.out(1.4)',
-    scrollTrigger: {
-      trigger: host,
-      start: options?.start ?? 'top 75%',
-      once: true,
+  gsap.set(items, { opacity: 0, rotateX: 90 });
+
+  ScrollTrigger.create({
+    trigger: host,
+    start: options?.start ?? 'top 75%',
+    once: true,
+    onEnter: () => {
+      gsap.to(items, {
+        opacity: 1, rotateX: 0,
+        duration: options?.duration ?? 0.6,
+        stagger: { each: options?.stagger ?? 0.1, from: 'start' },
+        ease: 'back.out(1.4)',
+      });
     },
   });
 }
 
-/**
- * Section title entrance: slide from left with a small bounce.
- */
 export function animateSectionTitle(
   host: HTMLElement,
   shadow: ShadowRoot,
@@ -155,15 +156,18 @@ export function animateSectionTitle(
   const title = shadow.querySelector(selector);
   if (!title) return;
 
-  gsap.from(title, {
-    x: -30,
-    opacity: 0,
-    duration: 0.7,
-    ease: 'back.out(1.4)',
-    scrollTrigger: {
-      trigger: host,
-      start: 'top 85%',
-      once: true,
+  gsap.set(title, { opacity: 0, x: -30 });
+
+  ScrollTrigger.create({
+    trigger: host,
+    start: 'top 85%',
+    once: true,
+    onEnter: () => {
+      gsap.to(title, {
+        opacity: 1, x: 0,
+        duration: 0.7,
+        ease: 'back.out(1.4)',
+      });
     },
   });
 }
