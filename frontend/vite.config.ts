@@ -1,14 +1,7 @@
 import { defineConfig } from 'vite';
-import pugPlugin from 'vite-plugin-pug';
 import path from 'path';
-import { readFileSync } from 'fs';
-
-const cvData = JSON.parse(
-  readFileSync(path.resolve(__dirname, 'src/data/cv.json'), 'utf-8')
-);
 
 export default defineConfig({
-  plugins: [pugPlugin({}, cvData)],
   root: '.',
   publicDir: 'public',
   build: {
@@ -19,13 +12,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-      },
-    },
-  },
-  css: {
-    preprocessorOptions: {
-      scss: {
-        api: 'modern-compiler',
       },
     },
   },
