@@ -7,8 +7,10 @@ image:
   pullPolicy: Always
   tag: "latest"
 
-imagePullSecrets:
-  - name: ghcr-pull-secret
+# Opcional: necesario solo si la imagen de GHCR es privada.
+# Si es pública, dejar como [].
+imagePullSecrets: []
+#  - name: ghcr-pull-secret
 
 nameOverride: ""
 fullnameOverride: ""
