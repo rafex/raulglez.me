@@ -18,11 +18,19 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 
 - El frontend consume **solo** vista pública desde `GET /api/cv`.
 - El backend genera PDF dinámico en `GET /api/cv.pdf`.
+- El backend expone chat IA en `POST /api/ai/ask` con trazabilidad.
 - La fuente de verdad del contenido es `backend/data/cv.json`.
 - El JSON separa datos visibles por contexto:
   - `contact.public`: se puede mostrar en el sitio.
   - `contact.private`: **no** se muestra en sitio, solo en PDF.
 - El frontend está modularizado en `frontend/src/scripts/modules/`.
+- Existe chat flotante en frontend con captura de lead:
+  - obligatorios: `name`, `phone`.
+  - opcionales: `email`, `company`, `positionOffer`.
+- Las interacciones de chat se almacenan en SQLite (`backend/data/interactions.sqlite`).
+- Modo de respuesta IA:
+  - `genai`: Groq.
+  - `deterministic`: fallback local con FAISS + respuestas aprobadas.
 
 ## Mapa rapido
 
@@ -50,6 +58,18 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
   `private` o en una rama equivalente no pública.
 - El PDF debe construirse desde el JSON actualizado, no desde archivos
   estáticos manuales.
+- Si se agrega información a `cv.json` que alimente IA, mantenerla coherente
+  con `highlight_semantic` y estructura pública/privada.
+
+## Reglas de despliegue (estado actual)
+
+- Helm chart `helm/raulglez-me` ya contempla:
+  - `HPA`, `PDB`, `startupProbe`, estrategia rolling update.
+  - `envFrom.secretRef` hacia `Values.env.secretName` (default `raulglez-me-env`).
+  - volumen writable `/app/data` para SQLite (`emptyDir`).
+- Secretos obligatorios de runtime:
+  - `GROQ_API_KEY` en Kubernetes Secret consumido por el Deployment.
+- Alinear workflows con estos secretos y evitar credenciales embebidas.
 
 ## Separacion semantica de documentos
 

@@ -1,11 +1,12 @@
 # raulglez.me
 
-Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + TS) y backend Node.js para exponer datos y generar PDF dinámico.
+Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + TS) y backend Node.js para exponer datos, generar PDF dinámico e interactuar con IA sobre el CV.
 
 ## Estado actual
 
 - Sitio público consume datos desde `backend/data/cv.json` por `GET /api/cv`.
 - El backend genera CV en PDF en tiempo real por `GET /api/cv.pdf` usando `pdfkit`.
+- Chat IA disponible por `POST /api/ai/ask` con persistencia de preguntas/respuestas.
 - `cv.json` usa estructura semántica con separación de datos:
   - `contact.public` → visible en sitio.
   - `contact.private` → solo para PDF.
@@ -14,12 +15,15 @@ Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + T
 
 - `frontend/`: UI pública del CV.
   - `src/scripts/main.ts`: orquestador.
-  - `src/scripts/modules/`: módulos (`renderers`, `accessibility`, `phone-canvas`, `observers`, `text-utils`).
+  - `src/scripts/modules/`: módulos (`renderers`, `accessibility`, `phone-canvas`, `observers`, `text-utils`, `chat`).
   - `index.pug`: layout + toolbar del sitio.
 - `backend/`: API y exportación PDF.
-  - `src/server.ts`: rutas `/api/cv` y `/api/cv.pdf`.
+  - `src/server.ts`: rutas `/api/cv`, `/api/cv.pdf`, `/api/ai/ask`, `/api/ai/questions`.
+  - `src/ai.ts`: orquestación RAG + Groq + tracking de interacciones.
   - `src/pdf.ts`: generador PDF desde JSON.
   - `src/pdf.js`: bridge para modo dev con `--experimental-strip-types`.
+  - `ai/rag_faiss.py`: index/query FAISS + respuesta determinista.
+  - `data/interactions.sqlite`: tracking y revisión de preguntas IA.
   - `data/cv.json`: fuente de verdad del CV.
 - `containers/`: imagen Docker.
 - `helm/`: despliegue en Kubernetes.
@@ -32,6 +36,10 @@ La barra superior incluye:
 - `Modo lectura` (switch).
 - `Accesibilidad` (tamaño de fuente, tipografía OSS, paletas para daltonismo).
 - `Descargar PDF` (usa `/api/cv.pdf`, no archivo estático).
+
+Además existe un botón flotante de chat para consultar el CV:
+- Requiere lead mínimo (`name`, `phone`).
+- Si Groq falla, responde en modo determinista (FAISS + base validada) y lo informa explícitamente.
 
 ## Comandos
 
@@ -47,6 +55,13 @@ Cuando actualices contenido del CV, modifica `backend/data/cv.json`.
 
 - Lo público se refleja en el sitio (`/api/cv`).
 - Lo privado solo se usa en el PDF (`/api/cv.pdf`).
+
+## Variables de entorno relevantes
+
+- `GROQ_API_KEY` (obligatoria para modo GenAI en chat).
+- `GROQ_MODEL` (opcional, default: `llama-3.3-70b-versatile`).
+
+En Kubernetes, estas variables deben vivir en un Secret (por default `raulglez-me-env`) referenciado por Helm.
 
 ## Secretos (`sops + age`)
 
@@ -67,3 +82,13 @@ Notas:
 - Nunca commitear `.env` ni llaves privadas `.agekey`.
 - Sí se puede versionar `.env.enc`.
 
+## Estado de despliegue Helm
+
+El chart `helm/raulglez-me` ya incluye:
+- estrategia rolling update,
+- `startupProbe` + `liveness/readiness`,
+- `HPA` y `PDB`,
+- `envFrom` desde Secret (`env.secretName`),
+- volumen writable `/app/data` para SQLite.
+
+Pendientes abiertos están en [TODO.md](/Users/rafex/repository/github/rafex/raulglez.me/TODO.md).
