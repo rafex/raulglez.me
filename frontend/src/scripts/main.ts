@@ -75,10 +75,10 @@ function renderSkills(skills: Skills): string {
 
 function renderEducation(certs: Certification[]): string {
   const cards = certs.map((c) => `
-    <article class="education__card">
-      <p class="education__year">${esc(c.year)}</p>
-      <h3 class="education__title">${esc(c.title)}</h3>
-      <p class="education__code">Examen: ${esc(c.code)} — ID: ${esc(c.id)}</p>
+    <article class="card">
+      <p class="card-title">${esc(c.title)}</p>
+      <p class="small-desc">${esc(c.year)} · ${esc(c.code)}<br>ID: ${esc(c.id)}</p>
+      <div class="go-corner"><div class="go-arrow">→</div></div>
     </article>`).join('');
 
   return `
@@ -88,9 +88,10 @@ function renderEducation(certs: Certification[]): string {
 
 function renderConferences(confs: Conference[]): string {
   const items = confs.map((c) => `
-    <article class="conference__item">
-      <h3 class="conference__title">${esc(c.title)}</h3>
-      <p class="conference__meta">${esc(c.event)} — ${esc(c.location)}</p>
+    <article class="card">
+      <p class="card-title">${esc(c.title)}</p>
+      <p class="small-desc">${esc(c.event)} · ${esc(c.location)}</p>
+      <div class="go-corner"><div class="go-arrow">→</div></div>
     </article>`).join('');
 
   return `
@@ -100,11 +101,12 @@ function renderConferences(confs: Conference[]): string {
 
 function renderProjects(projects: Project[]): string {
   const cards = projects.map((p) => `
-    <article class="project__card">
-      <h3 class="project__name">
+    <article class="card">
+      <p class="card-title">
         <a href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">${esc(p.name)}</a>
-      </h3>
-      <p class="project__description">${esc(p.description)}</p>
+      </p>
+      <p class="small-desc">${esc(p.description)}</p>
+      <div class="go-corner"><div class="go-arrow">→</div></div>
     </article>`).join('');
 
   return `
@@ -116,21 +118,33 @@ function renderContact(contact: Contact): string {
   return `
     <h2 class="section__title">Contacto</h2>
     <div class="contact__grid">
-      <div class="contact__item">
-        <span class="contact__label">Teléfono</span>
-        <span class="contact__value">${esc(contact.phone)}</span>
+      <div class="contact-card">
+        <div class="bg">
+          <span class="contact__label">Teléfono</span>
+          <span class="contact__value">${esc(contact.phone)}</span>
+        </div>
+        <div class="blob"></div>
       </div>
-      <div class="contact__item">
-        <span class="contact__label">Email</span>
-        <a class="contact__value" href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>
+      <div class="contact-card">
+        <div class="bg">
+          <span class="contact__label">Email</span>
+          <a class="contact__value" href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>
+        </div>
+        <div class="blob"></div>
       </div>
-      <div class="contact__item">
-        <span class="contact__label">Ubicación</span>
-        <span class="contact__value">${esc(contact.location)}</span>
+      <div class="contact-card">
+        <div class="bg">
+          <span class="contact__label">Ubicación</span>
+          <span class="contact__value">${esc(contact.location)}</span>
+        </div>
+        <div class="blob"></div>
       </div>
-      <div class="contact__item">
-        <span class="contact__label">Web</span>
-        <a class="contact__value" href="https://${esc(contact.website)}" target="_blank" rel="noopener noreferrer">${esc(contact.website)}</a>
+      <div class="contact-card">
+        <div class="bg">
+          <span class="contact__label">Web</span>
+          <a class="contact__value" href="https://${esc(contact.website)}" target="_blank" rel="noopener noreferrer">${esc(contact.website)}</a>
+        </div>
+        <div class="blob"></div>
       </div>
     </div>`;
 }
