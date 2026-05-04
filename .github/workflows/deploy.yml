@@ -42,8 +42,8 @@ jobs:
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
-        else
-          echo "tag=latest" >> $GITHUB_OUTPUT
+          else
+            echo "tag=latest" >> $GITHUB_OUTPUT
           fi
 
       - name: Setup kubectl
@@ -77,9 +77,14 @@ jobs:
 
       - name: Create app env secret
         run: |
+          GROQ_MODEL_VALUE="${{ vars.GROQ_MODEL }}"
+          if [ -z "$GROQ_MODEL_VALUE" ]; then
+            GROQ_MODEL_VALUE="llama-3.3-70b-versatile"
+          fi
+
           kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
             --from-literal=GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
-            --from-literal=GROQ_MODEL='${{ vars.GROQ_MODEL || 'llama-3.3-70b-versatile' }}' \
+            --from-literal=GROQ_MODEL="$GROQ_MODEL_VALUE" \
             --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
