@@ -19,11 +19,16 @@ function esc(s: string): string {
 
 function renderHeader(data: Header): string {
   return `
-    <div class="header__content">
+    <div class="content">
       <h1 class="header__name">${esc(data.name)}</h1>
       <p class="header__title">${esc(data.title)}</p>
       <p class="header__role">${esc(data.role)}</p>
       <div class="header__vision"><p>${esc(data.vision)}</p></div>
+    </div>
+    <div class="image phone">
+      <div class="inner">
+        <img src="/images/profile_raul_glez.jpg" alt="Foto de perfil de ${esc(data.name)}" loading="eager" />
+      </div>
     </div>`;
 }
 

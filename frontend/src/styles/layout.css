@@ -2,7 +2,8 @@
 #app {
   max-width: var(--max-width);
   margin: 0 auto;
-  padding: var(--spacing-xl) var(--spacing-lg);
+  /* No top padding — cv-header bleeds flush to the top */
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
 }
 
 .section {
@@ -33,47 +34,172 @@
   border-radius: 2px;
 }
 
-/* === Header === */
+/* === Header (Fractal-inspired — html5up.net / @ajlkn, CCA 3.0) === */
 .cv-header {
-  padding: var(--spacing-3xl) var(--spacing-xl);
-  text-align: center;
-  background: linear-gradient(135deg, var(--color-primary), var(--color-secondary));
-  color: #fff;
-  border-radius: var(--border-radius-lg);
+  background-color: #4696e5;
+  background-image: url('/images/overlay.png'), url('/images/pattern-size1.svg');
+  background-position: top left, center center;
+  background-attachment: fixed, fixed;
+  background-size: auto, cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5em;
+  /* Full-bleed across viewport without horizontal overflow */
+  width: auto;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
   margin-bottom: var(--spacing-3xl);
+  padding: 4.5em var(--spacing-xl);
+  min-height: 95vh;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+/* Text block — right-aligned like Fractal original */
+.cv-header .content {
+  text-align: right;
+  max-width: 480px;
 }
 
 .header__name {
-  font-size: var(--font-size-4xl);
-  color: #fff;
-  margin-bottom: var(--spacing-xs);
+  font-size: 3.25em;
+  font-weight: bold;
+  color: #ffffff;
+  line-height: 1.1;
+  margin: 0 0 0.25em;
   letter-spacing: -0.5px;
 }
 
 .header__title {
-  font-size: var(--font-size-lg);
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: var(--spacing-sm);
+  font-size: 1.2em;
+  line-height: 1.4;
+  color: rgba(255, 255, 255, 0.65);
+  margin: 0 0 0.5em;
 }
 
 .header__role {
   display: inline-block;
-  font-size: var(--font-size-2xl);
-  font-weight: 700;
-  color: var(--color-highlight);
-  background: rgba(233, 69, 96, 0.1);
-  padding: var(--spacing-xs) var(--spacing-lg);
-  border-radius: var(--border-radius);
-  margin-bottom: var(--spacing-xl);
+  font-size: 1em;
+  font-weight: bold;
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 0.3em 0.8em;
+  border-radius: 4px;
+  margin: 0 0 1.25em;
 }
 
 .header__vision {
-  max-width: 700px;
-  margin: 0 auto;
-  font-size: var(--font-size-md);
-  line-height: 1.8;
-  color: rgba(255, 255, 255, 0.85);
+  font-size: 0.9em;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.75);
   font-style: italic;
+}
+
+.header__vision p { margin: 0; }
+
+/* ── Phone mockup (Fractal component) ── */
+.image.phone {
+  box-shadow: none;
+  border-radius: 0;
+  margin: 0;
+  width: 13em;
+  flex-shrink: 0;
+}
+
+.image.phone img {
+  border-radius: 0;
+  display: block;
+  position: relative;
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  object-position: center 20%;
+}
+
+.image.phone .inner,
+.image.phone::before,
+.image.phone::after {
+  display: block;
+  border: solid 2px rgba(255, 255, 255, 0.25);
+}
+
+.image.phone .inner {
+  position: relative;
+}
+
+.image.phone .inner::before,
+.image.phone .inner::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+}
+
+/* Speaker bar */
+.image.phone .inner::before {
+  top: -1.375em;
+  margin-left: -1em;
+  width: 2em;
+  height: 0.25em;
+  border-radius: 0.5em;
+  background: rgba(255, 255, 255, 0.25);
+}
+
+/* Home button circle */
+.image.phone .inner::after {
+  bottom: -2.75em;
+  margin-left: -1em;
+  width: 2em;
+  height: 2em;
+  border-radius: 100%;
+  border: solid 2px rgba(255, 255, 255, 0.25);
+}
+
+.image.phone::before,
+.image.phone::after {
+  content: '';
+}
+
+/* Top bar of phone frame */
+.image.phone::before {
+  height: 2.5em;
+  border-radius: 1em 1em 0 0;
+  border-bottom: 0;
+}
+
+/* Bottom bar of phone frame */
+.image.phone::after {
+  height: 3.5em;
+  border-radius: 0 0 1em 1em;
+  border-top: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 980px) {
+  .cv-header { gap: 3em; }
+}
+
+@media (max-width: 736px) {
+  .cv-header {
+    flex-direction: column-reverse;
+    padding: 4em var(--spacing-lg);
+    min-height: auto;
+    background-attachment: scroll, scroll; /* fixed bg broken on iOS */
+  }
+
+  .cv-header .content {
+    text-align: center;
+    max-width: 100%;
+  }
+
+  .header__name  { font-size: 2em; }
+  .header__title { font-size: 1em; }
+
+  .image.phone {
+    font-size: 0.6em;
+    max-width: 60vw;
+    margin-bottom: 2em;
+  }
 }
 
 /* === About === */
