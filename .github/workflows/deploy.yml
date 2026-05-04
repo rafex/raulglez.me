@@ -72,6 +72,10 @@ jobs:
 
       - name: Create GHCR pull secret
         run: |
+          if [ -z "${{ secrets.GHCR_USERNAME }}" ] || [ -z "${{ secrets.GHCR_TOKEN }}" ]; then
+            echo "GHCR secrets not configured — skipping pull secret (image is public)"
+            exit 0
+          fi
           kubectl create secret docker-registry "${{ env.GHCR_PULL_SECRET }}" \
             --docker-server=ghcr.io \
             --docker-username=${{ secrets.GHCR_USERNAME }} \
@@ -100,10 +104,14 @@ jobs:
 
       - name: Deploy with Helm
         run: |
+          HELM_EXTRA=""
+          if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
+            HELM_EXTRA="--set imagePullSecrets[0].name=${{ env.GHCR_PULL_SECRET }}"
+          fi
           helm upgrade --install ${{ env.HELM_RELEASE }} ${{ env.HELM_CHART }} \
             --namespace "${{ env.K3S_NAMESPACE }}" \
             --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set imagePullSecrets[0].name="${{ env.GHCR_PULL_SECRET }}" \
+            $HELM_EXTRA \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \
             --wait \
             --timeout 5m
