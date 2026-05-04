@@ -10,8 +10,17 @@ export function initAccessibility(): void {
   const fontFamily = document.querySelector('#a11y-font-family') as HTMLSelectElement | null;
   const colorTheme = document.querySelector('#a11y-color-theme') as HTMLSelectElement | null;
   const readingSwitch = document.querySelector('#reading-switch') as HTMLInputElement | null;
+  const readingOuter = document.querySelector('.switch-button .switch-outer') as HTMLElement | null;
 
   if (!toggle || !panel || !fontSize || !fontSizeValue || !fontFamily || !colorTheme || !readingSwitch) return;
+
+  const tryOpenNativeReaderView = (): boolean => {
+    const isFirefox = /firefox/i.test(navigator.userAgent);
+    if (!isFirefox) return false;
+    const readerUrl = `about:reader?url=${encodeURIComponent(window.location.href)}`;
+    window.open(readerUrl, '_blank', 'noopener,noreferrer');
+    return true;
+  };
 
   const applyReadingState = (on: boolean): void => {
     root.dataset.reading = on ? 'on' : 'off';
@@ -59,7 +68,24 @@ export function initAccessibility(): void {
     localStorage.setItem('a11y-theme', colorTheme.value);
   });
 
-  readingSwitch.addEventListener('change', () => {
+  const syncReadingFromSwitch = (): void => {
+    if (readingSwitch.checked) {
+      const openedNative = tryOpenNativeReaderView();
+      if (openedNative) {
+        // Mantiene este sitio sin modo interno cuando se abre lector nativo.
+        applyReadingState(false);
+        return;
+      }
+    }
     applyReadingState(readingSwitch.checked);
+  };
+
+  readingSwitch.addEventListener('change', syncReadingFromSwitch);
+  readingSwitch.addEventListener('input', syncReadingFromSwitch);
+
+  readingOuter?.addEventListener('click', (event) => {
+    if (event.target === readingSwitch) return;
+    readingSwitch.checked = !readingSwitch.checked;
+    syncReadingFromSwitch();
   });
 }
