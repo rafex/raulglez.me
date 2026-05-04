@@ -21,7 +21,7 @@ function renderHeader(data: Header): string {
   return `
     <div class="content">
       <h1 class="header__name">${esc(data.name)}</h1>
-      <p class="header__title">${esc(data.title)}</p>
+      ${data.title ? `<p class="header__title">${esc(data.title)}</p>` : ''}
       <p class="header__role">${esc(data.role)}</p>
       <div class="header__vision"><p>${esc(data.vision)}</p></div>
     </div>
@@ -137,6 +137,32 @@ function initPhoneCanvas(): void {
 }
 
 function renderAbout(text: string): string {
+  const marker = 'Estudios:';
+  const idx = text.indexOf(marker);
+  if (idx >= 0) {
+    const intro = text.slice(0, idx).trim();
+    const studies = text.slice(idx + marker.length).trim();
+    const studiesHtml = studies
+      .replace(
+        'Licenciatura de Sistemas Computacionales Administrativos',
+        '<span class="about__hl-degree">Licenciatura de Sistemas Computacionales Administrativos</span>'
+      )
+      .replace(
+        'Facultad de Contaduría y Administración de la Universidad Veracruzana',
+        '<span class="about__hl-university">Facultad de Contaduría y Administración de la Universidad Veracruzana</span>'
+      )
+      .replace(
+        'Xalapa-Enríquez, Veracruz de Ignacio de la Llave.',
+        '<span class="about__hl-location">Xalapa-Enríquez, Veracruz de Ignacio de la Llave.</span>'
+      );
+    return `
+    <h2 class="section__title">Sobre mí</h2>
+    <p class="about__text">${esc(intro)}</p>
+    <ul class="about__list">
+      <li><strong>Estudios:</strong> ${studiesHtml}</li>
+    </ul>`;
+  }
+
   return `
     <h2 class="section__title">Sobre mí</h2>
     <p class="about__text">${esc(text)}</p>`;

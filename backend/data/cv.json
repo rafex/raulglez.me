@@ -1,7 +1,7 @@
 {
   "header": {
-    "name": "Raúl Eduardo González Argote",
-    "title": "Lic. Sistemas Computacionales Administrativos",
+    "name": "Raúl González",
+    "title": "",
     "role": "Arquitecto TI",
     "vision": "El uso de las TIC's en un entorno empresarial e individual para facilitar y solventar problemáticas que en estas existen. Proveer soluciones con base a las tecnologías actuales tanto privadas/costo y OpenSource/Free. Análisis y arquitectura de aplicaciones de alto impacto junto con su infraestructura escalable y replicable."
   },
@@ -11,7 +11,7 @@
     "location": "Ciudad de México, Benito Juárez",
     "website": "raulglez.me"
   },
-  "about": "Arquitecto de software con más de 14 años de experiencia en desarrollo de aplicaciones empresariales, liderazgo de equipos y diseño de arquitecturas escalables. Especialista en Java (J2EE/J2SE), Spring, microservicios y plataformas cloud (Azure, AWS, GCP). Apasionado por el Open Source, la automatización de infraestructura y la docencia técnica.",
+  "about": "Arquitecto de software con más de 14 años de experiencia en desarrollo de aplicaciones empresariales, liderazgo de equipos y diseño de arquitecturas escalables. Especialista en Java (J2EE/J2SE), Spring, microservicios y plataformas cloud (Azure, AWS, GCP). Apasionado por el Open Source, la automatización de infraestructura y la docencia técnica. Estudios: Licenciatura de Sistemas Computacionales Administrativos, en la Facultad de Contaduría y Administración de la Universidad Veracruzana, Xalapa-Enríquez, Veracruz de Ignacio de la Llave.",
   "experience": [
     {
       "role": "Arquitecto TI",
@@ -20,6 +20,7 @@
       "location": "CDMX",
       "highlights": [
         "Arquitecto de la Plataforma de Firma, ayudando a la generación de MSA para dar solución a requerimientos de negocio como: Firma Autógrafa, firma de derivados y firma diferida.",
+        "Apoyo a discovery de proyectos internos para evaluar la plataforma e integrarla a nuevas iniciativas e ideas.",
         "Component Owner de la Plataforma de Evidencias.",
         "Adopción local de las capacidades de la plataforma global para el proyecto de firma diferida.",
         "Tecnologías NextGen Ether: ASO, APX, Epsilon."
@@ -35,8 +36,10 @@
         "Revisar arquitectura actual de clientes y proponer mejoras y migración a Azure.",
         "Soporte de incidentes productivos.",
         "Configuración de ambientes Linux en Azure usando best practices de seguridad.",
+        "Mejora de procesos y sistemas del cliente para automatizarlos y generar integraciones más eficientes.",
+        "Levantamiento de requerimientos con cliente y trabajo con metodologías ágiles.",
         "Creación de APIs, diagramas de secuencia y arquitectura de alto nivel.",
-        "Tecnologías: Java, Spring Boot, Azure (AKS, Functions, SQL Server, API Gateway, Key Vault), Angular, React."
+        "Tecnologías: Java, Spring, Spring Boot, Azure (Azure DevOps, Azure Functions, AKS, SQL Server, VM, API Gateway, Storage Account, Key Vault, API Management, Redis), Selenium, Angular, React, Git, Linux, Shell Scripting, Maven, Gradle, Microsoft Planner, JUnit, JMeter, MariaDB, PHP, Apache HTTPD."
       ]
     },
     {
@@ -48,8 +51,10 @@
         "Sistemas a medida con Angular, Java, Python, Spring, MyBatis, PostgreSQL, GCP, AWS.",
         "Administración de servidores Linux (CentOS, Debian).",
         "Contenedores Linux (LXC, Podman).",
+        "Administración de servidores Nginx, Tomcat y JBoss.",
         "Microservicios Java con apenas 10MB (Java puro).",
-        "Marketing Digital, campañas, SEO, SEM."
+        "Marketing Digital, campañas, SEO, SEM.",
+        "Levantamiento de requerimientos, definición de alcances/objetivos, diseño de arquitectura e instalación On-Premises o Cloud."
       ]
     },
     {
@@ -308,6 +313,11 @@
     {
       "name": "entermedia.mx",
       "url": "http://entermedia.mx",
+      "description": "Colaborador en blog de tecnología."
+    },
+    {
+      "name": "tecnologiaslibres.net",
+      "url": "http://tecnologiaslibres.net",
       "description": "Colaborador en blog de tecnología."
     }
   ]
