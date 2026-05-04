@@ -47,3 +47,14 @@ Selector labels
 app.kubernetes.io/name: {{ include "raulglez-me.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
+
+{{/*
+Service account name
+*/}}
+{{- define "raulglez-me.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "raulglez-me.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}
