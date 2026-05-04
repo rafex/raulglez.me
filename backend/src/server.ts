@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateCvPdfBuffer } from './pdf.js';
+import { askCvWithTracking, listTrackedQuestions, rateTrackedQuestion } from './ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -69,7 +70,17 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
   res.end(fs.readFileSync(filePath));
 }
 
+async function readJsonBody(req: http.IncomingMessage): Promise<any> {
+  const chunks: Buffer[] = [];
+  for await (const chunk of req) {
+    chunks.push(Buffer.from(chunk));
+  }
+  const raw = Buffer.concat(chunks).toString('utf-8') || '{}';
+  return JSON.parse(raw);
+}
+
 const server = http.createServer((req, res) => {
+  const method = req.method ?? 'GET';
   const url = (req.url ?? '/').split('?')[0];
 
   if (url === '/api/cv') {
@@ -104,6 +115,48 @@ const server = http.createServer((req, res) => {
       res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
       res.end('Invalid CV data');
     }
+    return;
+  }
+
+  if (method === 'POST' && url === '/api/ai/ask') {
+    readJsonBody(req)
+      .then((payload) => askCvWithTracking(payload))
+      .then((result) => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: true, ...result }));
+      })
+      .catch((err) => {
+        const status = /obligatoria|obligatorio|Payload|contact|name|phone/i.test(String(err?.message)) ? 400 : 500;
+        res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
+      });
+    return;
+  }
+
+  if (method === 'GET' && url === '/api/ai/questions') {
+    try {
+      const rows = listTrackedQuestions(200);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ ok: true, rows }));
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: String(err) }));
+    }
+    return;
+  }
+
+  const rateMatch = url.match(/^\/api\/ai\/questions\/(\d+)$/);
+  if (method === 'PATCH' && rateMatch) {
+    readJsonBody(req)
+      .then((payload) => {
+        rateTrackedQuestion(Number(rateMatch[1]), payload ?? {});
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: true }));
+      })
+      .catch((err) => {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(err) }));
+      });
     return;
   }
 
