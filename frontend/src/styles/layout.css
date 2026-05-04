@@ -567,14 +567,81 @@
   font-style: italic;
 }
 
+.tooltip-container {
+  --background: #123b67;
+  position: relative;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  transition: all 0.2s;
+  padding: 0 0.08em;
+  border: 1px solid transparent;
+}
+
+.tooltip {
+  position: absolute;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 210px;
+  max-width: 300px;
+  padding: 0.42em 0.66em;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s;
+  color: #fff;
+  background: var(--background);
+  z-index: 25;
+  font-size: 0.82rem;
+  line-height: 1.45;
+  border-radius: 0.35em;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.22);
+}
+
+.tooltip::before {
+  position: absolute;
+  content: '';
+  height: 0.55em;
+  width: 0.55em;
+  bottom: -0.18em;
+  left: 50%;
+  transform: translate(-50%) rotate(45deg);
+  background: var(--background);
+}
+
+.tooltip-container:hover .tooltip {
+  top: -150%;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+.semantic-token .text {
+  border-bottom: 2px solid var(--background);
+  line-height: 1.1;
+  animation: semantic-bounce 1.25s ease-in-out infinite;
+}
+
+.semantic-token:hover .text {
+  animation: none;
+}
+
 .semantic-strong {
   color: var(--color-primary);
   font-weight: 700;
+  --background: #0f2742;
 }
 
 .semantic-soft {
   color: var(--color-secondary);
   font-weight: 600;
+  --background: #1f5f96;
+}
+
+@keyframes semantic-bounce {
+  50% { opacity: 0.82; }
+  75% { transform: rotate(1deg); }
+  100% { opacity: 1; }
 }
 
 html[data-reading='on'] .cv-header {

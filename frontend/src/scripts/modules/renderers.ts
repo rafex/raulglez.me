@@ -11,21 +11,7 @@ import type {
 import { esc, highlightSemantic } from './text-utils';
 
 function highlightVisionText(text: string): string {
-  let out = esc(text);
-  const terms = [
-    "TIC's",
-    'tecnologías actuales',
-    'OpenSource/Free',
-    'Análisis',
-    'arquitectura',
-    'alto impacto',
-    'infraestructura escalable y replicable',
-  ];
-
-  terms.forEach((term) => {
-    out = out.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), `<strong>${term}</strong>`);
-  });
-  return out;
+  return highlightSemantic(text);
 }
 
 function renderVision(text: string): string {

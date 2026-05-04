@@ -12,6 +12,7 @@ import {
 import { initPhoneCanvas } from './modules/phone-canvas';
 import { observeSections } from './modules/observers';
 import { initAccessibility } from './modules/accessibility';
+import { configureSemanticHighlights } from './modules/text-utils';
 
 function fill(selector: string, html: string): void {
   const el = document.querySelector(selector);
@@ -32,6 +33,7 @@ async function loadCV(): Promise<void> {
     const res = await fetch('/api/cv');
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data: CVData = (await res.json()) as CVData;
+    configureSemanticHighlights(data);
 
     fill('.cv-header', renderHeader(data.header));
     fill('.cv-about', renderAbout(data.about, data.education ?? []));

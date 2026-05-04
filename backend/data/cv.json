@@ -17,7 +17,7 @@
       "phone": "55 80 99 50 29",
       "email": "rafex@rafex.dev",
       "location": "Ciudad de México, Benito Juárez"
-    }  
+    }
   },
   "about": "Arquitecto de software con más de 19 años de experiencia en desarrollo de aplicaciones empresariales, liderazgo de equipos y diseño de arquitecturas escalables. Especialista en Java (J2EE/J2SE), Spring, microservicios y plataformas cloud (Azure, AWS, GCP). Apasionado por el Open Source, la automatización de infraestructura y la docencia técnica.",
   "education": [
@@ -353,30 +353,102 @@
   ],
   "skills": {
     "technical": [
-      {"name": "Java (J2EE, J2SE)", "experienceYears": 14},
-      {"name": "Spring", "experienceYears": 14},
-      {"name": "Spring Boot", "experienceYears": 14},
-      {"name": "Microservicios", "experienceYears": 14},
-      {"name": "RESTful APIs, SOAP", "experienceYears": 14},
-      {"name": "JavaScript, TypeScript", "experienceYears": 14},
-      {"name": "Angular, React", "experienceYears": 14},
-      {"name": "Python", "experienceYears": 14},
-      {"name": "PHP", "experienceYears": 14},
-      {"name": "Shell Scripting", "experienceYears": 14},
-      {"name": "Maven, Gradle", "experienceYears": 14},
-      {"name": "Git, SVN", "experienceYears": 14},
-      {"name": "Jenkins, CI/CD", "experienceYears": 14},
-      {"name": "Docker, LXC, Podman", "experienceYears": 14},
-      {"name": "Kubernetes (AKS)", "experienceYears": 14},
-      {"name": "MySQL, PostgreSQL, Oracle, SQL Server", "experienceYears": 14},
-      {"name": "MongoDB, Redis", "experienceYears": 14},
-      {"name": "AWS, Azure, GCP", "experienceYears": 14},
-      {"name": "Linux (Debian, CentOS, Ubuntu)", "experienceYears": 14},
-      {"name": "Nginx, Apache, Tomcat, JBoss, WAS", "experienceYears": 14},
-      {"name": "Alfresco, Liferay, WebSphere Portal", "experienceYears": 14},
-      {"name": "HTML5, CSS3, Sass", "experienceYears": 14},
-      {"name": "MyBatis, Hibernate, JPA", "experienceYears": 14},
-      {"name": "JUnit, JMeter, Selenium", "experienceYears": 14}
+      {
+        "name": "Java (J2EE, J2SE)",
+        "experienceYears": 14
+      },
+      {
+        "name": "Spring",
+        "experienceYears": 14
+      },
+      {
+        "name": "Spring Boot",
+        "experienceYears": 14
+      },
+      {
+        "name": "Microservicios",
+        "experienceYears": 14
+      },
+      {
+        "name": "RESTful APIs, SOAP",
+        "experienceYears": 14
+      },
+      {
+        "name": "JavaScript, TypeScript",
+        "experienceYears": 14
+      },
+      {
+        "name": "Angular, React",
+        "experienceYears": 14
+      },
+      {
+        "name": "Python",
+        "experienceYears": 14
+      },
+      {
+        "name": "PHP",
+        "experienceYears": 14
+      },
+      {
+        "name": "Shell Scripting",
+        "experienceYears": 14
+      },
+      {
+        "name": "Maven, Gradle",
+        "experienceYears": 14
+      },
+      {
+        "name": "Git, SVN",
+        "experienceYears": 14
+      },
+      {
+        "name": "Jenkins, CI/CD",
+        "experienceYears": 14
+      },
+      {
+        "name": "Docker, LXC, Podman",
+        "experienceYears": 14
+      },
+      {
+        "name": "Kubernetes (AKS)",
+        "experienceYears": 14
+      },
+      {
+        "name": "MySQL, PostgreSQL, Oracle, SQL Server",
+        "experienceYears": 14
+      },
+      {
+        "name": "MongoDB, Redis",
+        "experienceYears": 14
+      },
+      {
+        "name": "AWS, Azure, GCP",
+        "experienceYears": 14
+      },
+      {
+        "name": "Linux (Debian, CentOS, Ubuntu)",
+        "experienceYears": 14
+      },
+      {
+        "name": "Nginx, Apache, Tomcat, JBoss, WAS",
+        "experienceYears": 14
+      },
+      {
+        "name": "Alfresco, Liferay, WebSphere Portal",
+        "experienceYears": 14
+      },
+      {
+        "name": "HTML5, CSS3, Sass",
+        "experienceYears": 14
+      },
+      {
+        "name": "MyBatis, Hibernate, JPA",
+        "experienceYears": 14
+      },
+      {
+        "name": "JUnit, JMeter, Selenium",
+        "experienceYears": 14
+      }
     ],
     "competencies": [
       "Abstracción de problemas",
@@ -488,5 +560,59 @@
       "url": "http://tecnologiaslibres.net",
       "description": "Colaborador en blog de tecnología."
     }
-  ]
+  ],
+  "highlight_semantic": {
+    "java": {
+      "text": "Base de arquitectura y desarrollo enterprise.",
+      "experienceYears": 14,
+      "use": [
+        "skills",
+        "competencies",
+        "certifications",
+        "experience"
+      ],
+      "certifications": [
+        "Sun Certified Associate for Java Platform, Standard Edition",
+        "Sun Certified Programmer for the Java 2 Platform, Standard Edition",
+        "Sun Certified Web Component Developer for Java Platform, Enterprise Edition 5"
+      ],
+      "className": "strong"
+    },
+    "spring": {
+      "text": "Framework principal para APIs y microservicios.",
+      "experienceYears": 14,
+      "use": [
+        "skills",
+        "experience"
+      ],
+      "className": "strong"
+    },
+    "linux": {
+      "text": "Operación, hardening y automatización de servidores.",
+      "experienceYears": 14,
+      "use": [
+        "skills",
+        "experience"
+      ],
+      "className": "soft"
+    },
+    "azure": {
+      "text": "Cloud empresarial para integración y operación productiva.",
+      "experienceYears": 14,
+      "use": [
+        "skills",
+        "experience"
+      ],
+      "className": "strong"
+    },
+    "microservicios": {
+      "text": "Diseño desacoplado, escalable y orientado a dominio.",
+      "experienceYears": 14,
+      "use": [
+        "skills",
+        "experience"
+      ],
+      "className": "strong"
+    }
+  }
 }

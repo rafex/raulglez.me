@@ -8,6 +8,7 @@ export interface CVData {
   certifications: Certification[];
   conferences: Conference[];
   projects: Project[];
+  highlight_semantic?: HighlightSemanticMap;
 }
 
 export interface Header {
@@ -73,4 +74,14 @@ export interface Project {
   name: string;
   url: string;
   description: string;
+}
+
+export type HighlightSemanticMap = Record<string, HighlightSemanticItem>;
+
+export interface HighlightSemanticItem {
+  text?: string;
+  use?: string[];
+  experienceYears?: number;
+  certifications?: string[];
+  className?: 'strong' | 'soft';
 }
