@@ -103,12 +103,12 @@ release-tag tag:
 ## Crea y publica tag con formato v#.YYYYmmDD-# (ej: just release-tag-today 1 1)
 release-tag-today major='1' patch='1':
     @bash -c 'set -euo pipefail; \
-    tag="v{{major}}.$$(date +%Y%m%d)-{{patch}}"; \
-    echo "$$tag" | grep -Eq "^v[0-9]+\\.[0-9]{8}-[0-9]+$$" || { echo "❌ Tag inválido: $$tag"; exit 1; }; \
-    echo "🏷️  Creando tag $$tag"; \
-    git tag "$$tag"; \
-    echo "🚀 Publicando tag $$tag en origin"; \
-    git push origin "$$tag"; \
+    tag="v{{major}}.$(date +%Y%m%d)-{{patch}}"; \
+    echo "$tag" | grep -Eq "^v[0-9]+\\.[0-9]{8}-[0-9]+$" || { echo "❌ Tag inválido: $tag"; exit 1; }; \
+    echo "🏷️  Creando tag $tag"; \
+    git tag "$tag"; \
+    echo "🚀 Publicando tag $tag en origin"; \
+    git push origin "$tag"; \
     echo "✅ Tag publicado. GitHub Actions debe ejecutar Publish Container + Deploy."'
 
 # ─── Secrets (sops + age) ────────────────────────────────
