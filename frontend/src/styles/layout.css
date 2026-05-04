@@ -265,6 +265,109 @@
   box-shadow: var(--shadow-lg);
 }
 
+.ai-review-panel {
+  position: fixed;
+  right: 1rem;
+  bottom: 4.2rem;
+  z-index: 1000;
+  width: min(520px, calc(100vw - 2rem));
+  max-height: 76vh;
+  overflow: hidden;
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-lg);
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+}
+
+.ai-review-panel__head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.75rem 0.85rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ai-review-panel__head h2 {
+  margin: 0;
+  margin-right: auto;
+  font-size: 1rem;
+}
+
+.ai-review-panel__head button {
+  border: 1px solid var(--color-border);
+  background: #fff;
+  color: var(--color-primary);
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-review-panel__status {
+  margin: 0;
+  padding: 0.45rem 0.85rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.ai-review-list {
+  list-style: none;
+  margin: 0;
+  padding: 0.7rem;
+  overflow: auto;
+}
+
+.ai-review-item {
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: #fff;
+  padding: 0.65rem;
+  margin-bottom: 0.65rem;
+}
+
+.ai-review-item p {
+  margin: 0.35rem 0;
+  font-size: 0.85rem;
+  line-height: 1.45;
+}
+
+.ai-review-item__meta {
+  font-size: 0.74rem;
+  color: var(--color-text-muted);
+}
+
+.ai-review-item__controls {
+  display: flex;
+  gap: 0.45rem;
+  margin: 0.45rem 0;
+}
+
+.ai-review-item__controls select,
+.ai-review-item__controls button,
+.ai-review-item textarea {
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  font-size: 0.8rem;
+  padding: 0.35rem 0.45rem;
+}
+
+.ai-review-item__controls button {
+  background: var(--color-secondary);
+  color: #fff;
+  border-color: var(--color-secondary);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ai-review-item textarea {
+  width: 100%;
+  margin-top: 0.35rem;
+  resize: vertical;
+}
+
 .a11y-panel h2 {
   margin-bottom: 0.75rem;
   font-size: var(--font-size-lg);

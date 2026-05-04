@@ -67,6 +67,8 @@ html(lang="es")
                 path(d="M17.5,22.131a1.249,1.249,0,0,1-1.25-1.25V2.187a1.25,1.25,0,0,1,2.5,0V20.881A1.25,1.25,0,0,1,17.5,22.131Z")
                 path(d="M17.5,22.693a3.189,3.189,0,0,1-2.262-.936L8.487,15.006a1.249,1.249,0,0,1,1.767-1.767l6.751,6.751a.7.7,0,0,0,.99,0l6.751-6.751a1.25,1.25,0,0,1,1.768,1.767l-6.752,6.751A3.191,3.191,0,0,1,17.5,22.693Z")
                 path(d="M31.436,34.063H3.564A3.318,3.318,0,0,1,.25,30.749V22.011a1.25,1.25,0,0,1,2.5,0v8.738a.815.815,0,0,0,.814.814H31.436a.815.815,0,0,0,.814-.814V22.011a1.25,1.25,0,1,1,2.5,0v8.738A3.318,3.318,0,0,1,31.436,34.063Z")
+        .site-toolbar__group
+          button#ai-review-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="ai-review-panel" title="Panel de revisión IA") Panel IA
     aside#a11y-panel.a11y-panel(aria-labelledby="a11y-title" hidden)
       h2#a11y-title Accesibilidad
       .a11y-group
@@ -89,6 +91,13 @@ html(lang="es")
           option(value="contrast") Alto contraste
       .a11y-group
         p Usa el switch flotante "Modo lectura" para simplificar la vista.
+    aside#ai-review-panel.ai-review-panel(aria-labelledby="ai-review-title" hidden)
+      .ai-review-panel__head
+        h2#ai-review-title Revisión IA
+        button#ai-review-reload(type="button") Recargar
+        button#ai-review-reindex(type="button") Reindexar FAISS
+      p#ai-index-status.ai-review-panel__status
+      ul#ai-review-list.ai-review-list
     main#app
       div.cv-header
       section.section.cv-about

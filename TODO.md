@@ -24,11 +24,11 @@ Estado: `active`
 
 ## Pendiente funcional (producto)
 
-- [ ] Panel de revisión de preguntas IA:
+- [x] Panel de revisión de preguntas IA:
   - listar preguntas/respuestas guardadas,
   - calificar (`rating`) y aprobar/rechazar (`status`),
   - editar `adjusted_answer`.
-- [ ] Reindexado controlado FAISS:
+- [x] Reindexado controlado FAISS:
   - endpoint/script para reconstruir índice al cambiar `cv.json`,
   - estrategia de invalidación de índice.
 

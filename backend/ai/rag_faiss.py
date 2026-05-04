@@ -2,6 +2,7 @@ import json
 import os
 import sqlite3
 import hashlib
+import time
 from pathlib import Path
 from typing import Any, Dict, List, Tuple
 
@@ -100,19 +101,45 @@ def build_index(cv_json_path: str, sqlite_path: str, index_dir: str) -> Dict[str
     out.mkdir(parents=True, exist_ok=True)
     faiss.write_index(index, str(out / 'cv.index.faiss'))
     (out / 'cv.meta.json').write_text(json.dumps(docs, ensure_ascii=False), encoding='utf-8')
+    manifest = {
+        "cv_json_path": str(Path(cv_json_path).resolve()),
+        "sqlite_path": str(Path(sqlite_path).resolve()),
+        "cv_json_mtime": Path(cv_json_path).stat().st_mtime if Path(cv_json_path).exists() else 0,
+        "sqlite_mtime": Path(sqlite_path).stat().st_mtime if Path(sqlite_path).exists() else 0,
+        "built_at": time.time(),
+        "docs": len(docs),
+    }
+    (out / 'cv.manifest.json').write_text(json.dumps(manifest, ensure_ascii=False), encoding='utf-8')
 
-    return {"ok": True, "docs": len(docs), "dim": int(vec.shape[1])}
+    return {"ok": True, "docs": len(docs), "dim": int(vec.shape[1]), "rebuilt": True}
 
 
-def ensure_index(cv_json_path: str, sqlite_path: str, index_dir: str) -> None:
+def ensure_index(cv_json_path: str, sqlite_path: str, index_dir: str) -> Dict[str, Any]:
     idx = Path(index_dir) / 'cv.index.faiss'
     meta = Path(index_dir) / 'cv.meta.json'
-    if not idx.exists() or not meta.exists():
-        build_index(cv_json_path, sqlite_path, index_dir)
+    manifest = Path(index_dir) / 'cv.manifest.json'
+    if not idx.exists() or not meta.exists() or not manifest.exists():
+        built = build_index(cv_json_path, sqlite_path, index_dir)
+        return {"rebuilt": True, "reason": "missing_index", **built}
+
+    try:
+        m = json.loads(manifest.read_text(encoding='utf-8'))
+    except Exception:
+        built = build_index(cv_json_path, sqlite_path, index_dir)
+        return {"rebuilt": True, "reason": "invalid_manifest", **built}
+
+    current_cv_mtime = Path(cv_json_path).stat().st_mtime if Path(cv_json_path).exists() else 0
+    current_sqlite_mtime = Path(sqlite_path).stat().st_mtime if Path(sqlite_path).exists() else 0
+
+    if current_cv_mtime > float(m.get("cv_json_mtime", 0)) or current_sqlite_mtime > float(m.get("sqlite_mtime", 0)):
+        built = build_index(cv_json_path, sqlite_path, index_dir)
+        return {"rebuilt": True, "reason": "source_changed", **built}
+
+    return {"rebuilt": False, "reason": "up_to_date", "docs": int(m.get("docs", 0))}
 
 
 def query_index(cv_json_path: str, sqlite_path: str, index_dir: str, question: str, top_k: int = 8) -> Dict[str, Any]:
-    ensure_index(cv_json_path, sqlite_path, index_dir)
+    index_state = ensure_index(cv_json_path, sqlite_path, index_dir)
     idx_path = Path(index_dir) / 'cv.index.faiss'
     meta_path = Path(index_dir) / 'cv.meta.json'
 
@@ -133,7 +160,7 @@ def query_index(cv_json_path: str, sqlite_path: str, index_dir: str, question: s
             "text": doc.get('text', ''),
         })
 
-    return {"chunks": chunks}
+    return {"chunks": chunks, "index_state": index_state}
 
 
 def deterministic_answer(cv_json_path: str, sqlite_path: str, index_dir: str, question: str, top_k: int = 8) -> Dict[str, Any]:
@@ -162,6 +189,24 @@ def deterministic_answer(cv_json_path: str, sqlite_path: str, index_dir: str, qu
     return {"answer": answer, "chunks": chunks}
 
 
+def index_status(cv_json_path: str, sqlite_path: str, index_dir: str) -> Dict[str, Any]:
+    out = Path(index_dir)
+    manifest = out / 'cv.manifest.json'
+    idx = out / 'cv.index.faiss'
+    meta = out / 'cv.meta.json'
+    state = ensure_index(cv_json_path, sqlite_path, index_dir)
+    payload: Dict[str, Any] = {
+        "exists": idx.exists() and meta.exists() and manifest.exists(),
+        "index_state": state,
+    }
+    if manifest.exists():
+        try:
+            payload["manifest"] = json.loads(manifest.read_text(encoding='utf-8'))
+        except Exception:
+            payload["manifest"] = {"error": "invalid_manifest"}
+    return payload
+
+
 def main() -> None:
     payload = json.loads(input())
     action = payload.get('action', 'query')
@@ -172,6 +217,8 @@ def main() -> None:
 
     if action == 'build':
         result = build_index(cv_json_path, sqlite_path, index_dir)
+    elif action == 'status':
+        result = index_status(cv_json_path, sqlite_path, index_dir)
     elif action == 'deterministic_answer':
         result = deterministic_answer(
             cv_json_path=cv_json_path,

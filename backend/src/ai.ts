@@ -282,3 +282,23 @@ export function rateTrackedQuestion(id: number, payload: { rating?: number; stat
     id
   );
 }
+
+export async function rebuildRagIndex(): Promise<any> {
+  const payload = {
+    action: 'build',
+    cv_json_path: CV_JSON,
+    sqlite_path: DB_PATH,
+    index_dir: INDEX_DIR,
+  };
+  return runPythonJson(payload);
+}
+
+export async function getRagIndexStatus(): Promise<any> {
+  const payload = {
+    action: 'status',
+    cv_json_path: CV_JSON,
+    sqlite_path: DB_PATH,
+    index_dir: INDEX_DIR,
+  };
+  return runPythonJson(payload);
+}

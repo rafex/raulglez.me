@@ -31,6 +31,11 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 - Modo de respuesta IA:
   - `genai`: Groq.
   - `deterministic`: fallback local con FAISS + respuestas aprobadas.
+- Existe panel de revisión IA en frontend para operación manual:
+  - listar preguntas históricas,
+  - actualizar `status` (`pending|approved|rejected`),
+  - asignar `rating`,
+  - editar `reviewer_note` y `adjusted_answer`.
 
 ## Mapa rapido
 
@@ -74,6 +79,10 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
   - `ghcr-pull-secret` usando `GHCR_USERNAME` + `GHCR_TOKEN`.
   - `raulglez-me-env` con `GROQ_API_KEY` y `GROQ_MODEL`.
 - El contenedor runtime incluye Python + `backend/ai` para fallback determinista.
+- API de índice FAISS:
+  - `GET /api/ai/reindex`: estado del índice.
+  - `POST /api/ai/reindex`: reconstrucción forzada del índice.
+  - invalidación automática: si cambia `cv.json` o la SQLite, el índice se reconstruye al consultar.
 
 ## Separacion semantica de documentos
 

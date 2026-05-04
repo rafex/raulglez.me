@@ -18,7 +18,7 @@ Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + T
   - `src/scripts/modules/`: módulos (`renderers`, `accessibility`, `phone-canvas`, `observers`, `text-utils`, `chat`).
   - `index.pug`: layout + toolbar del sitio.
 - `backend/`: API y exportación PDF.
-  - `src/server.ts`: rutas `/api/cv`, `/api/cv.pdf`, `/api/ai/ask`, `/api/ai/questions`.
+  - `src/server.ts`: rutas `/api/cv`, `/api/cv.pdf`, `/api/ai/ask`, `/api/ai/questions`, `/api/ai/reindex`.
   - `src/ai.ts`: orquestación RAG + Groq + tracking de interacciones.
   - `src/pdf.ts`: generador PDF desde JSON.
   - `src/pdf.js`: bridge para modo dev con `--experimental-strip-types`.
@@ -40,6 +40,11 @@ La barra superior incluye:
 Además existe un botón flotante de chat para consultar el CV:
 - Requiere lead mínimo (`name`, `phone`).
 - Si Groq falla, responde en modo determinista (FAISS + base validada) y lo informa explícitamente.
+
+Existe también un **Panel IA** en la barra superior para operación/revisión:
+- lista preguntas/respuestas registradas,
+- permite `status`, `rating`, `reviewer_note`, `adjusted_answer`,
+- incluye recarga y reindexado manual de FAISS.
 
 ## Comandos
 
@@ -107,5 +112,14 @@ El workflow `.github/workflows/deploy.yml` ahora:
 - `python3` + `pip`,
 - copia `backend/ai`,
 - instalación de `backend/ai/requirements.txt`.
+
+## Reindexado FAISS
+
+- `POST /api/ai/reindex`: reconstruye el índice manualmente.
+- `GET /api/ai/reindex`: devuelve estado del índice.
+- Invalidación automática:
+  - si cambia `backend/data/cv.json`, o
+  - si cambia `backend/data/interactions.sqlite`,
+  entonces el índice se reconstruye en la siguiente consulta.
 
 Pendientes abiertos están en [TODO.md](/Users/rafex/repository/github/rafex/raulglez.me/TODO.md).

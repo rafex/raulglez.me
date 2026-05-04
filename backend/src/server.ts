@@ -3,7 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateCvPdfBuffer } from './pdf.js';
-import { askCvWithTracking, listTrackedQuestions, rateTrackedQuestion } from './ai.js';
+import { askCvWithTracking, listTrackedQuestions, rateTrackedQuestion, rebuildRagIndex, getRagIndexStatus } from './ai.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -142,6 +142,32 @@ const server = http.createServer((req, res) => {
       res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
       res.end(JSON.stringify({ ok: false, error: String(err) }));
     }
+    return;
+  }
+
+  if (method === 'GET' && url === '/api/ai/reindex') {
+    getRagIndexStatus()
+      .then((status) => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: true, status }));
+      })
+      .catch((err) => {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(err) }));
+      });
+    return;
+  }
+
+  if (method === 'POST' && url === '/api/ai/reindex') {
+    rebuildRagIndex()
+      .then((result) => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: true, result }));
+      })
+      .catch((err) => {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(err) }));
+      });
     return;
   }
 

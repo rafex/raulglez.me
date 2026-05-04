@@ -14,6 +14,7 @@ import { observeSections } from './modules/observers';
 import { initAccessibility } from './modules/accessibility';
 import { configureSemanticHighlights } from './modules/text-utils';
 import { initChat } from './modules/chat';
+import { initAiReviewPanel } from './modules/ai-review';
 
 function fill(selector: string, html: string): void {
   const el = document.querySelector(selector);
@@ -49,6 +50,7 @@ async function loadCV(): Promise<void> {
     observeSections();
     initAccessibility();
     initChat();
+    initAiReviewPanel();
     hideLoader();
   } catch (err) {
     const app = document.querySelector('#app');
