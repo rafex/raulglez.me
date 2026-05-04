@@ -14,6 +14,10 @@
 #   just clean            → elimina artefactos
 #   just lint             → valida Helm chart
 #   just all              → setup + build
+#   just secrets-keygen   → genera llave age local
+#   just secrets-encrypt  → cifra .env → .env.enc con sops
+#   just secrets-decrypt  → descifra .env.enc → .env
+#   just secrets-edit     → edita .env.enc directamente con sops
 
 # ─── Desarrollo ───────────────────────────────────────────
 
@@ -82,6 +86,36 @@ lint:
 helm-template:
     @echo "📋 Renderizando Helm templates..."
     helm template raulglez-me helm/raulglez-me/
+
+# ─── Secrets (sops + age) ────────────────────────────────
+
+## Genera llave age local en keys/dev.agekey
+secrets-keygen:
+    @mkdir -p keys
+    @if [ -f keys/dev.agekey ]; then echo "🔐 keys/dev.agekey ya existe"; exit 0; fi
+    age-keygen -o keys/dev.agekey
+    @echo "✅ Llave creada: keys/dev.agekey"
+    @echo "👉 Exporta: export SOPS_AGE_RECIPIENTS=\"$$(grep '^# public key:' keys/dev.agekey | sed 's/# public key: //')\""
+
+## Cifra .env en .env.enc usando SOPS_AGE_RECIPIENTS
+secrets-encrypt:
+    @test -f .env || (echo "❌ Falta .env"; exit 1)
+    @test -n "$$SOPS_AGE_RECIPIENTS" || (echo "❌ Define SOPS_AGE_RECIPIENTS"; exit 1)
+    sops encrypt --age "$$SOPS_AGE_RECIPIENTS" --output .env.enc .env
+    @echo "✅ .env.enc actualizado"
+
+## Descifra .env.enc a .env (usa SOPS_AGE_KEY_FILE=keys/dev.agekey)
+secrets-decrypt:
+    @test -f .env.enc || (echo "❌ Falta .env.enc"; exit 1)
+    @test -n "$$SOPS_AGE_KEY_FILE" || (echo "❌ Define SOPS_AGE_KEY_FILE (ej: keys/dev.agekey)"; exit 1)
+    sops decrypt --output .env .env.enc
+    @echo "✅ .env generado (local)"
+
+## Edita el secreto cifrado directamente
+secrets-edit:
+    @test -f .env.enc || (echo "❌ Falta .env.enc"; exit 1)
+    @test -n "$$SOPS_AGE_KEY_FILE" || (echo "❌ Define SOPS_AGE_KEY_FILE (ej: keys/dev.agekey)"; exit 1)
+    sops .env.enc
 
 # ─── Full cycle ───────────────────────────────────────────
 

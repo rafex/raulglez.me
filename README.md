@@ -47,3 +47,23 @@ Cuando actualices contenido del CV, modifica `backend/data/cv.json`.
 
 - Lo público se refleja en el sitio (`/api/cv`).
 - Lo privado solo se usa en el PDF (`/api/cv.pdf`).
+
+## Secretos (`sops + age`)
+
+El repo usa cifrado de `.env` con `sops` + `age`:
+
+- Archivo cifrado versionable: `.env.enc`
+- Archivo plano local (ignorado): `.env`
+
+Flujo recomendado:
+
+1. `just secrets-keygen`
+2. exportar `SOPS_AGE_RECIPIENTS` con la llave pública
+3. crear `.env` desde `.env.example`
+4. `just secrets-encrypt` (usa `--age` con `SOPS_AGE_RECIPIENTS`)
+5. para usar local: `export SOPS_AGE_KEY_FILE=keys/dev.agekey && just secrets-decrypt`
+
+Notas:
+- Nunca commitear `.env` ni llaves privadas `.agekey`.
+- Sí se puede versionar `.env.enc`.
+

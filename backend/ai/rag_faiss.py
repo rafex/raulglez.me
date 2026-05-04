@@ -136,6 +136,32 @@ def query_index(cv_json_path: str, sqlite_path: str, index_dir: str, question: s
     return {"chunks": chunks}
 
 
+def deterministic_answer(cv_json_path: str, sqlite_path: str, index_dir: str, question: str, top_k: int = 8) -> Dict[str, Any]:
+    result = query_index(cv_json_path, sqlite_path, index_dir, question, top_k)
+    chunks = result.get("chunks", [])
+    if not chunks:
+        return {"answer": "No tengo evidencia suficiente en el CV para afirmarlo.", "chunks": []}
+
+    best = chunks[0]
+    best_score = float(best.get("score", 0.0))
+    if best_score < 0.15:
+        return {"answer": "No tengo evidencia suficiente en el CV para afirmarlo.", "chunks": chunks}
+
+    evidence: List[str] = []
+    for idx, chunk in enumerate(chunks[:3], start=1):
+        text = str(chunk.get("text", "")).strip()
+        source = str(chunk.get("source", "unknown")).strip()
+        if not text:
+            continue
+        evidence.append(f"({idx}) [{source}] {text}")
+
+    if not evidence:
+        return {"answer": "No tengo evidencia suficiente en el CV para afirmarlo.", "chunks": chunks}
+
+    answer = "Respuesta basada en evidencia del CV:\n" + "\n".join(evidence)
+    return {"answer": answer, "chunks": chunks}
+
+
 def main() -> None:
     payload = json.loads(input())
     action = payload.get('action', 'query')
@@ -146,6 +172,14 @@ def main() -> None:
 
     if action == 'build':
         result = build_index(cv_json_path, sqlite_path, index_dir)
+    elif action == 'deterministic_answer':
+        result = deterministic_answer(
+            cv_json_path=cv_json_path,
+            sqlite_path=sqlite_path,
+            index_dir=index_dir,
+            question=payload['question'],
+            top_k=int(payload.get('top_k', 8)),
+        )
     else:
         result = query_index(
             cv_json_path=cv_json_path,

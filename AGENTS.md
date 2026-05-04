@@ -6,6 +6,14 @@ Este archivo define como deben operar los agentes dentro de este repo.
 
 Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 
+## Política de secretos
+
+- Secretos en texto plano (`.env`) son solo locales y están ignorados por git.
+- El archivo compartible de secretos es `.env.enc` cifrado con `sops + age`.
+- Nunca subir llaves privadas (`*.agekey`, `keys/`).
+- Si un cambio requiere nueva variable sensible, actualizar `.env.example` (sin valores) y, si aplica, `.env.enc`.
+
+
 ## Estado actual del repo (obligatorio respetar)
 
 - El frontend consume **solo** vista pública desde `GET /api/cv`.

@@ -13,6 +13,7 @@ import { initPhoneCanvas } from './modules/phone-canvas';
 import { observeSections } from './modules/observers';
 import { initAccessibility } from './modules/accessibility';
 import { configureSemanticHighlights } from './modules/text-utils';
+import { initChat } from './modules/chat';
 
 function fill(selector: string, html: string): void {
   const el = document.querySelector(selector);
@@ -47,6 +48,7 @@ async function loadCV(): Promise<void> {
     initPhoneCanvas();
     observeSections();
     initAccessibility();
+    initChat();
     hideLoader();
   } catch (err) {
     const app = document.querySelector('#app');

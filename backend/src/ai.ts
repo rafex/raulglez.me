@@ -38,6 +38,7 @@ type QuestionRow = {
   rating: number | null;
   reviewer_note: string | null;
   adjusted_answer: string | null;
+  response_mode?: string | null;
 };
 
 const ROOT = process.cwd();
@@ -68,11 +69,17 @@ function getDb(): DatabaseSync {
         status TEXT NOT NULL DEFAULT 'pending',
         rating INTEGER,
         reviewer_note TEXT,
-        adjusted_answer TEXT
+        adjusted_answer TEXT,
+        response_mode TEXT
       );
       CREATE INDEX IF NOT EXISTS idx_qa_created_at ON qa_interactions(created_at DESC);
       CREATE INDEX IF NOT EXISTS idx_qa_status ON qa_interactions(status);
     `);
+    try {
+      db.exec(`ALTER TABLE qa_interactions ADD COLUMN response_mode TEXT;`);
+    } catch {
+      // ignore if column already exists
+    }
   }
   return db;
 }
@@ -129,6 +136,19 @@ async function queryRag(question: string): Promise<RagResult> {
   return { chunks: Array.isArray(result.chunks) ? result.chunks : [] };
 }
 
+async function deterministicFallback(question: string): Promise<string> {
+  const payload = {
+    action: 'deterministic_answer',
+    cv_json_path: CV_JSON,
+    sqlite_path: DB_PATH,
+    index_dir: INDEX_DIR,
+    top_k: 8,
+    question,
+  };
+  const result = await runPythonJson(payload);
+  return result?.answer ?? 'No tengo evidencia suficiente en el CV para afirmarlo.';
+}
+
 async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -182,19 +202,31 @@ function validateAskPayload(payload: AskPayload): string | null {
   return null;
 }
 
-export async function askCvWithTracking(payload: AskPayload): Promise<{ id: number; answer: string; chunks: RagChunk[] }> {
+export async function askCvWithTracking(payload: AskPayload): Promise<{ id: number; answer: string; chunks: RagChunk[]; mode: 'genai' | 'deterministic' }> {
   const err = validateAskPayload(payload);
   if (err) throw new Error(err);
 
   const rag = await queryRag(payload.question.trim());
-  const answer = await askGroq(payload.question.trim(), rag.chunks);
+  let answer = '';
+  let mode: 'genai' | 'deterministic' = 'genai';
+  try {
+    answer = await askGroq(payload.question.trim(), rag.chunks);
+  } catch {
+    mode = 'deterministic';
+    try {
+      const fallback = await deterministicFallback(payload.question.trim());
+      answer = `Modo determinista activo (sin GenAI): ${fallback}`;
+    } catch {
+      answer = 'Modo determinista activo (sin GenAI): No tengo evidencia suficiente en el CV para afirmarlo.';
+    }
+  }
 
   const database = getDb();
   const stmt = database.prepare(`
     INSERT INTO qa_interactions (
       name, phone, whatsapp, email, company, position_offer,
-      question, answer, context_json, status
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending')
+      question, answer, context_json, status, response_mode
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
   `);
 
   stmt.run(
@@ -206,12 +238,13 @@ export async function askCvWithTracking(payload: AskPayload): Promise<{ id: numb
     payload.contact.positionOffer?.trim() || null,
     payload.question.trim(),
     answer,
-    JSON.stringify(rag.chunks)
+    JSON.stringify(rag.chunks),
+    mode
   );
 
   const idRow = database.prepare('SELECT last_insert_rowid() AS id').get() as { id: number };
 
-  return { id: idRow.id, answer, chunks: rag.chunks };
+  return { id: idRow.id, answer, chunks: rag.chunks, mode };
 }
 
 export function listTrackedQuestions(limit = 100): QuestionRow[] {
@@ -219,6 +252,7 @@ export function listTrackedQuestions(limit = 100): QuestionRow[] {
   const stmt = database.prepare(`
     SELECT id, created_at, name, phone, whatsapp, email, company, position_offer,
            question, answer, context_json, status, rating, reviewer_note, adjusted_answer
+           , response_mode
     FROM qa_interactions
     ORDER BY id DESC
     LIMIT ?
