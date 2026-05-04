@@ -9,12 +9,49 @@ import type {
   Project,
 } from '../types/cv.types';
 
+type A11yTheme = 'default' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'contrast';
+type A11yFont = 'source' | 'atkinson' | 'noto';
+
 function esc(s: string): string {
   return s
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;');
+}
+
+function replaceInsensitive(text: string, needle: string, replacement: string): string {
+  return text.replace(new RegExp(needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), replacement);
+}
+
+function highlightSemantic(text: string): string {
+  let out = esc(text);
+  const strongTerms = [
+    '14 años',
+    'Arquitecto de software',
+    'Arquitecto TI',
+    'Java',
+    'Spring',
+    'Microservicios',
+    'Azure',
+    'AWS',
+    'GCP',
+    'Open Source',
+  ];
+  const softTerms = [
+    'escalables',
+    'liderazgo de equipos',
+    'automatización',
+    'docencia técnica',
+  ];
+
+  strongTerms.forEach((term) => {
+    out = replaceInsensitive(out, term, `<span class="semantic-strong">${term}</span>`);
+  });
+  softTerms.forEach((term) => {
+    out = replaceInsensitive(out, term, `<span class="semantic-soft">${term}</span>`);
+  });
+  return out;
 }
 
 function renderHeader(data: Header): string {
@@ -140,7 +177,7 @@ function renderAbout(text: string): string {
   const marker = 'Estudios:';
   const idx = text.indexOf(marker);
   if (idx >= 0) {
-    const intro = text.slice(0, idx).trim();
+    const intro = highlightSemantic(text.slice(0, idx).trim());
     const studies = text.slice(idx + marker.length).trim();
     const studiesHtml = studies
       .replace(
@@ -157,7 +194,7 @@ function renderAbout(text: string): string {
       );
     return `
     <h2 class="section__title">Sobre mí</h2>
-    <p class="about__text">${esc(intro)}</p>
+    <p class="about__text">${intro}</p>
     <ul class="about__list">
       <li><strong>Estudios:</strong> ${studiesHtml}</li>
     </ul>`;
@@ -165,7 +202,7 @@ function renderAbout(text: string): string {
 
   return `
     <h2 class="section__title">Sobre mí</h2>
-    <p class="about__text">${esc(text)}</p>`;
+    <p class="about__text">${highlightSemantic(text)}</p>`;
 }
 
 function renderExperience(items: ExperienceItem[]): string {
@@ -180,7 +217,7 @@ function renderExperience(items: ExperienceItem[]): string {
           <span class="experience__location">${esc(item.location)}</span>
         </p>
         <ul class="experience__highlights">
-          ${item.highlights.map((h) => `<li>${esc(h)}</li>`).join('')}
+          ${item.highlights.map((h) => `<li>${highlightSemantic(h)}</li>`).join('')}
         </ul>
       </div>
     </article>`).join('');
@@ -284,6 +321,16 @@ function renderContact(contact: Contact): string {
     </div>`;
 }
 
+function renderReadingSection(): string {
+  return `
+    <h2 class="section__title">Modo Lectura</h2>
+    <p class="about__text">
+      Activa una vista simplificada para concentrarte en el contenido del CV.
+      También puedes usar el modo lectura nativo de navegadores modernos cuando aparezca el ícono correspondiente en la barra de direcciones.
+    </p>
+    <button class="reading-inline-btn" type="button" id="reading-inline-btn">Activar modo lectura</button>`;
+}
+
 function fill(selector: string, html: string): void {
   const el = document.querySelector(selector);
   if (el) el.innerHTML = html;
@@ -305,6 +352,73 @@ function observeSections(): void {
   document.querySelectorAll('.section, .cv-header').forEach((el) => observer.observe(el));
 }
 
+function initAccessibility(): void {
+  const root = document.documentElement;
+  const toggle = document.querySelector('#a11y-toggle') as HTMLButtonElement | null;
+  const panel = document.querySelector('#a11y-panel') as HTMLElement | null;
+  const fontSize = document.querySelector('#a11y-font-size') as HTMLInputElement | null;
+  const fontSizeValue = document.querySelector('#a11y-font-size-value') as HTMLElement | null;
+  const fontFamily = document.querySelector('#a11y-font-family') as HTMLSelectElement | null;
+  const colorTheme = document.querySelector('#a11y-color-theme') as HTMLSelectElement | null;
+  const readingBtn = document.querySelector('#a11y-reading-mode') as HTMLButtonElement | null;
+  const readingInlineBtn = document.querySelector('#reading-inline-btn') as HTMLButtonElement | null;
+
+  if (!toggle || !panel || !fontSize || !fontSizeValue || !fontFamily || !colorTheme || !readingBtn) return;
+
+  const applyReadingState = (on: boolean): void => {
+    root.dataset.reading = on ? 'on' : 'off';
+    readingBtn.textContent = on ? 'Desactivar modo lectura' : 'Activar modo lectura';
+    if (readingInlineBtn) {
+      readingInlineBtn.textContent = on ? 'Desactivar modo lectura' : 'Activar modo lectura';
+    }
+    localStorage.setItem('a11y-reading', on ? 'on' : 'off');
+  };
+
+  const savedSize = Number(localStorage.getItem('a11y-font-size') ?? '100');
+  const safeSize = Number.isFinite(savedSize) ? Math.min(130, Math.max(90, savedSize)) : 100;
+  fontSize.value = String(safeSize);
+  fontSizeValue.textContent = `${safeSize}%`;
+  root.style.setProperty('--root-font-size', `${(16 * safeSize) / 100}px`);
+
+  const savedFont = (localStorage.getItem('a11y-font') as A11yFont | null) ?? 'source';
+  root.dataset.font = savedFont;
+  fontFamily.value = savedFont;
+
+  const savedTheme = (localStorage.getItem('a11y-theme') as A11yTheme | null) ?? 'default';
+  root.dataset.theme = savedTheme;
+  colorTheme.value = savedTheme;
+
+  const savedReading = localStorage.getItem('a11y-reading') === 'on';
+  applyReadingState(savedReading);
+
+  toggle.addEventListener('click', () => {
+    const expanded = toggle.getAttribute('aria-expanded') === 'true';
+    toggle.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+    panel.hidden = expanded;
+  });
+
+  fontSize.addEventListener('input', () => {
+    const value = Number(fontSize.value);
+    fontSizeValue.textContent = `${value}%`;
+    root.style.setProperty('--root-font-size', `${(16 * value) / 100}px`);
+    localStorage.setItem('a11y-font-size', String(value));
+  });
+
+  fontFamily.addEventListener('change', () => {
+    root.dataset.font = fontFamily.value as A11yFont;
+    localStorage.setItem('a11y-font', fontFamily.value);
+  });
+
+  colorTheme.addEventListener('change', () => {
+    root.dataset.theme = colorTheme.value as A11yTheme;
+    localStorage.setItem('a11y-theme', colorTheme.value);
+  });
+
+  const toggleReading = (): void => applyReadingState(root.dataset.reading !== 'on');
+  readingBtn.addEventListener('click', toggleReading);
+  readingInlineBtn?.addEventListener('click', toggleReading);
+}
+
 async function loadCV(): Promise<void> {
   try {
     const res = await fetch('/api/cv');
@@ -313,6 +427,7 @@ async function loadCV(): Promise<void> {
 
     fill('.cv-header', renderHeader(data.header));
     fill('.cv-about', renderAbout(data.about));
+    fill('.cv-reading', renderReadingSection());
     fill('.cv-experience', renderExperience(data.experience));
     fill('.cv-skills', renderSkills(data.skills));
     fill('.cv-education', renderEducation(data.certifications));
@@ -322,6 +437,7 @@ async function loadCV(): Promise<void> {
 
     initPhoneCanvas();
     observeSections();
+    initAccessibility();
   } catch (err) {
     const app = document.querySelector('#app');
     if (app) app.innerHTML = '<p class="error">Error cargando el CV. Revisa la consola.</p>';

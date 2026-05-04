@@ -6,6 +6,69 @@
   padding: 0 var(--spacing-lg) var(--spacing-xl);
 }
 
+.a11y-toggle {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 1000;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-weight: 700;
+  background: var(--color-secondary);
+  color: #fff;
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+}
+
+.a11y-panel {
+  position: fixed;
+  right: 1rem;
+  bottom: 4.2rem;
+  z-index: 1000;
+  width: min(360px, calc(100vw - 2rem));
+  background: var(--color-bg-alt);
+  border: 1px solid var(--color-border);
+  border-radius: var(--border-radius-lg);
+  padding: 1rem;
+  box-shadow: var(--shadow-lg);
+}
+
+.a11y-panel h2 {
+  margin-bottom: 0.75rem;
+  font-size: var(--font-size-lg);
+}
+
+.a11y-group { margin-bottom: 0.85rem; }
+
+.a11y-group label {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+
+.a11y-group input[type='range'],
+.a11y-group select,
+.a11y-group button {
+  width: 100%;
+}
+
+.a11y-group select,
+.a11y-group button {
+  min-height: 2.25rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-border);
+  background: #fff;
+  padding: 0.35rem 0.6rem;
+}
+
+.a11y-group button {
+  background: var(--color-secondary);
+  color: #fff;
+  border-color: var(--color-secondary);
+  font-weight: 700;
+}
+
 .section {
   margin-bottom: var(--spacing-3xl);
   padding: var(--spacing-2xl) 0;
@@ -260,6 +323,52 @@
 .about__hl-location {
   color: #4a5f73;
   font-style: italic;
+}
+
+.semantic-strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.semantic-soft {
+  color: var(--color-secondary);
+  font-weight: 600;
+}
+
+.reading-inline-btn {
+  border: 0;
+  border-radius: 0.5rem;
+  padding: 0.65rem 1rem;
+  background: var(--color-secondary);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+html[data-reading='on'] .cv-header {
+  min-height: auto;
+  padding: 1.5rem var(--spacing-xl);
+  margin-bottom: var(--spacing-xl);
+  background-attachment: scroll, scroll, scroll;
+}
+
+html[data-reading='on'] .phone-canvas {
+  display: none;
+}
+
+html[data-reading='on'] #app {
+  max-width: 760px;
+}
+
+html[data-reading='on'] .section {
+  padding: 1.6rem 0;
+  margin-bottom: 1.6rem;
+}
+
+html[data-reading='on'] .card,
+html[data-reading='on'] .experience__card,
+html[data-reading='on'] .contact-card .bg {
+  box-shadow: none;
 }
 
 /* === Experience === */

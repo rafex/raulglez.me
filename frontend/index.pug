@@ -11,9 +11,35 @@ html(lang="es")
     title Raúl González — CV Profesional
     link(rel="stylesheet" href="/src/styles/main.css")
   body
+    button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
+    aside#a11y-panel.a11y-panel(aria-labelledby="a11y-title" hidden)
+      h2#a11y-title Accesibilidad
+      .a11y-group
+        label(for="a11y-font-size") Tamaño de fuente
+        input#a11y-font-size(type="range" min="90" max="130" step="5" value="100")
+        p#a11y-font-size-value 100%
+      .a11y-group
+        label(for="a11y-font-family") Tipo de fuente (Open Source)
+        select#a11y-font-family
+          option(value="source") Source Sans 3
+          option(value="atkinson") Atkinson Hyperlegible
+          option(value="noto") Noto Sans
+      .a11y-group
+        label(for="a11y-color-theme") Paleta para daltonismo
+        select#a11y-color-theme
+          option(value="default") Azul profesional (base)
+          option(value="protanopia") Protanopia-friendly
+          option(value="deuteranopia") Deuteranopia-friendly
+          option(value="tritanopia") Tritanopia-friendly
+          option(value="contrast") Alto contraste
+      .a11y-group
+        button#a11y-reading-mode(type="button") Activar modo lectura
+      .a11y-group
+        p Tip: también puedes usar el modo lectura nativo del navegador cuando aparezca el ícono en la barra de direcciones.
     main#app
       header.cv-header
       section.section.cv-about
+      section.section.cv-reading
       section.section.cv-experience
       section.section.cv-skills
       section.section.cv-education
