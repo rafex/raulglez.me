@@ -1,0 +1,44 @@
+# Detección automática de archivos de texto
+# Git normaliza a LF en el repo independientemente del SO
+* text=auto
+
+# Shell scripts — siempre LF (se rompen con CRLF)
+*.sh text eol=lf
+
+# Makefile — siempre LF (se rompe con CRLF)
+Makefile text eol=lf
+
+# Archivos fuente y configuración — LF
+*.js text eol=lf
+*.ts text eol=lf
+*.json text eol=lf
+*.yaml text eol=lf
+*.yml text eol=lf
+*.css text eol=lf
+*.html text eol=lf
+*.md text eol=lf
+*.xml text eol=lf
+*.java text eol=lf
+
+# Docker
+Dockerfile text eol=lf
+*.dockerfile text eol=lf
+.dockerignore text eol=lf
+
+# CI/CD — siempre LF
+.github/** text eol=lf
+
+# Binarios — no normalizar
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
+*.gz binary
+*.tar binary

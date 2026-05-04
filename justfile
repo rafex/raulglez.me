@@ -2,22 +2,34 @@
 # https://github.com/casey/just
 #
 # Uso:
-#   just dev          → inicia Vite dev server (:3000)
-#   just build        → make build (compila frontend)
-#   just preview      → previsualiza build de producción (:4173)
-#   just docker-run   → ejecuta contenedor local (:8080)
-#   just docker-build → construye imagen Docker
-#   just setup        → instala dependencias por primera vez
-#   just clean        → elimina artefactos
-#   just lint         → valida Helm chart
-#   just all          → setup + build + preview
+#   just dev              → inicia backend (:3001) + Vite (:3000) en paralelo
+#   just dev-frontend     → solo Vite dev server (:3000, proxea /api a :3001)
+#   just dev-backend      → solo backend Node.js (:3001, hot reload)
+#   just build            → compila frontend + backend
+#   just preview          → previsualiza build completo (:3000)
+#   just docker-run       → ejecuta contenedor local (:3000)
+#   just docker-build     → construye imagen Docker
+#   just setup            → instala dependencias por primera vez
+#   just clean            → elimina artefactos
+#   just lint             → valida Helm chart
+#   just all              → setup + build
 
 # ─── Desarrollo ───────────────────────────────────────────
 
-## Inicia el servidor de desarrollo Vite (hot reload en :3000)
+## Inicia backend + Vite en paralelo (desarrollo completo)
 dev:
-    @echo "🚀 Iniciando Vite dev server en http://localhost:3000"
+    @echo "🚀 Iniciando backend :3001 y Vite :3000 ..."
+    just dev-backend & just dev-frontend
+
+## Solo Vite dev server (:3000, proxea /api → backend :3001)
+dev-frontend:
+    @echo "🖥️  Iniciando Vite en http://localhost:3000"
     cd frontend && npm run dev
+
+## Solo backend Node.js con hot reload (:3001)
+dev-backend:
+    @echo "⚙️  Iniciando backend en http://localhost:3001"
+    cd backend && PORT=3001 npm run dev
 
 ## Previsualiza el build de producción (:4173)
 preview: build
@@ -26,9 +38,9 @@ preview: build
 
 # ─── Build ───────────────────────────────────────────────
 
-## Compila el frontend (delega a Makefile)
+## Compila frontend y backend
 build:
-    @echo "🔨 Compilando frontend..."
+    @echo "🔨 Compilando frontend y backend..."
     make build
 
 ## Construye la imagen Docker localmente
@@ -38,14 +50,14 @@ docker-build:
 
 # ─── Ejecución local ──────────────────────────────────────
 
-## Ejecuta el contenedor Docker localmente (:8080)
+## Ejecuta el contenedor Docker localmente (:3000)
 docker-run:
-    @echo "🐳 Ejecutando contenedor en http://localhost:8080"
+    @echo "🐳 Ejecutando contenedor en http://localhost:3000"
     bash scripts/docker-run.sh
 
 # ─── Setup ────────────────────────────────────────────────
 
-## Instala dependencias del frontend (primer uso)
+## Instala dependencias del frontend y backend
 setup:
     @echo "📦 Instalando dependencias..."
     bash scripts/setup.sh
@@ -67,6 +79,6 @@ helm-template:
 
 # ─── Full cycle ───────────────────────────────────────────
 
-## Setup completo: instala dependencias, compila y previsualiza
+## Setup completo: instala dependencias y compila
 all: setup build
-    @echo "✅ Todo listo. Ejecuta 'just preview' para ver el resultado."
+    @echo "✅ Todo listo."

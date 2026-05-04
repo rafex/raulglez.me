@@ -14,7 +14,7 @@ build:
 	@echo "🔨 Building $(FULL_IMAGE) for platforms: $(PLATFORMS)..."
 	docker buildx build \
 		--platform $(PLATFORMS) \
-		--file containers/Dockerfile.frontend \
+		--file containers/Dockerfile \
 		--tag $(FULL_IMAGE) \
 		--load \
 		.
@@ -24,15 +24,15 @@ push:
 	@echo "🚀 Building and pushing $(FULL_IMAGE)..."
 	docker buildx build \
 		--platform $(PLATFORMS) \
-		--file containers/Dockerfile.frontend \
+		--file containers/Dockerfile \
 		--tag $(FULL_IMAGE) \
 		--push \
 		.
 
-## Run: ejecuta el contenedor localmente en el puerto 8080
+## Run: ejecuta el contenedor localmente en el puerto 3000
 run:
-	@echo "▶️  Running $(FULL_IMAGE) on http://localhost:8080"
-	docker run --rm -p 8080:8080 $(FULL_IMAGE)
+	@echo "▶️  Running $(FULL_IMAGE) on http://localhost:3000"
+	docker run --rm -p 3000:3000 $(FULL_IMAGE)
 
 ## Clean: elimina la imagen local
 clean:

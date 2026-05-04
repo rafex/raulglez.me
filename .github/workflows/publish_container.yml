@@ -6,6 +6,7 @@ on:
       - 'v[0-9]+.[0-9]+'
     paths:
       - 'frontend/**'
+      - 'backend/**'
       - 'containers/**'
       - '.github/workflows/publish_container.yml'
   workflow_dispatch:
@@ -66,7 +67,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: containers/Dockerfile.frontend
+          file: containers/Dockerfile
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}

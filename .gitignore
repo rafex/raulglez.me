@@ -17,6 +17,11 @@ session-ses_*.md
 frontend/node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/index.html
+
+# Backend build artifacts
+backend/node_modules/
+backend/dist/
 
 # macOS files
 ._*
@@ -31,3 +36,6 @@ frontend/.vite/
 !.claude/launch.json    # ✓ Compartir configuración de servidores
 !.claude/settings.json  # ✓ Compartir configuración del proyecto
 !.claude/CLAUDE.md      # ✓ Documentación para agentes
+
+
+.nfs.*
