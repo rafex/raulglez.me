@@ -9,13 +9,42 @@ import type {
 } from '../../types/cv.types';
 import { esc, highlightSemantic } from './text-utils';
 
+function highlightVisionText(text: string): string {
+  let out = esc(text);
+  const terms = [
+    "TIC's",
+    'tecnologías actuales',
+    'OpenSource/Free',
+    'Análisis',
+    'arquitectura',
+    'alto impacto',
+    'infraestructura escalable y replicable',
+  ];
+
+  terms.forEach((term) => {
+    out = out.replace(new RegExp(term.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi'), `<strong>${term}</strong>`);
+  });
+  return out;
+}
+
+function renderVision(text: string): string {
+  const sentences = text.split('.').map((s) => s.trim()).filter(Boolean);
+  if (sentences.length <= 1) return `<p>${highlightVisionText(text)}</p>`;
+
+  const first = `${sentences.slice(0, 2).join('. ')}.`;
+  const second = `${sentences.slice(2).join('. ')}.`;
+  return `
+    <p>${highlightVisionText(first)}</p>
+    ${sentences.length > 2 ? `<p>${highlightVisionText(second)}</p>` : ''}`;
+}
+
 export function renderHeader(data: Header): string {
   return `
     <div class="content">
       <h1 class="header__name">${esc(data.name)}</h1>
       ${data.title ? `<p class="header__title">${esc(data.title)}</p>` : ''}
       <p class="header__role">${esc(data.role)}</p>
-      <div class="header__vision"><p>${esc(data.vision)}</p></div>
+      <div class="header__vision">${renderVision(data.vision)}</div>
     </div>
     <div class="phone-canvas" aria-label="Vista previa en teléfono">
       <canvas class="phone-canvas__el" width="360" height="760"></canvas>

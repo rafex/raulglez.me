@@ -47,15 +47,26 @@ html(lang="es")
         .w-2
         svg.inline-block(xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 64 64" height="64" width="64")
           path#z.dash(stroke-linejoin="round" stroke-linecap="round" stroke-width="8" stroke="url(#b)" d="M 8,8 h48 v5 L18,51 h38 v5 H8 v-5 L46,13 H8 Z")
-    button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
-    .reading-fab(aria-label="Modo lectura")
-      span.reading-fab__label Modo lectura
-      label.switch-button(for="reading-switch")
-        .switch-outer
-          input#reading-switch(type="checkbox" aria-label="Activar modo lectura")
-          .button
-            span.button-toggle
-            span.button-indicator
+    header.site-toolbar
+      .site-toolbar__inner
+        .site-toolbar__group
+          span.reading-fab__label Modo lectura
+          label.switch-button(for="reading-switch")
+            .switch-outer
+              input#reading-switch(type="checkbox" aria-label="Activar modo lectura")
+              .button
+                span.button-toggle
+                span.button-indicator
+        .site-toolbar__group
+          button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
+        .site-toolbar__group
+          a.download-button(href="/cv.pdf" download="CV-Raul-Gonzalez.pdf" title="Descargar CV en PDF")
+            span.download-button__text Descargar PDF
+            span.download-button__icon
+              svg.download-button__svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35")
+                path(d="M17.5,22.131a1.249,1.249,0,0,1-1.25-1.25V2.187a1.25,1.25,0,0,1,2.5,0V20.881A1.25,1.25,0,0,1,17.5,22.131Z")
+                path(d="M17.5,22.693a3.189,3.189,0,0,1-2.262-.936L8.487,15.006a1.249,1.249,0,0,1,1.767-1.767l6.751,6.751a.7.7,0,0,0,.99,0l6.751-6.751a1.25,1.25,0,0,1,1.768,1.767l-6.752,6.751A3.191,3.191,0,0,1,17.5,22.693Z")
+                path(d="M31.436,34.063H3.564A3.318,3.318,0,0,1,.25,30.749V22.011a1.25,1.25,0,0,1,2.5,0v8.738a.815.815,0,0,0,.814.814H31.436a.815.815,0,0,0,.814-.814V22.011a1.25,1.25,0,1,1,2.5,0v8.738A3.318,3.318,0,0,1,31.436,34.063Z")
     aside#a11y-panel.a11y-panel(aria-labelledby="a11y-title" hidden)
       h2#a11y-title Accesibilidad
       .a11y-group
@@ -79,7 +90,7 @@ html(lang="es")
       .a11y-group
         p Usa el switch flotante "Modo lectura" para simplificar la vista.
     main#app
-      header.cv-header
+      div.cv-header
       section.section.cv-about
       section.section.cv-experience
       section.section.cv-skills

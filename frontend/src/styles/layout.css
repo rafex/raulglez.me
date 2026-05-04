@@ -74,34 +74,40 @@
   87.5%, 100% { rotate: 1080deg; }
 }
 
-.a11y-toggle {
-  position: fixed;
-  right: 1rem;
-  bottom: 1rem;
-  z-index: 1000;
-  border: 0;
-  border-radius: 999px;
-  padding: 0.65rem 1rem;
-  font-weight: 700;
-  background: var(--color-secondary);
-  color: #fff;
-  box-shadow: var(--shadow-md);
-  cursor: pointer;
+.site-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 1200;
+  background: rgba(12, 34, 56, 0.92);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
-.reading-fab {
-  position: fixed;
-  left: 1rem;
-  bottom: 1rem;
-  z-index: 1000;
+.site-toolbar__inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0.55rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.site-toolbar__group {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  background: rgba(11, 28, 48, 0.92);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+}
+
+.a11y-toggle {
+  border: 1px solid rgba(255, 255, 255, 0.25);
   border-radius: 999px;
-  padding: 0.3rem 0.75rem 0.3rem 0.4rem;
-  box-shadow: var(--shadow-md);
+  padding: 0.58rem 1rem;
+  font-weight: 700;
+  background: #164a7d;
+  color: #fff;
+  cursor: pointer;
 }
 
 .reading-fab__label {
@@ -109,6 +115,67 @@
   font-size: 0.82rem;
   font-weight: 700;
   letter-spacing: 0.02em;
+}
+
+.download-button {
+  position: relative;
+  width: 164px;
+  height: 40px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  border: 1px solid #17795e;
+  background-color: #209978;
+  overflow: hidden;
+  text-decoration: none;
+}
+
+.download-button, .download-button__icon, .download-button__text {
+  transition: all 0.3s;
+}
+
+.download-button .download-button__text {
+  transform: translateX(16px);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.download-button .download-button__icon {
+  position: absolute;
+  transform: translateX(122px);
+  height: 100%;
+  width: 39px;
+  background-color: #17795e;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.download-button .download-button__svg {
+  width: 20px;
+  fill: #fff;
+}
+
+.download-button:hover {
+  background: #17795e;
+}
+
+.download-button:hover .download-button__text {
+  color: transparent;
+}
+
+.download-button:hover .download-button__icon {
+  width: 162px;
+  transform: translateX(0);
+}
+
+.download-button:active .download-button__icon {
+  background-color: #146c54;
+}
+
+.download-button:active {
+  border: 1px solid #146c54;
 }
 
 /* Adapted from provided switch style */
@@ -281,7 +348,7 @@
   margin-right: calc(50% - 50vw);
   margin-bottom: var(--spacing-3xl);
   padding: 4.5em var(--spacing-xl);
-  min-height: 95vh;
+  min-height: 84vh;
   color: rgba(255, 255, 255, 0.75);
 }
 
@@ -320,13 +387,24 @@
 }
 
 .header__vision {
-  font-size: 0.9em;
-  line-height: 1.75;
-  color: rgba(255, 255, 255, 0.9);
-  font-style: italic;
+  font-size: 1.02em;
+  line-height: 1.82;
+  color: rgba(255, 255, 255, 0.98);
+  font-weight: 600;
+  font-style: normal;
+  text-wrap: pretty;
 }
 
 .header__vision p { margin: 0; }
+.header__vision p + p { margin-top: 0.85rem; }
+
+.header__vision strong {
+  color: #ffffff;
+  font-weight: 800;
+  text-decoration: underline;
+  text-decoration-color: rgba(255, 255, 255, 0.45);
+  text-underline-offset: 2px;
+}
 
 /* ── Phone mockup (canvas) ── */
 .phone-canvas {
@@ -456,9 +534,9 @@
 /* === About === */
 .about__text {
   font-size: var(--font-size-md);
-  line-height: 1.8;
+  line-height: 1.92;
   color: var(--color-text-light);
-  max-width: 720px;
+  max-width: 78ch;
 }
 
 .about__list {
@@ -471,7 +549,7 @@
 
 .about__list li {
   font-size: var(--font-size-base);
-  line-height: 1.8;
+  line-height: 1.9;
 }
 
 .about__hl-degree {
@@ -526,15 +604,11 @@ html[data-reading='on'] .contact-card .bg {
 }
 
 @media (max-width: 736px) {
-  .reading-fab {
-    left: 0.6rem;
-    bottom: 0.6rem;
-    padding-right: 0.55rem;
-  }
-
-  .reading-fab__label {
-    font-size: 0.75rem;
-  }
+  .site-toolbar__inner { padding: 0.55rem 0.7rem; }
+  .reading-fab__label { font-size: 0.75rem; }
+  .download-button { width: 154px; }
+  .download-button .download-button__icon { transform: translateX(112px); }
+  .download-button:hover .download-button__icon { width: 152px; }
 }
 
 /* === Experience === */
@@ -591,7 +665,7 @@ html[data-reading='on'] .contact-card .bg {
   display: flex;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
-  font-size: var(--font-size-sm);
+  font-size: 0.95rem;
   color: var(--color-text-muted);
   margin-bottom: var(--spacing-md);
 }
@@ -607,10 +681,10 @@ html[data-reading='on'] .contact-card .bg {
 .experience__highlights li {
   position: relative;
   padding-left: var(--spacing-md);
-  margin-bottom: var(--spacing-xs);
-  font-size: var(--font-size-sm);
+  margin-bottom: 0.52rem;
+  font-size: 1rem;
   color: var(--color-text-light);
-  line-height: 1.6;
+  line-height: 1.78;
 }
 
 .experience__highlights li::before {
@@ -737,9 +811,9 @@ html[data-reading='on'] .contact-card .bg {
 }
 
 .small-desc {
-  font-size: var(--font-size-sm);
+  font-size: 0.97rem;
   font-weight: 400;
-  line-height: 1.55;
+  line-height: 1.72;
   color: var(--color-text-light);
   margin: 0;
   transition: color 0.3s ease-out;

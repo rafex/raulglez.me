@@ -1,6 +1,9 @@
 {
   "header": {
-    "name": "Raúl González",
+    "nickname": "Raúl González",
+    "name": "Raúl",
+    "lastname": "González",
+    "fullname": "Raúl Eduardo González Argote",
     "title": "",
     "role": "Arquitecto TI",
     "vision": "El uso de las TIC's en un entorno empresarial e individual para facilitar y solventar problemáticas que en estas existen. Proveer soluciones con base a las tecnologías actuales tanto privadas/costo y OpenSource/Free. Análisis y arquitectura de aplicaciones de alto impacto junto con su infraestructura escalable y replicable."
@@ -24,7 +27,17 @@
         "Component Owner de la Plataforma de Evidencias.",
         "Adopción local de las capacidades de la plataforma global para el proyecto de firma diferida.",
         "Tecnologías NextGen Ether: ASO, APX, Epsilon."
-      ]
+      ],
+      "skills": {
+        "technical": [
+          "Java (J2EE, J2SE) — 14+ años",
+          "Spring, Spring Boot"
+        ],
+        "competencies": [
+          "Abstracción de problemas",
+          "Aprendizaje rápido de nuevos lenguajes"
+        ]
+      }
     },
     {
       "role": "Full Stack Senior",
