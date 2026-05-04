@@ -2,6 +2,7 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { generateCvPdfBuffer } from './pdf.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -23,7 +24,9 @@ const MIME: Record<string, string> = {
   '.ttf': 'font/ttf',
 };
 
-const cvData = fs.readFileSync(DATA_FILE, 'utf-8');
+function readCvData(): string {
+  return fs.readFileSync(DATA_FILE, 'utf-8');
+}
 
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
   const rawPath = (req.url ?? '/').split('?')[0];
@@ -57,11 +60,37 @@ const server = http.createServer((req, res) => {
   const url = (req.url ?? '/').split('?')[0];
 
   if (url === '/api/cv') {
+    const cvData = readCvData();
     res.writeHead(200, {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
     });
     res.end(cvData);
+    return;
+  }
+
+  if (url === '/api/cv.pdf') {
+    try {
+      const cvData = JSON.parse(readCvData());
+      generateCvPdfBuffer(cvData)
+        .then((pdfBuffer) => {
+          res.writeHead(200, {
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': 'attachment; filename=\"CV-Raul-Gonzalez.pdf\"',
+            'Cache-Control': 'no-store',
+          });
+          res.end(pdfBuffer);
+        })
+        .catch((err) => {
+          console.error('Failed generating PDF:', err);
+          res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+          res.end('Error generating PDF');
+        });
+    } catch (err) {
+      console.error('Invalid CV JSON:', err);
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Invalid CV data');
+    }
     return;
   }
 

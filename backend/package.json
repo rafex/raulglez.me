@@ -9,8 +9,12 @@
     "build": "tsc",
     "start": "node dist/server.js"
   },
+  "dependencies": {
+    "pdfkit": "^0.17.2"
+  },
   "devDependencies": {
     "@types/node": "^22.19.17",
+    "@types/pdfkit": "^0.17.3",
     "typescript": "^5.0.0"
   }
 }
