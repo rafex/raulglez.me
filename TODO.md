@@ -4,14 +4,14 @@ Estado: `active`
 
 ## Pendiente inmediato
 
-- [ ] Ajustar `containers/Dockerfile` para runtime de fallback determinista:
+- [x] Ajustar `containers/Dockerfile` para runtime de fallback determinista:
   - incluir `python3` en imagen final,
   - copiar `backend/ai/`,
   - instalar dependencias de `backend/ai/requirements.txt`.
-- [ ] Crear `Secret` de Kubernetes para variables de app (`raulglez-me-env`) y documentar comando:
+- [x] Crear `Secret` de Kubernetes para variables de app (`raulglez-me-env`) y documentar comando:
   - `GROQ_API_KEY` (obligatoria),
   - `GROQ_MODEL` (opcional).
-- [ ] Endurecer `.github/workflows/deploy.yml`:
+- [x] Endurecer `.github/workflows/deploy.yml`:
   - usar `GHCR_USERNAME` + `GHCR_TOKEN` para `ghcr-pull-secret`,
   - validar namespace/release antes de deploy,
   - agregar bloque de diagnóstico en fallo (describe/logs/events).
@@ -20,6 +20,7 @@ Estado: `active`
   - `helm template`,
   - `helm upgrade --install`,
   - prueba funcional de `/api/ai/ask` en modo GenAI y fallback determinista.
+  - Nota: `helm lint` ya validado localmente; falta validación en cluster.
 
 ## Pendiente funcional (producto)
 

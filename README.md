@@ -60,6 +60,8 @@ Cuando actualices contenido del CV, modifica `backend/data/cv.json`.
 
 - `GROQ_API_KEY` (obligatoria para modo GenAI en chat).
 - `GROQ_MODEL` (opcional, default: `llama-3.3-70b-versatile`).
+- `GHCR_USERNAME` (secret de GitHub Actions para pull en cluster).
+- `GHCR_TOKEN` (secret de GitHub Actions con permiso `read:packages`).
 
 En Kubernetes, estas variables deben vivir en un Secret (por default `raulglez-me-env`) referenciado por Helm.
 
@@ -90,5 +92,20 @@ El chart `helm/raulglez-me` ya incluye:
 - `HPA` y `PDB`,
 - `envFrom` desde Secret (`env.secretName`),
 - volumen writable `/app/data` para SQLite.
+
+El workflow `.github/workflows/deploy.yml` ahora:
+- asegura namespace,
+- crea/actualiza `ghcr-pull-secret` con credenciales GHCR dedicadas,
+- crea/actualiza `raulglez-me-env` (`GROQ_API_KEY`, `GROQ_MODEL`),
+- ejecuta `helm lint` + `helm template` antes de `helm upgrade`,
+- agrega diagnóstico extendido en caso de fallo de rollout.
+
+## Nota de runtime para fallback determinista
+
+`containers/Dockerfile` fue actualizado para soportar el fallback local:
+- runtime en base Debian slim,
+- `python3` + `pip`,
+- copia `backend/ai`,
+- instalación de `backend/ai/requirements.txt`.
 
 Pendientes abiertos están en [TODO.md](/Users/rafex/repository/github/rafex/raulglez.me/TODO.md).

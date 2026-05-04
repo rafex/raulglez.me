@@ -22,6 +22,9 @@ on:
 env:
   HELM_RELEASE: raulglez-me
   HELM_CHART: helm/raulglez-me
+  K3S_NAMESPACE: default
+  GHCR_PULL_SECRET: ghcr-pull-secret
+  APP_ENV_SECRET: raulglez-me-env
 
 jobs:
   deploy:
@@ -59,24 +62,60 @@ jobs:
         with:
           version: 'latest'
 
+      - name: Ensure namespace exists
+        run: |
+          kubectl get namespace "${{ env.K3S_NAMESPACE }}" >/dev/null 2>&1 || kubectl create namespace "${{ env.K3S_NAMESPACE }}"
+
       - name: Create GHCR pull secret
         run: |
-          kubectl create secret docker-registry ghcr-pull-secret \
+          kubectl create secret docker-registry "${{ env.GHCR_PULL_SECRET }}" \
             --docker-server=ghcr.io \
-            --docker-username=${{ github.actor }} \
-            --docker-password=${{ secrets.GITHUB_TOKEN }} \
-            --namespace=default \
+            --docker-username=${{ secrets.GHCR_USERNAME }} \
+            --docker-password=${{ secrets.GHCR_TOKEN }} \
+            --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create app env secret
+        run: |
+          kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
+            --from-literal=GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
+            --from-literal=GROQ_MODEL='${{ vars.GROQ_MODEL || 'llama-3.3-70b-versatile' }}' \
+            --namespace="${{ env.K3S_NAMESPACE }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Helm lint
+        run: helm lint "${{ env.HELM_CHART }}"
+
+      - name: Helm template
+        run: helm template "${{ env.HELM_RELEASE }}" "${{ env.HELM_CHART }}" >/tmp/helm-render.yaml
 
       - name: Deploy with Helm
         run: |
           helm upgrade --install ${{ env.HELM_RELEASE }} ${{ env.HELM_CHART }} \
-            --namespace default \
+            --namespace "${{ env.K3S_NAMESPACE }}" \
             --set image.tag=${{ steps.tag.outputs.tag }} \
+            --set imagePullSecrets[0].name="${{ env.GHCR_PULL_SECRET }}" \
+            --set env.secretName="${{ env.APP_ENV_SECRET }}" \
             --wait \
             --timeout 5m
 
       - name: Verify deployment
         run: |
-          kubectl rollout status deployment/${{ env.HELM_RELEASE }} --timeout=3m
-          kubectl get pods -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }}
+          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/${{ env.HELM_RELEASE }} --timeout=3m
+          kubectl -n "${{ env.K3S_NAMESPACE }}" get pods -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }}
+
+      - name: Debug rollout failure
+        if: failure()
+        run: |
+          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,rs,pods -o wide
+          kubectl -n "${{ env.K3S_NAMESPACE }}" describe deployment "${{ env.HELM_RELEASE }}" || true
+          kubectl -n "${{ env.K3S_NAMESPACE }}" get events --sort-by=.metadata.creationTimestamp | tail -n 80 || true
+          PODS=$(kubectl -n "${{ env.K3S_NAMESPACE }}" get pods -l app.kubernetes.io/instance="${{ env.HELM_RELEASE }}" -o jsonpath='{.items[*].metadata.name}')
+          for p in $PODS; do
+            echo "==== describe $p ===="
+            kubectl -n "${{ env.K3S_NAMESPACE }}" describe pod "$p" || true
+            echo "==== logs $p ===="
+            kubectl -n "${{ env.K3S_NAMESPACE }}" logs "$p" --tail=200 || true
+            echo "==== previous logs $p ===="
+            kubectl -n "${{ env.K3S_NAMESPACE }}" logs "$p" --previous --tail=200 || true
+          done

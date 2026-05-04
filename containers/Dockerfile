@@ -1,5 +1,5 @@
 # ─── Stage 1: Build frontend ───
-FROM node:lts-alpine AS frontend-builder
+FROM node:lts-slim AS frontend-builder
 
 WORKDIR /app/frontend
 
@@ -10,7 +10,7 @@ COPY frontend/ ./
 RUN npm run build
 
 # ─── Stage 2: Build backend ───
-FROM node:lts-alpine AS backend-builder
+FROM node:lts-slim AS backend-builder
 
 WORKDIR /app/backend
 
@@ -21,22 +21,33 @@ COPY backend/ ./
 RUN npm run build
 
 # ─── Stage 3: Runtime ───
-FROM node:lts-alpine AS runtime
+FROM node:lts-slim AS runtime
 
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3 \
+      python3-pip \
+      curl \
+      ca-certificates \
+      libgomp1 && \
+    rm -rf /var/lib/apt/lists/* && \
+    groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m -s /usr/sbin/nologin appuser
 
 WORKDIR /app
 
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/dist ./dist
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/data ./data
+COPY --from=backend-builder --chown=appuser:appgroup /app/backend/ai ./backend/ai
 COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/dist ./public
+
+RUN pip3 install --no-cache-dir -r /app/backend/ai/requirements.txt
 
 USER appuser
 
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-    CMD wget -qO- http://localhost:3000/api/cv > /dev/null || exit 1
+    CMD curl -fsS http://localhost:3000/api/cv > /dev/null || exit 1
 
 CMD ["node", "dist/server.js"]

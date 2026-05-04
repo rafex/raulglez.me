@@ -70,6 +70,10 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 - Secretos obligatorios de runtime:
   - `GROQ_API_KEY` en Kubernetes Secret consumido por el Deployment.
 - Alinear workflows con estos secretos y evitar credenciales embebidas.
+- Workflow `deploy.yml` crea/aplica:
+  - `ghcr-pull-secret` usando `GHCR_USERNAME` + `GHCR_TOKEN`.
+  - `raulglez-me-env` con `GROQ_API_KEY` y `GROQ_MODEL`.
+- El contenedor runtime incluye Python + `backend/ai` para fallback determinista.
 
 ## Separacion semantica de documentos
 
