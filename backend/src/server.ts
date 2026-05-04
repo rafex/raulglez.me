@@ -28,6 +28,19 @@ function readCvData(): string {
   return fs.readFileSync(DATA_FILE, 'utf-8');
 }
 
+function toPublicCv(data: any): any {
+  return {
+    ...data,
+    header: {
+      ...data.header,
+      name: data.header?.nickname ?? data.header?.name ?? data.header?.fullname ?? '',
+    },
+    contact: {
+      public: data.contact?.public ?? {},
+    },
+  };
+}
+
 function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void {
   const rawPath = (req.url ?? '/').split('?')[0];
   const safePath = path.normalize(rawPath).replace(/^(\.\.(\/|\\|$))+/, '');
@@ -60,12 +73,12 @@ const server = http.createServer((req, res) => {
   const url = (req.url ?? '/').split('?')[0];
 
   if (url === '/api/cv') {
-    const cvData = readCvData();
+    const cvData = toPublicCv(JSON.parse(readCvData()));
     res.writeHead(200, {
       'Content-Type': 'application/json; charset=utf-8',
       'Cache-Control': 'no-store',
     });
-    res.end(cvData);
+    res.end(JSON.stringify(cvData));
     return;
   }
 

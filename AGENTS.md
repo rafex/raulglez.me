@@ -6,6 +6,16 @@ Este archivo define como deben operar los agentes dentro de este repo.
 
 Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 
+## Estado actual del repo (obligatorio respetar)
+
+- El frontend consume **solo** vista pública desde `GET /api/cv`.
+- El backend genera PDF dinámico en `GET /api/cv.pdf`.
+- La fuente de verdad del contenido es `backend/data/cv.json`.
+- El JSON separa datos visibles por contexto:
+  - `contact.public`: se puede mostrar en el sitio.
+  - `contact.private`: **no** se muestra en sitio, solo en PDF.
+- El frontend está modularizado en `frontend/src/scripts/modules/`.
+
 ## Mapa rapido
 
 - `README.md` del root: explica la estructura del repo.
@@ -24,6 +34,14 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
   paralelo.
 - Si la verdad cambia de manera persistente, actualizar el documento
   correcto antes de cerrar la tarea.
+
+## Reglas de implementación para datos CV
+
+- No exponer datos `private` en endpoints o render público.
+- Si se agrega nueva información sensible al JSON, debe quedar en rama
+  `private` o en una rama equivalente no pública.
+- El PDF debe construirse desde el JSON actualizado, no desde archivos
+  estáticos manuales.
 
 ## Separacion semantica de documentos
 

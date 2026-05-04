@@ -695,6 +695,71 @@ html[data-reading='on'] .contact-card .bg {
   font-weight: 700;
 }
 
+.experience__skills-card {
+  margin-top: 0.9rem;
+  border: 1px dashed var(--color-border);
+  border-radius: 10px;
+  background: #f8fbff;
+}
+
+.experience__skills-summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 0.7rem 0.85rem;
+  font-weight: 700;
+  color: var(--color-secondary);
+}
+
+.experience__skills-summary::-webkit-details-marker {
+  display: none;
+}
+
+.experience__skills-summary::before {
+  content: '▸';
+  margin-right: 0.45rem;
+  color: var(--color-highlight);
+}
+
+.experience__skills-card[open] .experience__skills-summary::before {
+  content: '▾';
+}
+
+.experience__skills-content {
+  border-top: 1px dashed var(--color-border);
+  padding: 0.75rem 0.85rem 0.85rem;
+}
+
+.experience__skills-title {
+  margin: 0.2rem 0 0.45rem;
+  font-size: 0.86rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-muted);
+}
+
+.experience__skills-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-bottom: 0.55rem;
+}
+
+.experience__skill-tag {
+  background: #dfeeff;
+  color: #144a84;
+  border: 1px solid #bad8ff;
+  border-radius: 999px;
+  padding: 0.22rem 0.58rem;
+  font-size: 0.84rem;
+  font-weight: 600;
+}
+
+.experience__skill-tag--soft {
+  background: #eef2f7;
+  color: #30485f;
+  border-color: #d7e1ea;
+}
+
 /* === Skills === */
 .skills__group { margin-bottom: var(--spacing-2xl); }
 
@@ -730,6 +795,29 @@ html[data-reading='on'] .contact-card .bg {
 .badge--technical {
   background: var(--color-accent);
   color: #fff;
+}
+
+.badge--technical-split {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding-right: 0.35rem;
+}
+
+.badge--technical-split .badge__name {
+  font-weight: 600;
+}
+
+.badge--technical-split .badge__years {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
 }
 
 .badge--competency {

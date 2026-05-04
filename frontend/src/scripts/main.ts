@@ -34,7 +34,7 @@ async function loadCV(): Promise<void> {
     const data: CVData = (await res.json()) as CVData;
 
     fill('.cv-header', renderHeader(data.header));
-    fill('.cv-about', renderAbout(data.about));
+    fill('.cv-about', renderAbout(data.about, data.education ?? []));
     fill('.cv-experience', renderExperience(data.experience));
     fill('.cv-skills', renderSkills(data.skills));
     fill('.cv-education', renderEducation(data.certifications));

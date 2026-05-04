@@ -13,11 +13,15 @@ type CVProject = { name: string; url: string; description: string };
 type CVConference = { title: string; event: string; location: string };
 
 type CVData = {
-  header: { name: string; title: string; role: string; vision: string };
-  contact: { phone: string; email: string; location: string; website: string };
+  header: { nickname?: string; name?: string; fullname?: string; title?: string; role: string; vision: string };
+  contact: {
+    public?: { email?: string; website?: string };
+    private?: { phone?: string; email?: string; location?: string };
+  };
   about: string;
+  education?: Array<{ degree: string; institution: string; location: string; period: string }>;
   experience: CVItem[];
-  skills: { technical: string[]; competencies: string[] };
+  skills: { technical: Array<string | { name: string; experienceYears?: number }>; competencies: string[] };
   certifications: CVCert[];
   conferences: CVConference[];
   projects: CVProject[];
@@ -53,7 +57,8 @@ export async function generateCvPdfBuffer(data: CVData): Promise<Buffer> {
   const chunks: Buffer[] = [];
   doc.on('data', (chunk) => chunks.push(Buffer.from(chunk)));
 
-  doc.fillColor('#0f2742').font('Helvetica-Bold').fontSize(24).text(data.header.name, { align: 'left' });
+  const displayName = data.header.fullname ?? data.header.name ?? data.header.nickname ?? 'Raul Gonzalez';
+  doc.fillColor('#0f2742').font('Helvetica-Bold').fontSize(24).text(displayName, { align: 'left' });
   doc.fillColor('#2f74b5').font('Helvetica-Bold').fontSize(13).text(data.header.role);
   if (data.header.title) {
     doc.fillColor('#4a5f73').font('Helvetica').fontSize(11).text(data.header.title);
@@ -65,15 +70,22 @@ export async function generateCvPdfBuffer(data: CVData): Promise<Buffer> {
   });
 
   sectionTitle(doc, 'Contacto');
-  bullet(doc, `Teléfono: ${data.contact.phone}`);
-  bullet(doc, `Email: ${data.contact.email}`);
-  bullet(doc, `Ubicación: ${data.contact.location}`);
-  bullet(doc, `Web: ${data.contact.website}`);
+  if (data.contact.private?.phone) bullet(doc, `Teléfono: ${data.contact.private.phone}`);
+  if (data.contact.private?.email) bullet(doc, `Email: ${data.contact.private.email}`);
+  if (data.contact.private?.location) bullet(doc, `Ubicación: ${data.contact.private.location}`);
+  if (data.contact.public?.website) bullet(doc, `Web: ${data.contact.public.website}`);
 
   sectionTitle(doc, 'Sobre mí');
   doc.fillColor('#203243').font('Helvetica').fontSize(10.5).text(data.about, {
     lineGap: 3,
   });
+
+  if (data.education?.length) {
+    sectionTitle(doc, 'Formación académica');
+    data.education.forEach((e) => {
+      bullet(doc, `${e.degree} — ${e.institution} (${e.location}, ${e.period})`, 10);
+    });
+  }
 
   sectionTitle(doc, 'Experiencia');
   data.experience.forEach((item) => {
@@ -85,7 +97,12 @@ export async function generateCvPdfBuffer(data: CVData): Promise<Buffer> {
   });
 
   sectionTitle(doc, 'Habilidades técnicas');
-  doc.fillColor('#203243').font('Helvetica').fontSize(10.5).text(data.skills.technical.join(' · '), {
+  const technical = data.skills.technical.map((skill) =>
+    typeof skill === 'string'
+      ? skill
+      : `${skill.name}${skill.experienceYears ? ` (${skill.experienceYears} años)` : ''}`
+  );
+  doc.fillColor('#203243').font('Helvetica').fontSize(10.5).text(technical.join(' · '), {
     lineGap: 3,
   });
 

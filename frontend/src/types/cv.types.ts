@@ -2,6 +2,7 @@ export interface CVData {
   header: Header;
   contact: Contact;
   about: string;
+  education?: EducationItem[];
   experience: ExperienceItem[];
   skills: Skills;
   certifications: Certification[];
@@ -10,17 +11,25 @@ export interface CVData {
 }
 
 export interface Header {
+  nickname?: string;
   name: string;
+  lastname?: string;
+  fullname?: string;
   title: string;
   role: string;
   vision: string;
 }
 
 export interface Contact {
-  phone: string;
-  email: string;
-  location: string;
-  website: string;
+  public?: {
+    email?: string;
+    website?: string;
+  };
+  private?: {
+    phone?: string;
+    email?: string;
+    location?: string;
+  };
 }
 
 export interface ExperienceItem {
@@ -29,11 +38,22 @@ export interface ExperienceItem {
   period: string;
   location: string;
   highlights: string[];
+  skills?: {
+    technical: Array<string | { name: string; experienceYears?: number }>;
+    competencies: string[];
+  };
 }
 
 export interface Skills {
-  technical: string[];
+  technical: Array<string | { name: string; experienceYears?: number }>;
   competencies: string[];
+}
+
+export interface EducationItem {
+  degree: string;
+  institution: string;
+  location: string;
+  period: string;
 }
 
 export interface Certification {

@@ -1,6 +1,7 @@
 import type {
   Header,
   Contact,
+  EducationItem,
   ExperienceItem,
   Skills,
   Certification,
@@ -39,9 +40,10 @@ function renderVision(text: string): string {
 }
 
 export function renderHeader(data: Header): string {
+  const displayName = data.nickname ?? data.name;
   return `
     <div class="content">
-      <h1 class="header__name">${esc(data.name)}</h1>
+      <h1 class="header__name">${esc(displayName)}</h1>
       ${data.title ? `<p class="header__title">${esc(data.title)}</p>` : ''}
       <p class="header__role">${esc(data.role)}</p>
       <div class="header__vision">${renderVision(data.vision)}</div>
@@ -56,40 +58,25 @@ export function renderHeader(data: Header): string {
     </div>`;
 }
 
-export function renderAbout(text: string): string {
-  const marker = 'Estudios:';
-  const idx = text.indexOf(marker);
-  if (idx >= 0) {
-    const intro = highlightSemantic(text.slice(0, idx).trim());
-    const studies = text.slice(idx + marker.length).trim();
-    const studiesHtml = studies
-      .replace(
-        'Licenciatura de Sistemas Computacionales Administrativos',
-        '<span class="about__hl-degree">Licenciatura de Sistemas Computacionales Administrativos</span>'
-      )
-      .replace(
-        'Facultad de Contaduría y Administración de la Universidad Veracruzana',
-        '<span class="about__hl-university">Facultad de Contaduría y Administración de la Universidad Veracruzana</span>'
-      )
-      .replace(
-        'Xalapa-Enríquez, Veracruz de Ignacio de la Llave.',
-        '<span class="about__hl-location">Xalapa-Enríquez, Veracruz de Ignacio de la Llave.</span>'
-      );
-
-    return `
-    <h2 class="section__title">Sobre mí</h2>
-    <p class="about__text">${intro}</p>
-    <ul class="about__list">
-      <li><strong>Estudios:</strong> ${studiesHtml}</li>
-    </ul>`;
-  }
+export function renderAbout(text: string, education: EducationItem[] = []): string {
+  const educationBlock = education.length
+    ? `<ul class="about__list">${education
+        .map((e) => `<li><strong class="about__hl-degree">${esc(e.degree)}</strong>, <span class="about__hl-university">${esc(e.institution)}</span>. <span class="about__hl-location">${esc(e.location)} (${esc(e.period)})</span></li>`)
+        .join('')}</ul>`
+    : '';
 
   return `
     <h2 class="section__title">Sobre mí</h2>
-    <p class="about__text">${highlightSemantic(text)}</p>`;
+    <p class="about__text">${highlightSemantic(text)}</p>
+    ${educationBlock}`;
 }
 
 export function renderExperience(items: ExperienceItem[]): string {
+  const renderSkill = (skill: string | { name: string; experienceYears?: number }): string => {
+    if (typeof skill === 'string') return esc(skill);
+    return esc(`${skill.name}${skill.experienceYears ? ` (${skill.experienceYears} años)` : ''}`);
+  };
+
   const cards = items.map((item) => `
     <article class="experience__item">
       <div class="experience__dot"></div>
@@ -103,6 +90,24 @@ export function renderExperience(items: ExperienceItem[]): string {
         <ul class="experience__highlights">
           ${item.highlights.map((h) => `<li>${highlightSemantic(h)}</li>`).join('')}
         </ul>
+        ${
+          item.skills
+            ? `
+        <details class="experience__skills-card">
+          <summary class="experience__skills-summary">Habilidades y Competencias</summary>
+          <div class="experience__skills-content">
+            <p class="experience__skills-title">Habilidades técnicas</p>
+            <div class="experience__skills-tags">
+              ${item.skills.technical.map((s) => `<span class="experience__skill-tag">${renderSkill(s)}</span>`).join('')}
+            </div>
+            <p class="experience__skills-title">Competencias</p>
+            <div class="experience__skills-tags">
+              ${item.skills.competencies.map((c) => `<span class="experience__skill-tag experience__skill-tag--soft">${esc(c)}</span>`).join('')}
+            </div>
+          </div>
+        </details>`
+            : ''
+        }
       </div>
     </article>`).join('');
 
@@ -112,7 +117,16 @@ export function renderExperience(items: ExperienceItem[]): string {
 }
 
 export function renderSkills(skills: Skills): string {
-  const technical = skills.technical.map((s) => `<span class="badge badge--technical">${esc(s)}</span>`).join('');
+  const technical = skills.technical
+    .map((s) => {
+      if (typeof s === 'string') return `<span class="badge badge--technical">${esc(s)}</span>`;
+      return `
+        <span class="badge badge--technical badge--technical-split">
+          <span class="badge__name">${esc(s.name)}</span>
+          ${s.experienceYears ? `<span class="badge__years">${esc(String(s.experienceYears))} años</span>` : ''}
+        </span>`;
+    })
+    .join('');
   const competencies = skills.competencies.map((s) => `<span class="badge badge--competency">${esc(s)}</span>`).join('');
 
   return `
@@ -169,36 +183,33 @@ export function renderProjects(projects: Project[]): string {
 }
 
 export function renderContact(contact: Contact): string {
-  return `
-    <h2 class="section__title">Contacto</h2>
-    <div class="contact__grid">
-      <div class="contact-card">
-        <div class="bg">
-          <span class="contact__label">Teléfono</span>
-          <span class="contact__value">${esc(contact.phone)}</span>
-        </div>
-        <div class="blob"></div>
-      </div>
+  const email = contact.public?.email ?? '';
+  const website = contact.public?.website ?? '';
+  const cards: string[] = [];
+
+  if (email) {
+    cards.push(`
       <div class="contact-card">
         <div class="bg">
           <span class="contact__label">Email</span>
-          <a class="contact__value" href="mailto:${esc(contact.email)}">${esc(contact.email)}</a>
+          <a class="contact__value" href="mailto:${esc(email)}">${esc(email)}</a>
         </div>
         <div class="blob"></div>
-      </div>
-      <div class="contact-card">
-        <div class="bg">
-          <span class="contact__label">Ubicación</span>
-          <span class="contact__value">${esc(contact.location)}</span>
-        </div>
-        <div class="blob"></div>
-      </div>
+      </div>`);
+  }
+
+  if (website) {
+    cards.push(`
       <div class="contact-card">
         <div class="bg">
           <span class="contact__label">Web</span>
-          <a class="contact__value" href="https://${esc(contact.website)}" target="_blank" rel="noopener noreferrer">${esc(contact.website)}</a>
+          <a class="contact__value" href="https://${esc(website)}" target="_blank" rel="noopener noreferrer">${esc(website)}</a>
         </div>
         <div class="blob"></div>
-      </div>
-    </div>`;
+      </div>`);
+  }
+
+  return `
+    <h2 class="section__title">Contacto</h2>
+    <div class="contact__grid">${cards.join('')}</div>`;
 }
