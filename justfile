@@ -14,6 +14,8 @@
 #   just clean            → elimina artefactos
 #   just lint             → valida Helm chart
 #   just all              → setup + build
+#   just release-tag v1.20260504-1   → crea y empuja tag para disparar Publish+Deploy
+#   just release-tag-today 1 1        → crea tag v1.YYYYmmDD-1 y lo empuja
 #   just secrets-keygen   → genera llave age local
 #   just secrets-encrypt  → cifra .env → .env.enc con sops
 #   just secrets-decrypt  → descifra .env.enc → .env
@@ -86,6 +88,26 @@ lint:
 helm-template:
     @echo "📋 Renderizando Helm templates..."
     helm template raulglez-me helm/raulglez-me/
+
+# ─── Release tags (GitHub Actions) ───────────────────────
+
+## Crea y publica un tag (ej: just release-tag v1.20260504-1)
+release-tag tag:
+    @echo "{{tag}}" | grep -Eq '^v[0-9]+\.[0-9]{8}-[0-9]+$$' || (echo "❌ Tag inválido. Usa formato v#.YYYYmmDD-# (ej: v1.20260504-1)"; exit 1)
+    @echo "🏷️  Creando tag {{tag}}"
+    git tag "{{tag}}"
+    @echo "🚀 Publicando tag {{tag}} en origin"
+    git push origin "{{tag}}"
+    @echo "✅ Tag publicado. GitHub Actions debe ejecutar Publish Container + Deploy."
+
+## Crea y publica tag con formato v#.YYYYmmDD-# (ej: just release-tag-today 1 1)
+release-tag-today major='1' patch='1':
+    @tag="v{{major}}.$$(date +%Y%m%d)-{{patch}}"; \
+    echo "🏷️  Creando tag $$tag"; \
+    git tag "$$tag"; \
+    echo "🚀 Publicando tag $$tag en origin"; \
+    git push origin "$$tag"; \
+    echo "✅ Tag publicado. GitHub Actions debe ejecutar Publish Container + Deploy."
 
 # ─── Secrets (sops + age) ────────────────────────────────
 

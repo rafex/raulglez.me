@@ -1,10 +1,9 @@
 name: Deploy
 
 on:
-  workflow_run:
-    workflows: ["Publish Container"]
-    types:
-      - completed
+  push:
+    tags:
+      - 'v*.*'
   workflow_dispatch:
     inputs:
       tag:
@@ -29,7 +28,6 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     environment:
       name: ${{ inputs.environment || 'production' }}
 
@@ -39,7 +37,14 @@ jobs:
 
       - name: Set tag
         id: tag
-        run: echo "tag=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || 'latest' }}" >> $GITHUB_OUTPUT
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
+            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4
