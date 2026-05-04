@@ -2,7 +2,8 @@
 # https://github.com/casey/just
 #
 # Uso:
-#   just dev              → inicia backend (:3001) + Vite (:3000) en paralelo
+#   just dev              → inicia backend (:3001) + Vite (:3000) en paralelo (sin abrir navegador)
+#   just dev-open         → abre http://localhost:3000 en navegador
 #   just dev-frontend     → solo Vite dev server (:3000, proxea /api a :3001)
 #   just dev-backend      → solo backend Node.js (:3001, hot reload)
 #   just build            → compila frontend + backend
@@ -20,6 +21,11 @@
 dev:
     @echo "🚀 Iniciando backend :3001 y Vite :3000 ..."
     just dev-backend & just dev-frontend
+
+## Abre el navegador en http://localhost:3000
+dev-open:
+    @echo "🌐 Abriendo navegador en http://localhost:3000"
+    open http://localhost:3000
 
 ## Solo Vite dev server (:3000, proxea /api → backend :3001)
 dev-frontend:

@@ -18,6 +18,15 @@ function fill(selector: string, html: string): void {
   if (el) el.innerHTML = html;
 }
 
+function hideLoader(): void {
+  const loader = document.querySelector('#page-loader') as HTMLElement | null;
+  if (!loader) return;
+  loader.classList.add('is-hidden');
+  window.setTimeout(() => {
+    loader.remove();
+  }, 450);
+}
+
 async function loadCV(): Promise<void> {
   try {
     const res = await fetch('/api/cv');
@@ -36,10 +45,12 @@ async function loadCV(): Promise<void> {
     initPhoneCanvas();
     observeSections();
     initAccessibility();
+    hideLoader();
   } catch (err) {
     const app = document.querySelector('#app');
     if (app) app.innerHTML = '<p class="error">Error cargando el CV. Revisa la consola.</p>';
     console.error('Failed to load CV:', err);
+    hideLoader();
   }
 }
 
