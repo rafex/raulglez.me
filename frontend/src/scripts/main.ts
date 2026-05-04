@@ -2,7 +2,6 @@ import type { CVData } from '../types/cv.types';
 import {
   renderHeader,
   renderAbout,
-  renderReadingSection,
   renderExperience,
   renderSkills,
   renderEducation,
@@ -27,7 +26,6 @@ async function loadCV(): Promise<void> {
 
     fill('.cv-header', renderHeader(data.header));
     fill('.cv-about', renderAbout(data.about));
-    fill('.cv-reading', renderReadingSection());
     fill('.cv-experience', renderExperience(data.experience));
     fill('.cv-skills', renderSkills(data.skills));
     fill('.cv-education', renderEducation(data.certifications));

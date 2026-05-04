@@ -9,16 +9,13 @@ export function initAccessibility(): void {
   const fontSizeValue = document.querySelector('#a11y-font-size-value') as HTMLElement | null;
   const fontFamily = document.querySelector('#a11y-font-family') as HTMLSelectElement | null;
   const colorTheme = document.querySelector('#a11y-color-theme') as HTMLSelectElement | null;
-  const readingBtn = document.querySelector('#a11y-reading-mode') as HTMLButtonElement | null;
-  const readingInlineBtn = document.querySelector('#reading-inline-btn') as HTMLButtonElement | null;
+  const readingSwitch = document.querySelector('#reading-switch') as HTMLInputElement | null;
 
-  if (!toggle || !panel || !fontSize || !fontSizeValue || !fontFamily || !colorTheme || !readingBtn) return;
+  if (!toggle || !panel || !fontSize || !fontSizeValue || !fontFamily || !colorTheme || !readingSwitch) return;
 
   const applyReadingState = (on: boolean): void => {
     root.dataset.reading = on ? 'on' : 'off';
-    const label = on ? 'Desactivar modo lectura' : 'Activar modo lectura';
-    readingBtn.textContent = label;
-    if (readingInlineBtn) readingInlineBtn.textContent = label;
+    readingSwitch.checked = on;
     localStorage.setItem('a11y-reading', on ? 'on' : 'off');
   };
 
@@ -62,7 +59,7 @@ export function initAccessibility(): void {
     localStorage.setItem('a11y-theme', colorTheme.value);
   });
 
-  const toggleReading = (): void => applyReadingState(root.dataset.reading !== 'on');
-  readingBtn.addEventListener('click', toggleReading);
-  readingInlineBtn?.addEventListener('click', toggleReading);
+  readingSwitch.addEventListener('change', () => {
+    applyReadingState(readingSwitch.checked);
+  });
 }

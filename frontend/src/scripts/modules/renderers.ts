@@ -60,16 +60,6 @@ export function renderAbout(text: string): string {
     <p class="about__text">${highlightSemantic(text)}</p>`;
 }
 
-export function renderReadingSection(): string {
-  return `
-    <h2 class="section__title">Modo Lectura</h2>
-    <p class="about__text">
-      Activa una vista simplificada para concentrarte en el contenido del CV.
-      También puedes usar el modo lectura nativo de navegadores modernos cuando aparezca el ícono correspondiente en la barra de direcciones.
-    </p>
-    <button class="reading-inline-btn" type="button" id="reading-inline-btn">Activar modo lectura</button>`;
-}
-
 export function renderExperience(items: ExperienceItem[]): string {
   const cards = items.map((item) => `
     <article class="experience__item">
