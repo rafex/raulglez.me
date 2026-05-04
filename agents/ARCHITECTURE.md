@@ -1,70 +1,68 @@
 # ARCHITECTURE.md
 
-Arquitectura del portal CV `raulglez.me`.
+Arquitectura actual del portal CV `raulglez.me`.
 
 ## Visión general
 
-Sitio web estático de una sola página (SPA sin framework). El HTML se genera en tiempo de build con Vite + PugJS a partir de datos estructurados en JSON. Se sirve con nginx en un contenedor Docker multi-arch, y se despliega en un cluster k3s mediante Helm. El CI/CD está completamente automatizado con GitHub Actions.
+Aplicación web con frontend estático (Vite + Pug + TypeScript) y backend Node.js.
+El backend sirve contenido público del CV, genera PDF dinámico y expone chat IA con trazabilidad.
 
 ```
-[push tag] → GitHub Actions
-                ├─ buildx multi-arch (amd64, arm64)
-                ├─ push a GHCR
-                └─ deploy Helm en k3s
-                     ├─ nginx ingress + cert-manager (TLS)
-                     └─ pod único (replicaCount: 1)
+Usuario
+  ├─ GET /            -> frontend (estático)
+  ├─ GET /api/cv      -> vista pública de cv.json
+  ├─ GET /api/cv.pdf  -> PDF dinámico
+  └─ POST /api/ai/ask -> RAG + GenAI (con fallback determinista)
 ```
 
-## Módulos principales
+## Componentes
 
-### `frontend/` — Build de sitio estático
-- **Responsabilidad**: Generar HTML, CSS y JS estáticos
-- **Input**: `src/data/cv.json` (datos estructurados del CV)
-- **Output**: `dist/` con `index.html`, `assets/*.css`, `assets/*.js`
-- **Tecnologías**: Vite 5, PugJS 3, Sass (Dart Sass), Animation.css 4
-- **Límites**: No depende de ningún backend. Solo emite archivos estáticos.
+### `frontend/`
+- Renderizado de secciones CV, accesibilidad, modo lectura y toolbar.
+- Chat flotante para preguntas sobre el CV.
+- Panel IA para revisión operativa de interacciones (`status`, `rating`, `reviewer_note`, `adjusted_answer`).
 
-### `containers/` — Dockerización
-- **Responsabilidad**: Empaquetar el frontend para distribución
-- **Input**: `frontend/dist/` (generado por Vite)
-- **Output**: Imagen Docker multi-arch en GHCR
-- **Componentes**: `Dockerfile.frontend` (multi-stage), `nginx/default.conf`
-- **Límites**: Imagen final < 15MB. Usuario no-root (1001).
+### `backend/`
+- `GET /api/cv`: proyección pública (oculta rama `contact.private`).
+- `GET /api/cv.pdf`: PDF generado en runtime desde `backend/data/cv.json`.
+- `POST /api/ai/ask`: orquesta RAG + Groq.
+- `GET /api/ai/questions`, `PATCH /api/ai/questions/:id`: revisión de interacciones.
+- `GET /api/ai/reindex`, `POST /api/ai/reindex`: estado y rebuild de índice.
 
-### `helm/raulglez-me/` — Despliegue en k3s
-- **Responsabilidad**: Definir y gestionar los recursos Kubernetes
-- **Recursos**: Deployment, Service, Ingress, ServiceAccount
-- **Seguridad**: `readOnlyRootFilesystem`, `runAsNonRoot`, `drop ALL capabilities`
-- **Límites**: Solo expone puerto 8080 internamente. TLS manejado por cert-manager.
+### `RAG local` (`backend/ai/rag_faiss.py`)
+- Construye embeddings de `cv.json` + respuestas aprobadas en SQLite.
+- Guarda índice FAISS y metadatos.
+- Soporta consulta y respuesta determinista.
+- Invalidación automática de índice cuando cambia:
+  - `backend/data/cv.json`,
+  - `backend/data/interactions.sqlite`.
 
-### `.github/workflows/` — CI/CD
-- **Responsabilidad**: Automatizar build, push y deploy
-- **Triggers**: Push de tags (`vN.YYYYmmDD`), workflow_dispatch manual
-- **Jobs**: `publish_container` (build + push), `deploy` (Helm upgrade)
+### Persistencia
+- `backend/data/cv.json`: fuente de verdad del CV.
+- `backend/data/interactions.sqlite`: preguntas, respuestas, revisión humana y trazabilidad.
 
-## Flujo principal
+## Flujo IA
 
-1. **Dev local**: `cd frontend && npm run dev` → Vite dev server en `:3000`
-2. **Build**: `npm run build` → `dist/`
-3. **Docker**: `make -C containers build` → imagen local
-4. **Tag release**: `git tag v1.20260501 && git push --tags`
-5. **CI**: GitHub Actions detecta el tag → build multi-arch → push GHCR
-6. **CD**: Deploy automático en k3s con `helm upgrade --install`
+1. Frontend envía pregunta + lead (`name`, `phone` obligatorios) a `POST /api/ai/ask`.
+2. Backend consulta contexto vía FAISS.
+3. Si Groq responde: modo `genai`.
+4. Si Groq falla: modo `deterministic` con evidencia local.
+5. Se guarda interacción en SQLite (`response_mode`, `status`, `rating`, `adjusted_answer`, etc.).
 
-## Restricciones
+## Despliegue
 
-- **Prohibido**: Frameworks JS pesados (React, Vue, Angular)
-- **Prohibido**: Dependencias de runtime más allá de animate.css
-- **Prohibido**: Backend, API, base de datos
-- **Obligatorio**: Build multi-arch (amd64 + arm64)
-- **Obligatorio**: Imagen final < 50MB
-- **Obligatorio**: Ejecutar como usuario no-root
+- Contenedor Docker multi-stage con runtime Node + Python (para fallback RAG).
+- Helm chart `helm/raulglez-me` despliega:
+  - Deployment, Service, Ingress, ServiceAccount,
+  - HPA, PDB, probes de salud,
+  - `envFrom` para secretos (`raulglez-me-env`),
+  - volumen writable `/app/data` (SQLite).
 
-## Riesgos
+## Riesgos y controles
 
-| Riesgo | Impacto | Mitigación |
-|--------|---------|------------|
-| CV desactualizado | Medio | `cv.json` es la fuente de verdad; modificar y redeploy |
-| Expiración de cert TLS | Alto | cert-manager con Let's Encrypt renueva automáticamente |
-| Falta de espacio en nodo k3s | Bajo | Imagen pequeña (~15MB), resource limits definidos |
-| GitHub Actions rate limit | Bajo | GHCR no tiene rate limiting para pulls autenticados |
+| Riesgo | Control |
+|---|---|
+| Respuesta IA no confiable | Guardrail estricto + fallback determinista + revisión humana |
+| Exposición de datos privados | Endpoint público filtra `contact.private` |
+| Índice desactualizado | Invalidación automática + endpoint de reindexado manual |
+| Fallo de despliegue | `helm lint/template`, rollout checks, debug de eventos/logs |

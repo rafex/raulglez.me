@@ -39,12 +39,7 @@ jobs:
 
       - name: Set tag
         id: tag
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "tag=${{ inputs.tag }}" >> $GITHUB_OUTPUT
-          else
-            echo "tag=latest" >> $GITHUB_OUTPUT
-          fi
+        run: echo "tag=${{ github.event_name == 'workflow_dispatch' && github.event.inputs.tag || 'latest' }}" >> $GITHUB_OUTPUT
 
       - name: Setup kubectl
         uses: azure/setup-kubectl@v4

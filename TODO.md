@@ -34,9 +34,9 @@ Estado: `active`
 
 ## Pendiente de documentación
 
-- [ ] Actualizar `agents/ARCHITECTURE.md` con:
+- [x] Actualizar `agents/ARCHITECTURE.md` con:
   - flujo de chat IA (GenAI + fallback),
   - uso de SQLite + FAISS.
-- [ ] Actualizar `pipelines/CD.md` con:
+- [x] Actualizar `pipelines/CD.md` con:
   - secrets requeridos en GitHub Actions y Kubernetes,
   - procedimiento de rotación de `GROQ_API_KEY`.

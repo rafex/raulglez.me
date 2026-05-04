@@ -46,6 +46,11 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 - `workflows/README.md`: procedimientos repetibles de operacion.
 - `pipelines/README.md`: contexto de CI/CD del proyecto.
 
+## Estado documental
+
+- `agents/ARCHITECTURE.md` refleja arquitectura actual con backend, chat IA y RAG local.
+- `pipelines/CD.md` documenta despliegue en k3s, secretos requeridos y rotación de `GROQ_API_KEY`.
+
 ## Politica de contexto
 
 - Los archivos en MAYUSCULAS son contexto para agentes.

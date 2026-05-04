@@ -28,6 +28,7 @@ Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + T
 - `containers/`: imagen Docker.
 - `helm/`: despliegue en Kubernetes.
 - `agents/`: documentación operativa del proyecto.
+- `pipelines/`: documentación de CI/CD y secretos de despliegue.
 
 ## Toolbar del sitio
 
@@ -104,6 +105,9 @@ El workflow `.github/workflows/deploy.yml` ahora:
 - crea/actualiza `raulglez-me-env` (`GROQ_API_KEY`, `GROQ_MODEL`),
 - ejecuta `helm lint` + `helm template` antes de `helm upgrade`,
 - agrega diagnóstico extendido en caso de fallo de rollout.
+
+Documentación de CD:
+- [CD.md](/Users/rafex/repository/github/rafex/raulglez.me/pipelines/CD.md)
 
 ## Nota de runtime para fallback determinista
 
