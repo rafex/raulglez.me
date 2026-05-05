@@ -2,7 +2,10 @@ name: Deploy
 
 on:
   workflow_run:
-    workflows: ["Publish Container"]
+    workflows:
+      - "Publish Frontend"
+      - "Publish Backend"
+      - "Publish AI"
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -19,10 +22,7 @@ on:
         default: production
 
 env:
-  HELM_RELEASE: raulglez-me
-  HELM_CHART: helm/raulglez-me
   K3S_NAMESPACE: default
-  GHCR_PULL_SECRET: ghcr-pull-secret
   APP_ENV_SECRET: raulglez-me-env
 
 jobs:
@@ -69,28 +69,11 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Ensure namespace exists
-        run: |
-          kubectl get namespace "${{ env.K3S_NAMESPACE }}" >/dev/null 2>&1 || kubectl create namespace "${{ env.K3S_NAMESPACE }}"
-
-      - name: Create GHCR pull secret
-        run: |
-          if [ -z "${{ secrets.GHCR_USERNAME }}" ] || [ -z "${{ secrets.GHCR_TOKEN }}" ]; then
-            echo "GHCR secrets not configured — skipping pull secret (image is public)"
-            exit 0
-          fi
-          kubectl create secret docker-registry "${{ env.GHCR_PULL_SECRET }}" \
-            --docker-server=ghcr.io \
-            --docker-username=${{ secrets.GHCR_USERNAME }} \
-            --docker-password=${{ secrets.GHCR_TOKEN }} \
-            --namespace="${{ env.K3S_NAMESPACE }}" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Create app env secret
         run: |
           GROQ_MODEL_VALUE="${{ vars.GROQ_MODEL }}"
           if [ -z "$GROQ_MODEL_VALUE" ]; then
-            GROQ_MODEL_VALUE="llama-3.3-70b-versatile"
+            GROQ_MODEL_VALUE="openai/gpt-oss-20b"
           fi
 
           kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
@@ -103,43 +86,139 @@ jobs:
             --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Helm lint
-        run: helm lint "${{ env.HELM_CHART }}"
-
-      - name: Helm template
-        run: helm template "${{ env.HELM_RELEASE }}" "${{ env.HELM_CHART }}" >/tmp/helm-render.yaml
-
-      - name: Deploy with Helm
+      # ── Mosquitto (broker MQTT, imagen oficial ~5 MB) ──────────────
+      - name: Deploy Mosquitto
         run: |
-          HELM_EXTRA=""
-          if [ -n "${{ secrets.GHCR_USERNAME }}" ] && [ -n "${{ secrets.GHCR_TOKEN }}" ]; then
-            HELM_EXTRA="--set imagePullSecrets[0].name=${{ env.GHCR_PULL_SECRET }}"
-          fi
-          helm upgrade --install ${{ env.HELM_RELEASE }} ${{ env.HELM_CHART }} \
+          kubectl apply -f - <<'EOF'
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: mosquitto
+            namespace: ${{ env.K3S_NAMESPACE }}
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: mosquitto
+            template:
+              metadata:
+                labels:
+                  app: mosquitto
+              spec:
+                containers:
+                  - name: mosquitto
+                    image: eclipse-mosquitto:2
+                    ports:
+                      - containerPort: 1883
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: mosquitto
+            namespace: ${{ env.K3S_NAMESPACE }}
+          spec:
+            selector:
+              app: mosquitto
+            ports:
+              - port: 1883
+                targetPort: 1883
+          EOF
+          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/mosquitto --timeout=2m
+
+      # ── Frontend (~80 MB, deploy en segundos) ──────────────────────
+      - name: Deploy Frontend
+        run: |
+          helm upgrade --install raulglez-frontend helm/raulglez-me \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
             --set image.tag=${{ steps.tag.outputs.tag }} \
-            $HELM_EXTRA \
+            --set service.port=80 \
+            --set resources.limits.cpu=100m \
+            --set resources.limits.memory=128Mi \
+            --set resources.requests.cpu=50m \
+            --set resources.requests.memory=64Mi \
+            --set autoscaling.enabled=false \
+            --set pdb.enabled=false \
+            --wait --timeout 2m
+
+      # ── Backend (~180 MB, deploy en segundos) ─────────────────────
+      - name: Deploy Backend
+        run: |
+          helm upgrade --install raulglez-backend helm/raulglez-me \
+            --namespace "${{ env.K3S_NAMESPACE }}" \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend \
+            --set image.tag=${{ steps.tag.outputs.tag }} \
+            --set service.port=3000 \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \
-            --wait \
-            --timeout 15m
+            --set env.aiServiceUrl=http://raulglez-ai:3001 \
+            --set resources.limits.cpu=500m \
+            --set resources.limits.memory=512Mi \
+            --set resources.requests.cpu=100m \
+            --set resources.requests.memory=128Mi \
+            --set autoscaling.enabled=true \
+            --set autoscaling.maxReplicas=3 \
+            --set pdb.enabled=true \
+            --set pdb.minAvailable=1 \
+            --wait --timeout 2m
+
+      # ── AI (~2.5 GB, deploy lento pero no bloquea) ────────────────
+      - name: Deploy AI (no wait)
+        run: |
+          helm upgrade --install raulglez-ai helm/raulglez-me \
+            --namespace "${{ env.K3S_NAMESPACE }}" \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-ai \
+            --set image.tag=${{ steps.tag.outputs.tag }} \
+            --set service.port=3001 \
+            --set env.secretName="${{ env.APP_ENV_SECRET }}" \
+            --set resources.limits.cpu=1000m \
+            --set resources.limits.memory=2Gi \
+            --set resources.requests.cpu=100m \
+            --set resources.requests.memory=512Mi \
+            --set autoscaling.enabled=false \
+            --set pdb.enabled=false \
+            --set livenessProbe.httpGet.path=/health \
+            --set livenessProbe.httpGet.port=3001 \
+            --set livenessProbe.initialDelaySeconds=60 \
+            --set readinessProbe.httpGet.path=/health \
+            --set readinessProbe.httpGet.port=3001 \
+            --set readinessProbe.initialDelaySeconds=30 \
+            --set startupProbe.httpGet.path=/health \
+            --set startupProbe.httpGet.port=3001 \
+            --set startupProbe.failureThreshold=60 \
+            --no-wait
+
+      # ── Ingress (rutea frontend + backend) ─────────────────────────
+      - name: Deploy Ingress
+        run: |
+          kubectl apply -f - <<'EOF'
+          apiVersion: networking.k8s.io/v1
+          kind: Ingress
+          metadata:
+            name: raulglez-me
+            namespace: ${{ env.K3S_NAMESPACE }}
+            annotations:
+              cert-manager.io/cluster-issuer: "letsencrypt-prod"
+          spec:
+            ingressClassName: haproxy
+            rules:
+              - host: raulglez.me
+                http:
+                  paths:
+                    - path: /
+                      pathType: Prefix
+                      backend:
+                        service:
+                          name: raulglez-frontend
+                          port:
+                            number: 80
+          EOF
 
       - name: Verify deployment
         run: |
-          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/${{ env.HELM_RELEASE }} --timeout=10m
-          kubectl -n "${{ env.K3S_NAMESPACE }}" get pods -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }}
+          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,pods,svc,ingress -o wide
 
       - name: Debug rollout failure
         if: failure()
         run: |
-          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,rs,pods -o wide
-          kubectl -n "${{ env.K3S_NAMESPACE }}" describe deployment "${{ env.HELM_RELEASE }}" || true
+          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,rs,pods,svc -o wide
           kubectl -n "${{ env.K3S_NAMESPACE }}" get events --sort-by=.metadata.creationTimestamp | tail -n 80 || true
-          PODS=$(kubectl -n "${{ env.K3S_NAMESPACE }}" get pods -l app.kubernetes.io/instance="${{ env.HELM_RELEASE }}" -o jsonpath='{.items[*].metadata.name}')
-          for p in $PODS; do
-            echo "==== describe $p ===="
-            kubectl -n "${{ env.K3S_NAMESPACE }}" describe pod "$p" || true
-            echo "==== logs $p ===="
-            kubectl -n "${{ env.K3S_NAMESPACE }}" logs "$p" --tail=200 || true
-            echo "==== previous logs $p ===="
-            kubectl -n "${{ env.K3S_NAMESPACE }}" logs "$p" --previous --tail=200 || true
-          done

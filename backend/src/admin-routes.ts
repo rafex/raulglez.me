@@ -16,13 +16,15 @@ import {
   recordFailedAttempt,
   clearFailedAttempts,
 } from './auth.js';
-import {
-  listTrackedQuestions,
-  rateTrackedQuestion,
-  rebuildRagIndex,
-  getRagIndexStatus,
-  CV_SYSTEM_PROMPT,
-} from './ai.js';
+
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://localhost:3001';
+
+async function aiFetch(path: string, init?: RequestInit): Promise<any> {
+  const res = await fetch(`${AI_SERVICE_URL}${path}`, init);
+  const body = await res.json();
+  if (!res.ok || !body.ok) throw new Error(body.error ?? `AI service error ${res.status}`);
+  return body;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_DIR = process.env.PUBLIC_DIR ?? path.join(__dirname, '..', 'public');
@@ -193,8 +195,8 @@ export async function handleAdminRoute(
     try {
       const urlObj = new URL(url, 'http://localhost');
       const limit = Math.min(Number(urlObj.searchParams.get('limit') ?? 200), 500);
-      const rows = listTrackedQuestions(limit);
-      jsonOk(res, { ok: true, rows });
+      const data = await aiFetch(`/questions?limit=${limit}`);
+      jsonOk(res, { ok: true, rows: data.rows });
     } catch (err) {
       jsonError(res, 500, String(err));
     }
@@ -207,7 +209,11 @@ export async function handleAdminRoute(
     if (!requireAuth(req, res)) return true;
     try {
       const payload = await readJsonBody(req);
-      rateTrackedQuestion(Number(rateMatch[1]), payload ?? {});
+      await aiFetch(`/questions/${rateMatch[1]}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload ?? {}),
+      });
       jsonOk(res, { ok: true });
     } catch (err) {
       jsonError(res, 500, String(err));
@@ -220,7 +226,8 @@ export async function handleAdminRoute(
     if (!requireAuth(req, res)) return true;
     jsonOk(res, {
       ok: true,
-      prompt: CV_SYSTEM_PROMPT,
+      prompt: `Eres un asistente que responde preguntas sobre el CV de Raúl González.
+Usa exclusivamente los chunks del CV proporcionados. Si no hay evidencia suficiente, di \"No tengo información suficiente en el CV para responder\". Responde en español, en formato Markdown.`,
       model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
     });
     return true;
@@ -230,7 +237,7 @@ export async function handleAdminRoute(
   if (method === 'GET' && url === '/api/admin/reindex') {
     if (!requireAuth(req, res)) return true;
     try {
-      const status = await getRagIndexStatus();
+      const status = await aiFetch('/reindex');
       jsonOk(res, { ok: true, status });
     } catch (err) {
       jsonError(res, 500, String(err));
@@ -242,7 +249,7 @@ export async function handleAdminRoute(
   if (method === 'POST' && url === '/api/admin/reindex') {
     if (!requireAuth(req, res)) return true;
     try {
-      const result = await rebuildRagIndex();
+      const result = await aiFetch('/reindex', { method: 'POST' });
       jsonOk(res, { ok: true, result });
     } catch (err) {
       jsonError(res, 500, String(err));

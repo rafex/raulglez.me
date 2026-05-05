@@ -3,8 +3,16 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateCvPdfBuffer } from './pdf.js';
-import { askCvWithTracking, listTrackedQuestions, rateTrackedQuestion, rebuildRagIndex, getRagIndexStatus } from './ai.js';
 import { handleAdminRoute } from './admin-routes.js';
+
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://localhost:3001';
+
+async function aiFetch(path: string, init?: RequestInit): Promise<any> {
+  const res = await fetch(`${AI_SERVICE_URL}${path}`, init);
+  const body = await res.json();
+  if (!res.ok || !body.ok) throw new Error(body.error ?? `AI service error ${res.status}`);
+  return body;
+}
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -122,7 +130,11 @@ const server = http.createServer(async (req, res) => {
 
   if (method === 'POST' && url === '/api/ai/ask') {
     readJsonBody(req)
-      .then((payload) => askCvWithTracking(payload))
+      .then((payload) => aiFetch('/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }))
       .then((result) => {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify({ ok: true, ...result }));
@@ -136,19 +148,20 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (method === 'GET' && url === '/api/ai/questions') {
-    try {
-      const rows = listTrackedQuestions(200);
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-      res.end(JSON.stringify({ ok: true, rows }));
-    } catch (err) {
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: String(err) }));
-    }
+    aiFetch('/questions')
+      .then((data) => {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: true, rows: data.rows }));
+      })
+      .catch((err) => {
+        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: String(err) }));
+      });
     return;
   }
 
   if (method === 'GET' && url === '/api/ai/reindex') {
-    getRagIndexStatus()
+    aiFetch('/reindex')
       .then((status) => {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify({ ok: true, status }));
@@ -161,7 +174,7 @@ const server = http.createServer(async (req, res) => {
   }
 
   if (method === 'POST' && url === '/api/ai/reindex') {
-    rebuildRagIndex()
+    aiFetch('/reindex', { method: 'POST' })
       .then((result) => {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify({ ok: true, result }));
@@ -176,8 +189,12 @@ const server = http.createServer(async (req, res) => {
   const rateMatch = url.match(/^\/api\/ai\/questions\/(\d+)$/);
   if (method === 'PATCH' && rateMatch) {
     readJsonBody(req)
-      .then((payload) => {
-        rateTrackedQuestion(Number(rateMatch[1]), payload ?? {});
+      .then((payload) => aiFetch(`/questions/${rateMatch[1]}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      }))
+      .then(() => {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: true }));
       })

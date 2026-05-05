@@ -1,4 +1,5 @@
 # ─── Default values for raulglez-me ───
+# El chart se usa con --set para desplegar cada servicio por separado.
 
 replicaCount: 1
 
@@ -7,11 +8,7 @@ image:
   pullPolicy: IfNotPresent
   tag: "latest"
 
-# Opcional: necesario solo si la imagen de GHCR es privada.
-# Si es pública, dejar como [].
 imagePullSecrets: []
-#  - name: ghcr-pull-secret
-
 nameOverride: ""
 fullnameOverride: ""
 
@@ -24,13 +21,9 @@ serviceAccount:
 podAnnotations: {}
 podLabels: {}
 
-podSecurityContext:
-  fsGroup: 1001
-
+podSecurityContext: { fsGroup: 1001 }
 securityContext:
-  capabilities:
-    drop:
-      - ALL
+  capabilities: { drop: [ALL] }
   readOnlyRootFilesystem: false
   runAsNonRoot: true
   runAsUser: 1001
@@ -42,13 +35,12 @@ service:
 deployment:
   strategy:
     type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 1
-      maxSurge: 1
+    rollingUpdate: { maxUnavailable: 1, maxSurge: 1 }
   progressDeadlineSeconds: 900
 
 env:
   secretName: raulglez-me-env
+  aiServiceUrl: http://raulglez-ai:3001
 
 dataVolume:
   emptyDir: {}
@@ -65,31 +57,21 @@ ingress:
   tls: []
 
 resources:
-  limits:
-    cpu: 1000m
-    memory: 1Gi
-  requests:
-    cpu: 100m
-    memory: 256Mi
+  limits:   { cpu: 1000m, memory: 1Gi }
+  requests: { cpu: 100m, memory: 256Mi }
 
 livenessProbe:
-  httpGet:
-    path: /
-    port: http
+  httpGet: { path: /, port: http }
   initialDelaySeconds: 10
   periodSeconds: 30
 
 readinessProbe:
-  httpGet:
-    path: /
-    port: http
+  httpGet: { path: /, port: http }
   initialDelaySeconds: 5
   periodSeconds: 10
 
 startupProbe:
-  httpGet:
-    path: /
-    port: http
+  httpGet: { path: /, port: http }
   failureThreshold: 30
   periodSeconds: 10
 

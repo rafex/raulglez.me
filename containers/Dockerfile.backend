@@ -1,0 +1,34 @@
+# ─── raulglez-backend (~180 MB) ────────────────────────────────────
+# Node.js puro, sin Python ni FAISS.
+# Delega /api/ai/* al servicio AI interno vía AI_SERVICE_URL.
+# Se reconstruye con cambios en backend/src/** (excepto ai.ts) y data/**.
+
+FROM node:lts-slim AS builder
+
+WORKDIR /app
+
+COPY backend/package*.json ./
+RUN npm ci
+
+COPY backend/ ./
+RUN npm run build
+
+
+FROM node:lts-slim AS runtime
+
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m -s /usr/sbin/nologin appuser
+
+WORKDIR /app
+
+COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
+COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
+COPY --from=builder --chown=appuser:appgroup /app/data ./data
+
+RUN mkdir -p /app/data/db && chown appuser:appgroup /app/data/db
+
+USER appuser
+
+EXPOSE 3000
+
+CMD ["node", "dist/server.js"]
