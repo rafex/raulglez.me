@@ -59,9 +59,10 @@ export interface EducationItem {
 
 export interface Certification {
   title: string;
-  code: string;
-  year: string;
-  id: string;
+  issuer?: string;
+  code?: string;
+  expedition?: string;
+  id?: string;
 }
 
 export interface Conference {

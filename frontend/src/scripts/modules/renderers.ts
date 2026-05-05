@@ -131,7 +131,7 @@ export function renderEducation(certs: Certification[]): string {
   const cards = certs.map((c) => `
     <article class="card">
       <p class="card-title">${esc(c.title)}</p>
-      <p class="small-desc">${esc(c.year)} · ${esc(c.code)}<br>ID: ${esc(c.id)}</p>
+      <p class="small-desc">${c.issuer ? `${esc(c.issuer)} · ` : ''}${esc(c.expedition ?? '')}${c.code ? ` · ${esc(c.code)}` : ''}${c.id ? `<br>ID: ${esc(c.id)}` : ''}</p>
       <div class="go-corner"><div class="go-arrow">→</div></div>
     </article>`).join('');
 
