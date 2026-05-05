@@ -20,7 +20,7 @@ Estado: `active`
   - `helm template`,
   - `helm upgrade --install`,
   - prueba funcional de `/api/ai/ask` en modo GenAI y fallback determinista.
-  - Nota: `helm lint` ya validado localmente; falta validación en cluster.
+  - Nota: `helm lint` ya validado localmente. Tag `v1.20260504-5` lanzado — esperar que termine pipeline Publish Container → Deploy, luego verificar en cluster.
 
 ## Pendiente funcional (producto)
 
