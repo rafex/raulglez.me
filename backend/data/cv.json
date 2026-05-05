@@ -1,9 +1,9 @@
 {
   "header": {
     "nickname": "Raúl González",
-    "name": "Raúl",
+    "name": "Lic. Raúl",
     "lastname": "González",
-    "fullname": "Raúl Eduardo González Argote",
+    "fullname": "Lic. Raúl Eduardo González Argote",
     "title": "Arquitecto de Software | Especialista en Soluciones Cloud-Native de Alto Rendimiento | Open Source Advocate",
     "role": "Arquitecto TI",
     "vision": "Diseñar y evolucionar arquitecturas de software resilientes y de alto impacto que resuelven problemas complejos de negocio, utilizando un enfoque pragmático que integra lo mejor de las tecnologías cloud-nativas, el open source y las prácticas de ingeniería modernas. Creo en una arquitectura que es debate, criterio y ejecución, no solo diagramas."
@@ -23,22 +23,20 @@
   "education": [
     {
       "degree": "Licenciatura en Sistemas Computacionales Administrativos",
-      "institution": "Facultad de Contaduría y Administración, Universidad Veracruzana",
-      "location": "Xalapa-Enríquez, Veracruz de Ignacio de la Llave",
+      "institution": "Universidad Veracruzana",
+      "location": "Xalapa-Enríquez, Veracruz",
       "period": "2007 - 2012"
     }
   ],
   "experience": [
     {
       "role": "Arquitecto TI",
-      "company": "BBVA México",
-      "period": "Enero 2023 - Presente",
-      "location": "CDMX",
+      "company": "BBVA Technology en América",
+      "period": "Jul 2024 - Presente",
+      "location": "CDMX, Híbrido",
       "highlights": [
-        "Definí la arquitectura de la Plataforma de Firma, orquestando soluciones para Firma Autógrafa, de Derivados y Diferida, asegurando el alineamiento con la estrategia de microservicios (MSA) del banco.",
-        "Lideré la adopción local de una plataforma de evidencias global, actuando como Component Owner y piloteando su integración en el proyecto de firma diferida, lo que estandarizó la gestión de evidencias digitales.",
-        "Actúo como arquitecto consultor para proyectos internos, evaluando la viabilidad de integración con la plataforma de firma y acelerando la fase de discovery.",
-        "Stack principal: Java, Spring Boot, Arquitectura de Microservicios, Tecnologías NextGen Ether (ASO, APX, Epsilon)."
+        "Responsable de la evolución arquitectónica de las plataformas de firma y evidencias, definiendo su roadmap y asegurando su alineamiento con la estrategia de negocio.",
+        "Lidero la gestión de proyectos de integración, coordinando equipos multidisciplinarios y actuando como punto de contacto entre negocio y tecnología."
       ],
       "skills": {
         "technical": [
@@ -52,15 +50,34 @@
       }
     },
     {
-      "role": "Full Stack Senior / Cloud Architect",
-      "company": "Ready Mind",
-      "period": "Jul 2021 - Enero 2023",
-      "location": "CDMX",
+      "role": "Arquitecto TI",
+      "company": "BBVA en México",
+      "period": "Ene 2023 - Jun 2024",
+      "location": "CDMX, Híbrido",
       "highlights": [
-        "Lideré la re-arquitectura y migración de aplicaciones monolíticas de clientes a una arquitectura cloud-native en Azure, mejorando la escalabilidad y reduciendo costos operativos.",
-        "Diseñé e implementé ambientes seguros en Linux sobre Azure, aplicando best practices de hardening y automatizando su configuración para asegurar la consistencia.",
-        "Automaticé procesos de CI/CD y mejoré la eficiencia de integraciones, reduciendo el time-to-market de nuevas funcionalidades.",
-        "Stack principal: Java, Spring Boot, Angular, React, Azure (AKS, Azure Functions, API Management, DevOps), Linux, Jenkins."
+        "Actué como Tech Lead de la Plataforma de Firma en México, creando modelos de solución y guiando a los proyectos en su integración.",
+        "Fui el Component Owner de la Plataforma de Evidencias en México, responsable de crear los modelos de solución, capacitar al equipo técnico y gestionar la carga de trabajo para cada periodo de entrega."
+      ],
+      "skills": {
+        "technical": [
+          "Arquitectura de Microservicios",
+          "Java, Spring Boot"
+        ],
+        "competencies": [
+          "Mentoría y capacitación técnica",
+          "Gestión de cargas de trabajo"
+        ]
+      }
+    },
+    {
+      "role": "Programador Sr Full Stack",
+      "company": "Ready Mind",
+      "period": "Jul 2021 - Ene 2023",
+      "location": "México, Remoto",
+      "highlights": [
+        "Lideré la re-arquitectura y migración de aplicaciones a arquitecturas cloud-native en Azure, mejorando la escalabilidad y reduciendo costos operativos.",
+        "Diseñé e implementé ambientes seguros en Linux sobre Azure, aplicando best practices de hardening y automatizando su configuración.",
+        "Stack principal: Java, Spring Boot, Angular, React, Azure (AKS, Azure Functions, API Management, DevOps), Linux."
       ],
       "skills": {
         "technical": [
@@ -75,32 +92,32 @@
       }
     },
     {
-      "role": "Consultor Independiente & Arquitecto de Soluciones",
+      "role": "Arquitecto de Software / Consultor Independiente",
       "company": "Freelance",
-      "period": "Mar 2018 - Jul 2021",
+      "period": "Abr 2018 - 2021",
       "location": "CDMX",
       "highlights": [
-        "Diseñé y entregué soluciones de software a medida para múltiples clientes, abarcando desde la toma de requerimientos y diseño de arquitectura hasta la implementación en entornos Cloud (GCP, AWS) y On-Premises.",
-        "Desarrollé microservicios Java de alto rendimiento con un footprint de apenas 10MB, optimizando el uso de recursos en entornos contenerizados (LXC, Podman).",
-        "Administré y aseguré servidores Linux (CentOS, Debian) y gestioné servidores de aplicaciones (Nginx, Tomcat, JBoss) para entornos productivos.",
-        "Stack principal: Java, Python, Spring, MyBatis, Angular, PostgreSQL, Google Cloud Platform, AWS."
+        "Diseñé y entregué soluciones a medida, desde la toma de requerimientos hasta la implementación, usando Angular, Python y Java.",
+        "Desarrollé microservicios Java puro de alto rendimiento con un footprint menor a 10MB, utilizando JSON para la comunicación.",
+        "Administré y aseguré servidores Linux (Debian, CentOS, Fedora) utilizando virtualización con KVM y contenedores LXC, y configurando Nginx como balanceador y proxy inverso.",
+        "Automaticé tareas de infraestructura y despliegue con Bash y Python, e instalé y configuré herramientas como Taiga, Gogs, Alfresco y CMS."
       ],
       "skills": {
         "technical": [
-          "Arquitectura de Microservicios",
-          "Cloud Multi-plataforma",
-          "Java, Python, PHP"
+          "Arquitectura de Microservicios (Java Puro)",
+          "Virtualización (KVM, LXC) y Linux",
+          "Automatización (Bash, Python)"
         ],
         "competencies": [
           "Autogestión y emprendimiento",
-          "Comunicación efectiva con cliente"
+          "Maestría técnica y optimización"
         ]
       }
     },
     {
-      "role": "Profesor de Cursos Java",
+      "role": "Instructor de Cursos Java",
       "company": "KMMX",
-      "period": "Abr 2019 - Jun 2019",
+      "period": "Abr 2019 - May 2019",
       "location": "CDMX",
       "highlights": [
         "Impartí los módulos de Introducción a la Programación, Fundamentos de Java y Estructuras de Datos y Algoritmos, formando a nuevas generaciones de desarrolladores."
@@ -111,113 +128,180 @@
       }
     },
     {
-      "role": "Arquitecto Web & Líder de Desarrollo",
+      "role": "Líder de Proyecto",
       "company": "HITSS",
       "period": "Ene 2018 - Mar 2018",
       "location": "CDMX",
       "highlights": [
-        "Definí la arquitectura de referencia para el nuevo portal de ventas de Claro Colombia, creando arquetipos de desarrollo que estandarizaron la implementación con WebSphere Portal y JBoss."
+        "Lideré el proyecto para el nuevo portal de ventas de Claro Colombia, gestionando el equipo y resolviendo incidencias con JIRA para asegurar la entrega."
       ],
       "skills": {
-        "technical": ["WebSphere Portal", "Java, Spring"],
-        "competencies": ["Liderazgo técnico"]
+        "technical": ["WebSphere Portal", "Java, Spring", "JIRA"],
+        "competencies": ["Liderazgo de proyecto", "Resolución de incidencias"]
       }
     },
     {
-      "role": "Arquitecto de Software",
+      "role": "Arquitecto de Software (Java)",
       "company": "Seguritech",
       "period": "Ago 2017 - Nov 2017",
       "location": "CDMX",
       "highlights": [
-        "Diseñé una arquitectura de alta disponibilidad y tolerante a fallos para el aplicativo principal de la empresa, garantizando el cumplimiento de los SLAs.",
-        "Automaticé los procesos de despliegue e instalación mediante Shell scripting sobre un esquema virtualizado, optimizando la infraestructura con herramientas Open Source."
+        "Diseñé una arquitectura de alta disponibilidad utilizando virtualización con PROXMOX para optimizar la infraestructura y reducir costos.",
+        "Creé arquetipos de desarrollo y un flujo de versionamiento (GitFlow) para estandarizar las prácticas del equipo, además de automatizar despliegues con scripts Shell."
       ],
       "skills": {
-        "technical": ["Alta Disponibilidad", "Linux, Shell Scripting"],
-        "competencies": ["Resiliencia operativa"]
+        "technical": ["Alta Disponibilidad", "Proxmox", "Linux, Shell Scripting", "GitFlow"],
+        "competencies": ["Estandarización de procesos", "Optimización de infraestructura"]
       }
     },
     {
-      "role": "Arquitecto de Soluciones",
-      "company": "Teknei",
+      "role": "Arquitecto de Software",
+      "company": "GESFOR México - Panamá",
+      "period": "Jul 2017 - Ago 2017",
+      "location": "CDMX",
+      "highlights": [
+        "Definí la arquitectura RESTFul para la solución de INDRA-SEGOB, creando los arquetipos base con Java, JBoss, Spring y Bootstrap, y gestionando los recursos de TI."
+      ],
+      "skills": {
+        "technical": ["Java, J2EE", "JBoss, Spring"],
+        "competencies": ["Definición rápida de arquitecturas"]
+      }
+    },
+    {
+      "role": "Enterprise Solutions Architect",
+      "company": "TEKNEI",
       "period": "Oct 2016 - Jul 2017",
       "location": "CDMX",
       "highlights": [
-        "Lideré un equipo multidisciplinario (Java, Android, Python, iOS) para la integración de soluciones con la API-RPC de Odoo, desarrollando un Middleware en Linux para la capa de servicios."
+        "Lideré la integración de sistemas usando Python y servicios web (REST, SOAP) con la API RPC de Odoo, gestionando la información en PostgreSQL.",
+        "Definí una arquitectura de Alta Disponibilidad y creé procesos de operación para telefonía HerMobile.",
+        "Automaticé cargas de trabajo con Rundeck y pgloader, y gestioné la infraestructura virtualizada con VMware ESXi y XenServer."
       ],
       "skills": {
-        "technical": ["Integración de Sistemas", "Odoo, Python"],
-        "competencies": ["Gestión de equipos multifuncionales"]
+        "technical": ["Integración de Sistemas", "Python, Odoo, PostgreSQL", "VMware, XenServer", "Rundeck"],
+        "competencies": ["Gestión de equipos multifuncionales", "Diseño de procesos operativos"]
       }
     },
     {
-      "role": "Business Process Owner",
-      "company": "Banorte - EISEI",
-      "period": "Jul 2016 - Oct 2016",
+      "role": "Líder Técnico & Arquitecto de Software",
+      "company": "GFT Group / ADESIS Netlife",
+      "period": "Ene 2013 - Jul 2016",
       "location": "CDMX",
       "highlights": [
-        "Automaticé el proceso de conciliación bancaria utilizando tecnologías SAP (HANA y Data Services), mejorando la eficiencia y fiabilidad de las operaciones."
+        "Lideré la definición de arquitecturas para sistemas bancarios (BBVA, Banorte) y de seguros (GNP), enfocadas en la explotación de información y alto rendimiento.",
+        "Realicé entrevistas técnicas y creé evaluaciones para el reclutamiento de personal de desarrollo.",
+        "Lideré al equipo en la creación del portal de GNP con WebSphere Portal e integraciones con Alfresco y Liferay usando LDAP y CMIS."
       ],
       "skills": {
-        "technical": ["SAP HANA"],
-        "competencies": ["Gestión de procesos de negocio"]
+        "technical": ["Java, J2EE", "Arquitectura Bancaria", "WebSphere, Alfresco, Liferay"],
+        "competencies": ["Liderazgo de equipo", "Reclutamiento técnico especializado"]
       }
     },
     {
-      "role": "Líder Técnico & Arquitecto Java",
-      "company": "Adesis Netlife - GFT / SEGOB / Banorte",
-      "period": "Ene 2012 - Jul 2016",
+      "role": "Programador Analista",
+      "company": "Consistent",
+      "period": "Ene 2012 - Dic 2012",
       "location": "CDMX",
       "highlights": [
-        "Lideré la modernización del portal corporativo de GNP con WebSphere Portal, creando Portlets (JSR 286) e integrando Alfresco y Liferay.",
-        "Definí estándares de desarrollo, code clean y gestión de releases con GIT para asegurar la calidad del código en proyectos de gobierno (SEGOB) y banca (Banorte/BBVA)."
+        "Desarrollé Portlets (JSR 286) y servicios backend, integrando Alfresco con sistemas externos mediante CMIS.",
+        "Implementé procesamiento de información usando GPU con OpenCL, una solución innovadora para acelerar tareas que normalmente usarían CPU."
       ],
       "skills": {
-        "technical": ["Java, J2EE", "WebSphere, Alfresco, Liferay"],
-        "competencies": ["Liderazgo de equipo", "Definición de estándares"]
+        "technical": ["Java, J2EE", "Alfresco, CMIS", "OpenCL"],
+        "competencies": ["Innovación técnica", "Resolución creativa de problemas"]
       }
     }
   ],
   "skills": {
     "technical": [
-      { "name": "Java (J2EE/J2SE) & Spring Ecosystem", "experienceYears": 14 },
-      { "name": "Arquitectura de Microservicios", "experienceYears": 8 },
-      { "name": "Azure (AKS, Functions, DevOps)", "experienceYears": 4 },
-      { "name": "AWS & Google Cloud Platform", "experienceYears": 5 },
-      { "name": "Contenerización (Docker, Podman, K8s)", "experienceYears": 7 },
-      { "name": "Linux Administration & Scripting", "experienceYears": 14 },
-      { "name": "CI/CD (Jenkins, Sonar, Git)", "experienceYears": 10 },
+      { "name": "Java (J2EE/J2SE) & Spring Ecosystem", "experienceYears": 19 },
+      { "name": "Arquitectura de Microservicios (REST, gRPC)", "experienceYears": 8 },
+      { "name": "Cloud Computing (Azure, GCP, AWS)", "experienceYears": 5 },
+      { "name": "Contenerización (Docker, K8s) y Virtualización (KVM, LXC, Proxmox, VMware)", "experienceYears": 8 },
+      { "name": "Linux Administration & Scripting (Bash, Python)", "experienceYears": 19 },
+      { "name": "CI/CD (Jenkins, Sonar, Git, GitFlow)", "experienceYears": 10 },
+      { "name": "Bases de Datos (PostgreSQL, MySQL, Oracle, SQL Server)", "experienceYears": 19 },
       { "name": "Python", "experienceYears": 10 },
       { "name": "JavaScript/TypeScript (Angular, React)", "experienceYears": 8 },
-      { "name": "Bases de Datos SQL & NoSQL", "experienceYears": 14 }
+      { "name": "Orquestación (Rundeck) y Automatización", "experienceYears": 6 }
     ],
     "competencies": [
+      "Liderazgo Técnico y Mentoría de Equipos",
+      "Liderazgo Servicial (Servant Leadership)",
       "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
       "Modernización de Sistemas Legacy a Cloud-Native",
-      "Liderazgo Técnico y Mentoría de Equipos",
       "Definición de Estándares de Código y Mejores Prácticas",
       "Comunicación y Alineamiento con Stakeholders de Negocio",
+      "Toma de Decisiones basada en Datos y con apoyo de IA",
       "Resolución Analítica de Problemas Complejos"
     ]
   },
   "certifications": [
     {
       "title": "Sun Certified Web Component Developer for Java Platform, Enterprise Edition 5",
+      "issuer": "Oracle",
       "code": "v.3",
-      "year": "2009",
+      "expedition": "2009-08",
       "id": "SR3538468"
     },
     {
       "title": "Sun Certified Programmer for the Java 2 Platform, Standard Edition",
+      "issuer": "Oracle",
       "code": "310-055",
-      "year": "2008",
+      "expedition": "2008-11",
       "id": "SR3538468"
     },
     {
       "title": "Sun Certified Associate for Java Platform, Standard Edition",
+      "issuer": "Oracle",
       "code": "310-019",
-      "year": "2008",
+      "expedition": "2008-07",
       "id": "SR3538468"
+    },
+    {
+      "title": "Nano Tips para crecer dentro de tu organización, con Vicente Ferrio",
+      "issuer": "LinkedIn",
+      "expedition": "2026-03"
+    },
+    {
+      "title": "Nano Tips para crear una propuesta de valor que dispare tu carrera, con Vicente Ferrio",
+      "issuer": "LinkedIn",
+      "expedition": "2026-03"
+    },
+    {
+      "title": "Nano Tips para reforzar tu toma de decisiones con la IA Generativa, con Nerea Luis",
+      "issuer": "LinkedIn",
+      "expedition": "2026-03"
+    },
+    {
+      "title": "Nano Tips: Secretos para liderar equipos desde el futuro",
+      "issuer": "LinkedIn",
+      "expedition": "2026-03"
+    },
+    {
+      "title": "Foundation Workshop",
+      "issuer": "Management 3.0",
+      "expedition": "2025-12"
+    },
+    {
+      "title": "Management 3.0 Certification",
+      "issuer": "Management 3.0",
+      "expedition": "2025-12"
+    },
+    {
+      "title": "Ken Blanchard on Servant Leadership",
+      "issuer": "LinkedIn",
+      "expedition": "2025-01"
+    },
+    {
+      "title": "Fundamentos de inteligencia artificial: Máquinas pensantes",
+      "issuer": "LinkedIn",
+      "expedition": "2025-01"
+    },
+    {
+      "title": "Cómo generar confianza",
+      "issuer": "LinkedIn",
+      "expedition": "2024-04"
     }
   ],
   "conferences": [
@@ -227,15 +311,15 @@
       "location": "2026",
       "type": "publication"
     },
-    {
-      "title": "COBOL, IA y la democratización del conocimiento técnico",
-      "event": "Artículo en LinkedIn",
-      "location": "2026",
-      "type": "publication"
-    },
      {
       "title": "¿Muerte del Software o el eterno retorno de la 'Crisis de 1968'?",
       "event": "Debate en LinkedIn",
+      "location": "2026",
+      "type": "publication"
+    },
+    {
+      "title": "COBOL, IA y la democratización del conocimiento técnico",
+      "event": "Artículo en LinkedIn",
       "location": "2026",
       "type": "publication"
     },
@@ -282,7 +366,7 @@
   "highlight_semantic": {
     "java": {
       "text": "Base fundacional de mi arquitectura y desarrollo enterprise, avalada por certificaciones desde 2008.",
-      "experienceYears": 14,
+      "experienceYears": 19,
       "use": ["skills", "competencies", "certifications", "experience"],
       "certifications": [
         "Sun Certified Web Component Developer",
@@ -291,15 +375,15 @@
       ],
       "className": "strong"
     },
-    "arquitectura_cloud": {
-      "text": "Especialización en el diseño de soluciones escalables y resilientes en la nube, principalmente Azure y GCP.",
-      "experienceYears": 5,
+    "rendimiento": {
+      "text": "Especialización en el diseño de soluciones de alto rendimiento y bajo footprint, usando Java puro y optimización de infraestructura.",
+      "experienceYears": 8,
       "use": ["skills", "experience"],
       "className": "strong"
     },
-    "linux": {
-      "text": "Mi sistema operativo de batalla para operación, hardening y automatización de infraestructura.",
-      "experienceYears": 14,
+    "linux_virtualizacion": {
+      "text": "Experto en virtualización (KVM, LXC, Proxmox, VMware) y administración avanzada de sistemas Linux.",
+      "experienceYears": 19,
       "use": ["skills", "experience"],
       "className": "soft"
     },
