@@ -1,6 +1,6 @@
 # TODO
 
-Estado: `active`
+Estado: `done` ✅ — v1.20260504-11 en producción
 
 ## Pendiente inmediato
 
