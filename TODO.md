@@ -20,7 +20,7 @@ Estado: `active`
   - `helm template`,
   - `helm upgrade --install`,
   - prueba funcional de `/api/ai/ask` en modo GenAI y fallback determinista.
-  - Nota: `helm lint` ya validado localmente. Tag `v1.20260504-5` lanzado — esperar que termine pipeline Publish Container → Deploy, luego verificar en cluster.
+  - Nota: `helm lint` ya validado localmente. Fixes aplicados (tag pattern + PEP 668 Docker). Tag `v1.20260504-7` lanzado — Publish Container en progreso. Verificar en cluster al terminar.
 
 ## Pendiente funcional (producto)
 
