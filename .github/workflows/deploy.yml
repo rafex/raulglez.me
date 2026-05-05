@@ -42,7 +42,12 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
-            echo "tag=${{ github.event.workflow_run.head_branch }}" >> "$GITHUB_OUTPUT"
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ "$BRANCH" = "main" ]; then
+              echo "tag=latest" >> "$GITHUB_OUTPUT"
+            else
+              echo "tag=$BRANCH" >> "$GITHUB_OUTPUT"
+            fi
           elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
             echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
           else
