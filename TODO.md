@@ -15,12 +15,12 @@ Estado: `active`
   - usar `GHCR_USERNAME` + `GHCR_TOKEN` para `ghcr-pull-secret`,
   - validar namespace/release antes de deploy,
   - agregar bloque de diagnóstico en fallo (describe/logs/events).
-- [ ] Verificar despliegue real en k3s con:
+- [x] Verificar despliegue real en k3s con:
   - `helm lint`,
   - `helm template`,
   - `helm upgrade --install`,
-  - prueba funcional de `/api/ai/ask` en modo GenAI y fallback determinista.
-  - Nota: `helm lint` ya validado localmente. Fixes aplicados (tag pattern + PEP 668 Docker). Tag `v1.20260504-7` lanzado — Publish Container en progreso. Verificar en cluster al terminar.
+  - prueba funcional de `/api/ai/ask` en modo GenAI ✅ y fallback determinista.
+  - **Desplegado**: `v1.20260504-11`. Bugs corregidos: nombre imagen GHCR (raulglez-me→raulglez.me), node_modules faltante, emptyDir borraba cv.json, rutas ai.ts, Ingress haproxy, RAM 1Gi para FAISS/OOM. Panel IA removido del header público.
 
 ## Pendiente funcional (producto)
 
