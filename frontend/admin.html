@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>Panel Admin — raulglez.me</title>
+    <link rel="stylesheet" href="/src/styles/variables.css" />
+    <link rel="stylesheet" href="/src/styles/admin.css" />
+  </head>
+  <body>
+
+    <!-- ── PANTALLA DE LOGIN ─────────────────────────────────────────────── -->
+    <div id="login-screen" class="login-screen" hidden>
+      <div class="login-card">
+        <h1 class="login-title">Panel Administrativo</h1>
+        <p class="login-subtitle">raulglez.me</p>
+        <form id="login-form" class="login-form" autocomplete="on">
+          <div class="form-group">
+            <label for="login-user">Usuario</label>
+            <input
+              id="login-user"
+              type="text"
+              name="username"
+              autocomplete="username"
+              placeholder="admin"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Contraseña</label>
+            <input
+              id="login-password"
+              type="password"
+              name="current-password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+            />
+          </div>
+          <p id="login-error" class="login-error" hidden></p>
+          <button type="submit" class="btn btn-primary btn-block" id="login-btn">
+            Entrar
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- ── PANEL PRINCIPAL ──────────────────────────────────────────────── -->
+    <div id="admin-panel" class="admin-layout" hidden>
+
+      <!-- Sidebar -->
+      <aside class="admin-sidebar">
+        <div class="sidebar-brand">
+          <span class="sidebar-icon">⚙️</span>
+          <span class="sidebar-title">Admin</span>
+        </div>
+        <nav class="sidebar-nav">
+          <button class="nav-item active" data-section="interactions">
+            <span class="nav-icon">💬</span> Interacciones
+          </button>
+          <button class="nav-item" data-section="prompt">
+            <span class="nav-icon">🧠</span> Prompt IA
+          </button>
+          <button class="nav-item" data-section="faiss">
+            <span class="nav-icon">🗂️</span> Índice FAISS
+          </button>
+        </nav>
+        <button id="logout-btn" class="btn-logout">
+          <span>🚪</span> Cerrar sesión
+        </button>
+      </aside>
+
+      <!-- Contenido principal -->
+      <main class="admin-content">
+
+        <!-- ── Sección: Interacciones ──────────────────────────────────── -->
+        <section id="section-interactions" class="admin-section active">
+          <div class="section-header">
+            <h2 class="section-title">Interacciones del Chat</h2>
+            <div class="section-actions">
+              <select id="filter-status" class="filter-select">
+                <option value="">Todos los estados</option>
+                <option value="pending">Pendiente</option>
+                <option value="approved">Aprobado</option>
+                <option value="rejected">Rechazado</option>
+              </select>
+              <button class="btn btn-secondary" id="refresh-btn">↻ Actualizar</button>
+            </div>
+          </div>
+
+          <div id="interactions-loading" class="loading-msg">Cargando interacciones…</div>
+          <div id="interactions-empty" class="empty-msg" hidden>No hay interacciones todavía.</div>
+
+          <div class="table-wrapper" id="interactions-table-wrap" hidden>
+            <table class="admin-table" id="interactions-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Fecha</th>
+                  <th>Nombre</th>
+                  <th>Empresa</th>
+                  <th>Pregunta</th>
+                  <th>Estado</th>
+                  <th>Rating</th>
+                  <th>Modo</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="interactions-body"></tbody>
+            </table>
+          </div>
+
+          <!-- Modal de detalle / calificación -->
+          <div id="detail-modal" class="modal-overlay" hidden>
+            <div class="modal-card">
+              <div class="modal-header">
+                <h3 class="modal-title">Detalle de interacción <span id="modal-id"></span></h3>
+                <button class="modal-close" id="modal-close-btn">✕</button>
+              </div>
+              <div class="modal-body">
+                <div class="detail-grid">
+                  <div class="detail-col">
+                    <p><strong>Nombre:</strong> <span id="d-name"></span></p>
+                    <p><strong>Teléfono:</strong> <span id="d-phone"></span></p>
+                    <p><strong>WhatsApp:</strong> <span id="d-whatsapp"></span></p>
+                    <p><strong>Email:</strong> <span id="d-email"></span></p>
+                    <p><strong>Empresa:</strong> <span id="d-company"></span></p>
+                    <p><strong>Posición:</strong> <span id="d-position"></span></p>
+                    <p><strong>Fecha:</strong> <span id="d-date"></span></p>
+                    <p><strong>Modo:</strong> <span id="d-mode"></span></p>
+                  </div>
+                  <div class="detail-col">
+                    <div class="form-group">
+                      <label><strong>Pregunta</strong></label>
+                      <div id="d-question" class="detail-text"></div>
+                    </div>
+                    <div class="form-group">
+                      <label><strong>Respuesta dada</strong></label>
+                      <div id="d-answer" class="detail-text"></div>
+                    </div>
+                  </div>
+                </div>
+
+                <hr class="modal-divider" />
+
+                <h4>Calificación y revisión</h4>
+                <div class="rating-grid">
+                  <div class="form-group">
+                    <label for="edit-status">Estado</label>
+                    <select id="edit-status" class="filter-select">
+                      <option value="pending">Pendiente</option>
+                      <option value="approved">Aprobado</option>
+                      <option value="rejected">Rechazado</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label for="edit-rating">Rating (1–5)</label>
+                    <div class="star-row" id="star-row">
+                      <button type="button" class="star" data-val="1">★</button>
+                      <button type="button" class="star" data-val="2">★</button>
+                      <button type="button" class="star" data-val="3">★</button>
+                      <button type="button" class="star" data-val="4">★</button>
+                      <button type="button" class="star" data-val="5">★</button>
+                    </div>
+                    <input type="hidden" id="edit-rating" value="" />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="edit-note">Nota del revisor</label>
+                  <textarea id="edit-note" class="admin-textarea" rows="3" placeholder="Comentario sobre esta respuesta…"></textarea>
+                </div>
+                <div class="form-group">
+                  <label for="edit-adjusted">Respuesta ajustada (se usará en el RAG)</label>
+                  <textarea id="edit-adjusted" class="admin-textarea" rows="5" placeholder="Versión corregida de la respuesta para reentrenamiento…"></textarea>
+                </div>
+              </div>
+              <div class="modal-footer">
+                <button class="btn btn-secondary" id="modal-cancel-btn">Cancelar</button>
+                <button class="btn btn-primary" id="modal-save-btn">Guardar</button>
+              </div>
+              <p id="modal-error" class="login-error" hidden></p>
+            </div>
+          </div>
+        </section>
+
+        <!-- ── Sección: Prompt IA ──────────────────────────────────────── -->
+        <section id="section-prompt" class="admin-section" hidden>
+          <div class="section-header">
+            <h2 class="section-title">Prompt del Sistema (IA)</h2>
+          </div>
+          <div id="prompt-loading" class="loading-msg">Cargando prompt…</div>
+          <div id="prompt-content" class="prompt-card" hidden>
+            <div class="prompt-meta">
+              <span>Modelo: <strong id="prompt-model"></strong></span>
+            </div>
+            <ol id="prompt-list" class="prompt-list"></ol>
+          </div>
+        </section>
+
+        <!-- ── Sección: FAISS ──────────────────────────────────────────── -->
+        <section id="section-faiss" class="admin-section" hidden>
+          <div class="section-header">
+            <h2 class="section-title">Índice FAISS</h2>
+            <div class="section-actions">
+              <button class="btn btn-danger" id="reindex-btn">⚡ Reindexar</button>
+            </div>
+          </div>
+          <div id="faiss-loading" class="loading-msg">Cargando estado…</div>
+          <div id="faiss-content" class="faiss-card" hidden>
+            <pre id="faiss-status" class="faiss-pre"></pre>
+          </div>
+          <p id="reindex-msg" class="reindex-msg" hidden></p>
+        </section>
+
+      </main>
+    </div>
+
+    <script type="module" src="/src/scripts/admin.ts"></script>
+  </body>
+</html>

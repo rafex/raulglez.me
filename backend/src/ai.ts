@@ -150,6 +150,14 @@ async function deterministicFallback(question: string): Promise<string> {
   return result?.answer ?? 'No tengo evidencia suficiente en el CV para afirmarlo.';
 }
 
+export const CV_SYSTEM_PROMPT: string[] = [
+  'Eres un asistente de CV con guardrails estrictos.',
+  'Responde SOLO con base en el CONTEXTO proporcionado.',
+  'Si no existe evidencia suficiente, responde exactamente: "No tengo evidencia suficiente en el CV para afirmarlo."',
+  'No inventes experiencia, certificaciones, años o cargos.',
+  'Cita brevemente la evidencia usada con referencias (1), (2), etc.',
+];
+
 async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) {
@@ -158,13 +166,7 @@ async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
 
   const context = chunks.map((c, i) => `(${i + 1}) [${c.source}] ${c.text}`).join('\n');
 
-  const system = [
-    'Eres un asistente de CV con guardrails estrictos.',
-    'Responde SOLO con base en el CONTEXTO proporcionado.',
-    'Si no existe evidencia suficiente, responde exactamente: "No tengo evidencia suficiente en el CV para afirmarlo."',
-    'No inventes experiencia, certificaciones, años o cargos.',
-    'Cita brevemente la evidencia usada con referencias (1), (2), etc.',
-  ].join(' ');
+  const system = CV_SYSTEM_PROMPT.join(' ');
 
   const user = `CONTEXTO:\n${context}\n\nPREGUNTA:\n${question}`;
 

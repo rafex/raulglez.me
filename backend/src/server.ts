@@ -4,6 +4,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateCvPdfBuffer } from './pdf.js';
 import { askCvWithTracking, listTrackedQuestions, rateTrackedQuestion, rebuildRagIndex, getRagIndexStatus } from './ai.js';
+import { handleAdminRoute } from './admin-routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -79,7 +80,8 @@ async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   return JSON.parse(raw);
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
+  try {
   const method = req.method ?? 'GET';
   const url = (req.url ?? '/').split('?')[0];
 
@@ -186,7 +188,18 @@ const server = http.createServer((req, res) => {
     return;
   }
 
+  // ── Rutas del panel admin (protegidas) ──────────────────────────────────────
+  const handled = await handleAdminRoute(req, res, method, url);
+  if (handled) return;
+
   serveStatic(req, res);
+  } catch (err) {
+    console.error('Unhandled server error:', err);
+    if (!res.headersSent) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Internal server error');
+    }
+  }
 });
 
 server.listen(PORT, () => {

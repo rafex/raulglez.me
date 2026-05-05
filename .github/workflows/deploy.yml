@@ -96,6 +96,10 @@ jobs:
           kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
             --from-literal=GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
             --from-literal=GROQ_MODEL="$GROQ_MODEL_VALUE" \
+            --from-literal=ADMIN_USER='${{ secrets.ADMIN_USER }}' \
+            --from-literal=ADMIN_PASSWORD='${{ secrets.ADMIN_PASSWORD }}' \
+            --from-literal=SESSION_SECRET='${{ secrets.SESSION_SECRET }}' \
+            --from-literal=COOKIE_SECURE='true' \
             --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
@@ -117,11 +121,11 @@ jobs:
             $HELM_EXTRA \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \
             --wait \
-            --timeout 5m
+            --timeout 15m
 
       - name: Verify deployment
         run: |
-          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/${{ env.HELM_RELEASE }} --timeout=3m
+          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/${{ env.HELM_RELEASE }} --timeout=10m
           kubectl -n "${{ env.K3S_NAMESPACE }}" get pods -l app.kubernetes.io/instance=${{ env.HELM_RELEASE }}
 
       - name: Debug rollout failure
