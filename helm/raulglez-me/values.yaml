@@ -4,7 +4,7 @@ replicaCount: 1
 
 image:
   repository: ghcr.io/rafex/raulglez.me
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
   tag: "latest"
 
 # Opcional: necesario solo si la imagen de GHCR es privada.
@@ -45,7 +45,7 @@ deployment:
     rollingUpdate:
       maxUnavailable: 1
       maxSurge: 1
-  progressDeadlineSeconds: 600
+  progressDeadlineSeconds: 900
 
 env:
   secretName: raulglez-me-env
