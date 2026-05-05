@@ -84,11 +84,12 @@ function getDb(): DatabaseSync {
   return db;
 }
 
-function runPythonJson(input: object): Promise<any> {
+function runPythonJson(input: object, timeoutMs: number = 45000): Promise<any> {
   return new Promise((resolve, reject) => {
     const py = spawn('python3', [PY_RAG_SCRIPT], {
       stdio: ['pipe', 'pipe', 'pipe'],
       env: process.env,
+      timeout: timeoutMs,
     });
 
     let stdout = '';
