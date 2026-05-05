@@ -38,7 +38,8 @@ WORKDIR /app
 
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/dist ./dist
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/node_modules ./node_modules
-COPY --from=backend-builder --chown=appuser:appgroup /app/backend/data ./data
+COPY --from=backend-builder --chown=appuser:appgroup /app/backend/data/ ./data/
+RUN mkdir -p /app/data/db && chown appuser:appgroup /app/data/db
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/ai ./backend/ai
 COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/dist ./public
 

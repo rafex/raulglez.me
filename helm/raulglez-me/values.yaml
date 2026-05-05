@@ -55,20 +55,14 @@ dataVolume:
 
 ingress:
   enabled: true
-  className: "nginx"
-  annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+  className: "haproxy"
+  annotations: {}
   hosts:
     - host: raulglez.me
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - secretName: raulglez-me-tls
-      hosts:
-        - raulglez.me
+  tls: []
 
 resources:
   limits:

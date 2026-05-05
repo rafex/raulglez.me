@@ -52,7 +52,7 @@ spec:
                 name: {{ .Values.env.secretName }}
           volumeMounts:
             - name: app-data
-              mountPath: /app/data
+              mountPath: /app/data/db
           livenessProbe:
             {{- toYaml .Values.livenessProbe | nindent 12 }}
           readinessProbe:
