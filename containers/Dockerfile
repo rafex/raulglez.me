@@ -41,7 +41,7 @@ COPY --from=backend-builder --chown=appuser:appgroup /app/backend/data ./data
 COPY --from=backend-builder --chown=appuser:appgroup /app/backend/ai ./backend/ai
 COPY --from=frontend-builder --chown=appuser:appgroup /app/frontend/dist ./public
 
-RUN pip3 install --no-cache-dir -r /app/backend/ai/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir -r /app/backend/ai/requirements.txt
 
 USER appuser
 
