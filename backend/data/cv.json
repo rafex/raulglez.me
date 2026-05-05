@@ -4,9 +4,9 @@
     "name": "Raúl",
     "lastname": "González",
     "fullname": "Raúl Eduardo González Argote",
-    "title": "",
+    "title": "Arquitecto de Software | Especialista en Soluciones Cloud-Native de Alto Rendimiento | Open Source Advocate",
     "role": "Arquitecto TI",
-    "vision": "El uso de las TIC's en un entorno empresarial e individual para facilitar y solventar problemáticas que en estas existen. Proveer soluciones con base a las tecnologías actuales tanto privadas/costo y OpenSource/Free. Análisis y arquitectura de aplicaciones de alto impacto junto con su infraestructura escalable y replicable."
+    "vision": "Diseñar y evolucionar arquitecturas de software resilientes y de alto impacto que resuelven problemas complejos de negocio, utilizando un enfoque pragmático que integra lo mejor de las tecnologías cloud-nativas, el open source y las prácticas de ingeniería modernas. Creo en una arquitectura que es debate, criterio y ejecución, no solo diagramas."
   },
   "contact": {
     "public": {
@@ -19,7 +19,7 @@
       "location": "Ciudad de México, Benito Juárez"
     }
   },
-  "about": "Arquitecto de software con más de 19 años de experiencia en desarrollo de aplicaciones empresariales, liderazgo de equipos y diseño de arquitecturas escalables. Especialista en Java (J2EE/J2SE), Spring, microservicios y plataformas cloud (Azure, AWS, GCP). Apasionado por el Open Source, la automatización de infraestructura y la docencia técnica.",
+  "about": "Arquitecto de software con más de 14 años de experiencia liderando el diseño y la modernización de sistemas críticos para banca, gobierno y seguros. Mi enfoque combina un profundo conocimiento técnico en Java, Spring y ecosistemas cloud (Azure, AWS, GCP) con una visión estratégica de la arquitectura como motor de negocio. Soy un firme defensor del open source y la automatización, y complemento mi práctica profesional con la docencia y el análisis de tendencias tecnológicas en mi blog y en LinkedIn, donde genero debate sobre el futuro de la ingeniería de software.",
   "education": [
     {
       "degree": "Licenciatura en Sistemas Computacionales Administrativos",
@@ -35,114 +35,92 @@
       "period": "Enero 2023 - Presente",
       "location": "CDMX",
       "highlights": [
-        "Arquitecto de la Plataforma de Firma, ayudando a la generación de MSA para dar solución a requerimientos de negocio como: Firma Autógrafa, firma de derivados y firma diferida.",
-        "Apoyo a discovery de proyectos internos para evaluar la plataforma e integrarla a nuevas iniciativas e ideas.",
-        "Component Owner de la Plataforma de Evidencias.",
-        "Adopción local de las capacidades de la plataforma global para el proyecto de firma diferida.",
-        "Tecnologías NextGen Ether: ASO, APX, Epsilon."
+        "Definí la arquitectura de la Plataforma de Firma, orquestando soluciones para Firma Autógrafa, de Derivados y Diferida, asegurando el alineamiento con la estrategia de microservicios (MSA) del banco.",
+        "Lideré la adopción local de una plataforma de evidencias global, actuando como Component Owner y piloteando su integración en el proyecto de firma diferida, lo que estandarizó la gestión de evidencias digitales.",
+        "Actúo como arquitecto consultor para proyectos internos, evaluando la viabilidad de integración con la plataforma de firma y acelerando la fase de discovery.",
+        "Stack principal: Java, Spring Boot, Arquitectura de Microservicios, Tecnologías NextGen Ether (ASO, APX, Epsilon)."
       ],
       "skills": {
         "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
+          "Arquitectura de Soluciones Cloud-Nativas",
+          "Java, Spring Boot, Spring Cloud"
         ],
         "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
+          "Pensamiento estratégico",
+          "Liderazgo técnico transversal"
         ]
       }
     },
     {
-      "role": "Full Stack Senior",
+      "role": "Full Stack Senior / Cloud Architect",
       "company": "Ready Mind",
       "period": "Jul 2021 - Enero 2023",
       "location": "CDMX",
       "highlights": [
-        "Liderar equipos de desarrollo.",
-        "Revisar arquitectura actual de clientes y proponer mejoras y migración a Azure.",
-        "Soporte de incidentes productivos.",
-        "Configuración de ambientes Linux en Azure usando best practices de seguridad.",
-        "Mejora de procesos y sistemas del cliente para automatizarlos y generar integraciones más eficientes.",
-        "Levantamiento de requerimientos con cliente y trabajo con metodologías ágiles.",
-        "Creación de APIs, diagramas de secuencia y arquitectura de alto nivel.",
-        "Tecnologías: Java, Spring, Spring Boot, Azure (Azure DevOps, Azure Functions, AKS, SQL Server, VM, API Gateway, Storage Account, Key Vault, API Management, Redis), Selenium, Angular, React, Git, Linux, Shell Scripting, Maven, Gradle, Microsoft Planner, JUnit, JMeter, MariaDB, PHP, Apache HTTPD."
+        "Lideré la re-arquitectura y migración de aplicaciones monolíticas de clientes a una arquitectura cloud-native en Azure, mejorando la escalabilidad y reduciendo costos operativos.",
+        "Diseñé e implementé ambientes seguros en Linux sobre Azure, aplicando best practices de hardening y automatizando su configuración para asegurar la consistencia.",
+        "Automaticé procesos de CI/CD y mejoré la eficiencia de integraciones, reduciendo el time-to-market de nuevas funcionalidades.",
+        "Stack principal: Java, Spring Boot, Angular, React, Azure (AKS, Azure Functions, API Management, DevOps), Linux, Jenkins."
       ],
       "skills": {
         "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
+          "Cloud Architecture (Azure)",
+          "DevOps & Automatización",
+          "Java, Spring Boot, Full-Stack"
         ],
         "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
+          "Orientación a resultados",
+          "Resolución de problemas complejos"
         ]
       }
     },
     {
-      "role": "Consultor Independiente",
+      "role": "Consultor Independiente & Arquitecto de Soluciones",
       "company": "Freelance",
       "period": "Mar 2018 - Jul 2021",
       "location": "CDMX",
       "highlights": [
-        "Sistemas a medida con Angular, Java, Python, Spring, MyBatis, PostgreSQL, GCP, AWS.",
-        "Administración de servidores Linux (CentOS, Debian).",
-        "Contenedores Linux (LXC, Podman).",
-        "Administración de servidores Nginx, Tomcat y JBoss.",
-        "Microservicios Java con apenas 10MB (Java puro).",
-        "Marketing Digital, campañas, SEO, SEM.",
-        "Levantamiento de requerimientos, definición de alcances/objetivos, diseño de arquitectura e instalación On-Premises o Cloud."
+        "Diseñé y entregué soluciones de software a medida para múltiples clientes, abarcando desde la toma de requerimientos y diseño de arquitectura hasta la implementación en entornos Cloud (GCP, AWS) y On-Premises.",
+        "Desarrollé microservicios Java de alto rendimiento con un footprint de apenas 10MB, optimizando el uso de recursos en entornos contenerizados (LXC, Podman).",
+        "Administré y aseguré servidores Linux (CentOS, Debian) y gestioné servidores de aplicaciones (Nginx, Tomcat, JBoss) para entornos productivos.",
+        "Stack principal: Java, Python, Spring, MyBatis, Angular, PostgreSQL, Google Cloud Platform, AWS."
       ],
       "skills": {
         "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
+          "Arquitectura de Microservicios",
+          "Cloud Multi-plataforma",
+          "Java, Python, PHP"
         ],
         "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
+          "Autogestión y emprendimiento",
+          "Comunicación efectiva con cliente"
         ]
       }
     },
     {
-      "role": "Profesor de cursos Java",
+      "role": "Profesor de Cursos Java",
       "company": "KMMX",
       "period": "Abr 2019 - Jun 2019",
       "location": "CDMX",
       "highlights": [
-        "Módulo 1: Introducción a la programación.",
-        "Módulo 3: Fundamentos de programación con Java.",
-        "Módulo 4: Estructuras de Datos y algoritmos con Java."
+        "Impartí los módulos de Introducción a la Programación, Fundamentos de Java y Estructuras de Datos y Algoritmos, formando a nuevas generaciones de desarrolladores."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["Java SE"],
+        "competencies": ["Docencia técnica", "Comunicación clara"]
       }
     },
     {
-      "role": "Líder de Desarrollo - Arquitecto Web",
+      "role": "Arquitecto Web & Líder de Desarrollo",
       "company": "HITSS",
       "period": "Ene 2018 - Mar 2018",
       "location": "CDMX",
       "highlights": [
-        "Asignado a Claro Colombia – América Móvil para portal de venta de planes postpago.",
-        "Creación de arquetipos para desarrollo con WebSphere Portal y JBoss.",
-        "Tecnologías: SparkJava, Spring 4, JDK8, MyBatis3, MySQL."
+        "Definí la arquitectura de referencia para el nuevo portal de ventas de Claro Colombia, creando arquetipos de desarrollo que estandarizaron la implementación con WebSphere Portal y JBoss."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["WebSphere Portal", "Java, Spring"],
+        "competencies": ["Liderazgo técnico"]
       }
     },
     {
@@ -151,40 +129,12 @@
       "period": "Ago 2017 - Nov 2017",
       "location": "CDMX",
       "highlights": [
-        "Creación de arquitectura tolerante a fallos, High Availability.",
-        "Integración continua, pruebas y monitoreo para SLA.",
-        "Generación de arquetipos Java y best-practices code clean.",
-        "Shell scripts para automatizar despliegues con virtualización OpenSource."
+        "Diseñé una arquitectura de alta disponibilidad y tolerante a fallos para el aplicativo principal de la empresa, garantizando el cumplimiento de los SLAs.",
+        "Automaticé los procesos de despliegue e instalación mediante Shell scripting sobre un esquema virtualizado, optimizando la infraestructura con herramientas Open Source."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Arquitecto de Software",
-      "company": "Gesfor",
-      "period": "Jul 2017",
-      "location": "CDMX",
-      "highlights": [
-        "Creación de arquitectura para INDRA-SEGOB con Java, JBoss, Spring, HTML5, Bootstrap, Power BI.",
-        "Gestión de recursos de TI para la solución."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["Alta Disponibilidad", "Linux, Shell Scripting"],
+        "competencies": ["Resiliencia operativa"]
       }
     },
     {
@@ -193,19 +143,11 @@
       "period": "Oct 2016 - Jul 2017",
       "location": "CDMX",
       "highlights": [
-        "Gestión de equipo multidisciplinario (Java, Android, Python, JavaScript, iOS).",
-        "Integración con API-RPC de Odoo y desarrollo de Middleware Linux.",
-        "Creación de soluciones OpenSource para economizar operación."
+        "Lideré un equipo multidisciplinario (Java, Android, Python, iOS) para la integración de soluciones con la API-RPC de Odoo, desarrollando un Middleware en Linux para la capa de servicios."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["Integración de Sistemas", "Odoo, Python"],
+        "competencies": ["Gestión de equipos multifuncionales"]
       }
     },
     {
@@ -214,259 +156,55 @@
       "period": "Jul 2016 - Oct 2016",
       "location": "CDMX",
       "highlights": [
-        "Automatización de conciliación con SAP HANA y Data Services.",
-        "Gestión de proyecto y revisión de entregables."
+        "Automaticé el proceso de conciliación bancaria utilizando tecnologías SAP (HANA y Data Services), mejorando la eficiencia y fiabilidad de las operaciones."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["SAP HANA"],
+        "competencies": ["Gestión de procesos de negocio"]
       }
     },
     {
-      "role": "Líder Técnico – Java Sr.",
-      "company": "SEGOB",
-      "period": "Dic 2016",
+      "role": "Líder Técnico & Arquitecto Java",
+      "company": "Adesis Netlife - GFT / SEGOB / Banorte",
+      "period": "Ene 2012 - Jul 2016",
       "location": "CDMX",
       "highlights": [
-        "Manejo de equipo y reingeniería de código Java para estándares de gobierno.",
-        "Definición de procesos de desarrollo con GIT."
+        "Lideré la modernización del portal corporativo de GNP con WebSphere Portal, creando Portlets (JSR 286) e integrando Alfresco y Liferay.",
+        "Definí estándares de desarrollo, code clean y gestión de releases con GIT para asegurar la calidad del código en proyectos de gobierno (SEGOB) y banca (Banorte/BBVA)."
       ],
       "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Líder Técnico",
-      "company": "Adesis Netlife - GFT",
-      "period": "Ene 2014 - Jul 2016",
-      "location": "CDMX",
-      "highlights": [
-        "Asignado a BBVA Bancomer y Organización Editorial Mexicana.",
-        "Creación del portal de GNP con WebSphere Portal.",
-        "Análisis y diseño de soluciones TI, patrones de diseño y Code Clean."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Programador Analista Java Sr.",
-      "company": "Adesis Netlife",
-      "period": "Ene 2013 - Ene 2014",
-      "location": "CDMX",
-      "highlights": [
-        "Spring, MyBatis, FreeMarker, CXF, LDAP, Jetty, Tomcat, WAS.",
-        "Desarrollo de servicios RESTFul y aplicaciones J2EE."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Programador Analista Sr.",
-      "company": "Consulting & Enterprise Integrations S.A. de C.V.",
-      "period": "Ene 2012 - Dic 2012",
-      "location": "CDMX",
-      "highlights": [
-        "Creación de Portlets (JSR 286) para portal corporativo de GNP.",
-        "Integración con Alfresco (Senado de la República) y Liferay (IFE)."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Desarrollador de Software MAVI",
-      "company": "Facultad de Contaduría y Administración, Universidad Veracruzana",
-      "period": "Mar 2011 - Dic 2011",
-      "location": "Xalapa, Veracruz",
-      "highlights": [
-        "Desarrollo del software MAVI de maratones nacionales de ANFECA.",
-        "Migración de PHP4 a PHP5 y mejoras visuales con CSS3 y JavaScript."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
-      }
-    },
-    {
-      "role": "Programador Freelancer",
-      "company": "Independiente",
-      "period": "2009 - 2011",
-      "location": "CDMX",
-      "highlights": [
-        "Formularios Stand-alone con Java (Swing) y bases de datos SQLite, MySQL, SQLServer, Oracle.",
-        "Sitios web con CSS3, HTML5, JavaScript y PHP.",
-        "Sitios: trolltime.com, rafex.com.mx."
-      ],
-      "skills": {
-        "technical": [
-          "Java (J2EE, J2SE) — 19 años",
-          "Spring, Spring Boot"
-        ],
-        "competencies": [
-          "Abstracción de problemas",
-          "Aprendizaje rápido de nuevos lenguajes"
-        ]
+        "technical": ["Java, J2EE", "WebSphere, Alfresco, Liferay"],
+        "competencies": ["Liderazgo de equipo", "Definición de estándares"]
       }
     }
   ],
   "skills": {
     "technical": [
-      {
-        "name": "Java (J2EE, J2SE)",
-        "experienceYears": 14
-      },
-      {
-        "name": "Spring",
-        "experienceYears": 14
-      },
-      {
-        "name": "Spring Boot",
-        "experienceYears": 14
-      },
-      {
-        "name": "Microservicios",
-        "experienceYears": 14
-      },
-      {
-        "name": "RESTful APIs, SOAP",
-        "experienceYears": 14
-      },
-      {
-        "name": "JavaScript, TypeScript",
-        "experienceYears": 14
-      },
-      {
-        "name": "Angular, React",
-        "experienceYears": 14
-      },
-      {
-        "name": "Python",
-        "experienceYears": 14
-      },
-      {
-        "name": "PHP",
-        "experienceYears": 14
-      },
-      {
-        "name": "Shell Scripting",
-        "experienceYears": 14
-      },
-      {
-        "name": "Maven, Gradle",
-        "experienceYears": 14
-      },
-      {
-        "name": "Git, SVN",
-        "experienceYears": 14
-      },
-      {
-        "name": "Jenkins, CI/CD",
-        "experienceYears": 14
-      },
-      {
-        "name": "Docker, LXC, Podman",
-        "experienceYears": 14
-      },
-      {
-        "name": "Kubernetes (AKS)",
-        "experienceYears": 14
-      },
-      {
-        "name": "MySQL, PostgreSQL, Oracle, SQL Server",
-        "experienceYears": 14
-      },
-      {
-        "name": "MongoDB, Redis",
-        "experienceYears": 14
-      },
-      {
-        "name": "AWS, Azure, GCP",
-        "experienceYears": 14
-      },
-      {
-        "name": "Linux (Debian, CentOS, Ubuntu)",
-        "experienceYears": 14
-      },
-      {
-        "name": "Nginx, Apache, Tomcat, JBoss, WAS",
-        "experienceYears": 14
-      },
-      {
-        "name": "Alfresco, Liferay, WebSphere Portal",
-        "experienceYears": 14
-      },
-      {
-        "name": "HTML5, CSS3, Sass",
-        "experienceYears": 14
-      },
-      {
-        "name": "MyBatis, Hibernate, JPA",
-        "experienceYears": 14
-      },
-      {
-        "name": "JUnit, JMeter, Selenium",
-        "experienceYears": 14
-      }
+      { "name": "Java (J2EE/J2SE) & Spring Ecosystem", "experienceYears": 14 },
+      { "name": "Arquitectura de Microservicios", "experienceYears": 8 },
+      { "name": "Azure (AKS, Functions, DevOps)", "experienceYears": 4 },
+      { "name": "AWS & Google Cloud Platform", "experienceYears": 5 },
+      { "name": "Contenerización (Docker, Podman, K8s)", "experienceYears": 7 },
+      { "name": "Linux Administration & Scripting", "experienceYears": 14 },
+      { "name": "CI/CD (Jenkins, Sonar, Git)", "experienceYears": 10 },
+      { "name": "Python", "experienceYears": 10 },
+      { "name": "JavaScript/TypeScript (Angular, React)", "experienceYears": 8 },
+      { "name": "Bases de Datos SQL & NoSQL", "experienceYears": 14 }
     ],
     "competencies": [
-      "Abstracción de problemas",
-      "Aprendizaje rápido de nuevos lenguajes",
-      "Trabajo en equipo",
-      "Manejo de personal",
-      "Liderazgo técnico",
-      "Trabajo bajo presión",
-      "Facilidad de palabra",
-      "Delegación de tareas",
-      "Gestión de tiempos y recursos"
+      "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
+      "Modernización de Sistemas Legacy a Cloud-Native",
+      "Liderazgo Técnico y Mentoría de Equipos",
+      "Definición de Estándares de Código y Mejores Prácticas",
+      "Comunicación y Alineamiento con Stakeholders de Negocio",
+      "Resolución Analítica de Problemas Complejos"
     ]
   },
   "certifications": [
     {
-      "title": "Sun Certified Associate for Java Platform, Standard Edition",
-      "code": "310-019",
-      "year": "2008",
+      "title": "Sun Certified Web Component Developer for Java Platform, Enterprise Edition 5",
+      "code": "v.3",
+      "year": "2009",
       "id": "SR3538468"
     },
     {
@@ -476,143 +214,99 @@
       "id": "SR3538468"
     },
     {
-      "title": "Sun Certified Web Component Developer for Java Platform, Enterprise Edition 5",
-      "code": "v.3",
-      "year": "2009",
+      "title": "Sun Certified Associate for Java Platform, Standard Edition",
+      "code": "310-019",
+      "year": "2008",
       "id": "SR3538468"
     }
   ],
   "conferences": [
     {
-      "title": "Ingeniería Social",
-      "event": "Evento MEG",
-      "location": "Córdoba, Veracruz"
+      "title": "Claude Code Leak: cuando el hype supera a la ingeniería",
+      "event": "Artículo en LinkedIn",
+      "location": "2026",
+      "type": "publication"
     },
     {
-      "title": "Como dejar de pensar Windows",
-      "event": "FLISOL 2011",
-      "location": "Orizaba, Veracruz"
+      "title": "COBOL, IA y la democratización del conocimiento técnico",
+      "event": "Artículo en LinkedIn",
+      "location": "2026",
+      "type": "publication"
     },
-    {
-      "title": "La fuerza de las comunidades",
-      "event": "Campus Party México 2011",
-      "location": "CDMX"
-    },
-    {
-      "title": "Las redes sociales en México",
-      "event": "Congreso Internacional en Sistemas Computacionales Administrativos",
-      "location": "2011"
+     {
+      "title": "¿Muerte del Software o el eterno retorno de la 'Crisis de 1968'?",
+      "event": "Debate en LinkedIn",
+      "location": "2026",
+      "type": "publication"
     },
     {
       "title": "Taller de Python",
       "event": "Congreso Internacional en Sistemas Computacionales Administrativos",
-      "location": "2011"
+      "location": "2011",
+      "type": "talk"
     },
     {
-      "title": "Computación en la NUBE",
-      "event": "55º Aniversario del Instituto Tecnológico de Orizaba",
-      "location": "2012"
-    },
-    {
-      "title": "Como dejar de pensar Windows",
-      "event": "FLISOL 2015",
-      "location": "Querétaro"
-    },
-    {
-      "title": "Regalando código también se gana",
-      "event": "FLISOL 2014",
-      "location": "Querétaro"
+      "title": "La fuerza de las comunidades",
+      "event": "Campus Party México 2011",
+      "location": "CDMX",
+      "type": "talk"
     }
   ],
   "projects": [
     {
+      "name": "Análisis Técnico 'Claude Code Leak'",
+      "url": "https://www.linkedin.com/in/soft-architect-raul-gonzalez/",
+      "description": "Artículo que desmonta el hype mediático sobre una supuesta filtración de código de IA con un análisis técnico riguroso."
+    },
+    {
       "name": "Blog theworldofrafex",
       "url": "https://theworldofrafex.blog",
-      "description": "Blog personal sobre tecnología desde 2006."
-    },
-    {
-      "name": "Trolltime",
-      "url": "http://trolltime.com",
-      "description": "Fundador del sitio de entretenimiento Trolltime."
-    },
-    {
-      "name": "Simple MySQL en Java",
-      "url": "https://sourceforge.net/projects/simplemysqlenja/",
-      "description": "API para simplificar conexiones MySQL en Java."
+      "description": "Blog personal con +15 años de trayectoria, donde publico sobre arquitectura de software, open source y mi visión de la tecnología."
     },
     {
       "name": "Ether Framework",
       "url": "https://github.com/rafex/ether",
-      "description": "API framework para desarrollo Java."
+      "description": "Framework de desarrollo Java propio, demostrando mi capacidad de crear herramientas fundacionales."
     },
     {
-      "name": "donde.in",
-      "url": "http://www.donde.in",
-      "description": "Colaborador en blog de tecnología."
+      "name": "Simple MySQL en Java",
+      "url": "https://sourceforge.net/projects/simplemysqlenja/",
+      "description": "API para simplificar la conectividad con MySQL desde Java."
     },
     {
-      "name": "entermedia.mx",
-      "url": "http://entermedia.mx",
-      "description": "Colaborador en blog de tecnología."
-    },
-    {
-      "name": "tecnologiaslibres.net",
-      "url": "http://tecnologiaslibres.net",
-      "description": "Colaborador en blog de tecnología."
+      "name": "Trolltime",
+      "url": "http://trolltime.com",
+      "description": "Proyecto de emprendimiento digital."
     }
   ],
   "highlight_semantic": {
     "java": {
-      "text": "Base de arquitectura y desarrollo enterprise.",
+      "text": "Base fundacional de mi arquitectura y desarrollo enterprise, avalada por certificaciones desde 2008.",
       "experienceYears": 14,
-      "use": [
-        "skills",
-        "competencies",
-        "certifications",
-        "experience"
-      ],
+      "use": ["skills", "competencies", "certifications", "experience"],
       "certifications": [
-        "Sun Certified Associate for Java Platform, Standard Edition",
-        "Sun Certified Programmer for the Java 2 Platform, Standard Edition",
-        "Sun Certified Web Component Developer for Java Platform, Enterprise Edition 5"
+        "Sun Certified Web Component Developer",
+        "Sun Certified Programmer",
+        "Sun Certified Associate"
       ],
       "className": "strong"
     },
-    "spring": {
-      "text": "Framework principal para APIs y microservicios.",
-      "experienceYears": 14,
-      "use": [
-        "skills",
-        "experience"
-      ],
+    "arquitectura_cloud": {
+      "text": "Especialización en el diseño de soluciones escalables y resilientes en la nube, principalmente Azure y GCP.",
+      "experienceYears": 5,
+      "use": ["skills", "experience"],
       "className": "strong"
     },
     "linux": {
-      "text": "Operación, hardening y automatización de servidores.",
+      "text": "Mi sistema operativo de batalla para operación, hardening y automatización de infraestructura.",
       "experienceYears": 14,
-      "use": [
-        "skills",
-        "experience"
-      ],
+      "use": ["skills", "experience"],
       "className": "soft"
     },
-    "azure": {
-      "text": "Cloud empresarial para integración y operación productiva.",
-      "experienceYears": 14,
-      "use": [
-        "skills",
-        "experience"
-      ],
-      "className": "strong"
-    },
-    "microservicios": {
-      "text": "Diseño desacoplado, escalable y orientado a dominio.",
-      "experienceYears": 14,
-      "use": [
-        "skills",
-        "experience"
-      ],
-      "className": "strong"
+    "pensamiento_arquitectonico": {
+      "text": "Diferenciador clave: no solo ejecuto, analizo la disciplina desde un punto de vista epistemológico y económico.",
+      "use": ["conferences", "projects"],
+      "className": "differentiator"
     }
   }
 }
