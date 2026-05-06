@@ -931,6 +931,18 @@ html[data-reading='on'] .contact-card .bg {
   color: #8a4b00;
 }
 
+.cv-chat__bubble--loading {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.cv-chat__loading-legend {
+  font-size: 0.72rem;
+  color: #a1a1aa;
+  margin-top: 0.25rem;
+  padding: 0 0.65rem;
+}
+
 .cv-chat__composer {
   display: flex;
   gap: 0.45rem;
