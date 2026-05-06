@@ -5,9 +5,7 @@ on:
     branches: [main]
     paths:
       - backend/ai/**
-      - backend/src/ai.ts
-      - backend/src/ai-server.ts
-      - backend/requirements.txt
+      - backend/data/**
       - containers/Dockerfile.ai
   workflow_dispatch:
 

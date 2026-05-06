@@ -69,6 +69,11 @@ jobs:
             --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
+      - name: Clean legacy kubectl resources
+        run: |
+          kubectl delete deployment raulglez-backend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+          kubectl delete svc raulglez-backend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+
       - name: Deploy Backend
         run: |
           helm upgrade --install raulglez-backend helm/raulglez-me \
@@ -78,6 +83,9 @@ jobs:
             --set image.tag=${{ steps.tag.outputs.tag }} \
             --set service.port=3000 \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \
+            --set livenessProbe.httpGet.path=/health \
+            --set readinessProbe.httpGet.path=/health \
+            --set startupProbe.httpGet.path=/health \
             --set resources.limits.cpu=500m \
             --set resources.limits.memory=512Mi \
             --set resources.requests.cpu=100m \

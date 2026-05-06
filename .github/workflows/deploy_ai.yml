@@ -53,6 +53,11 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
+      - name: Clean legacy kubectl resources
+        run: |
+          kubectl delete deployment raulglez-ai -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+          kubectl delete svc raulglez-ai -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+
       - name: Deploy AI
         run: |
           helm upgrade --install raulglez-ai helm/raulglez-me \
