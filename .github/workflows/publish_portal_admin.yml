@@ -62,4 +62,5 @@ jobs:
           context: .
           file: containers/Dockerfile.portal-admin
           push: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
