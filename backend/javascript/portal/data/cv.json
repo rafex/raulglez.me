@@ -479,7 +479,7 @@
   ],
   "highlight_semantic": {
     "java": {
-      "text": "Base fundacional de mi arquitectura y desarrollo enterprise, avalada por certificaciones desde 2008.",
+      "text": "Base enterprise certificada.",
       "experienceYears": 19,
       "use": ["skills", "competencies", "certifications", "experience"],
       "certifications": [
@@ -489,22 +489,136 @@
       ],
       "className": "strong"
     },
-    "rendimiento": {
-      "text": "Especialización en el diseño de soluciones de alto rendimiento y bajo footprint, usando Java puro y optimización de infraestructura.",
+    "Spring": {
+      "text": "Ecosistema Java productivo.",
+      "experienceYears": 12,
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "OpenAI": {
+      "text": "Integración pragmática de modelos.",
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "LLMs": {
+      "text": "Modelos aplicados a negocio.",
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "Agentes de IA": {
+      "text": "Orquestación inteligente especializada.",
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "alto rendimiento": {
+      "text": "Optimización técnica orientada al rendimiento.",
       "experienceYears": 8,
       "use": ["skills", "experience"],
       "className": "strong"
     },
-    "linux_virtualizacion": {
-      "text": "Experto en virtualización (KVM, LXC, Proxmox, VMware) y administración avanzada de sistemas Linux.",
+    "Linux": {
+      "text": "Administración Linux y automatización.",
       "experienceYears": 19,
       "use": ["skills", "experience"],
       "className": "soft"
     },
-    "pensamiento_arquitectonico": {
-      "text": "Diferenciador clave: no solo ejecuto, analizo la disciplina desde un punto de vista epistemológico y económico.",
-      "use": ["conferences", "projects"],
-      "className": "differentiator"
+    "AWS": {
+      "text": "Cloud para escala empresarial.",
+      "experienceYears": 5,
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "Azure": {
+      "text": "Cloud orientado a integración.",
+      "experienceYears": 5,
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "GCP": {
+      "text": "Cloud para arquitecturas modernas.",
+      "experienceYears": 5,
+      "use": ["skills", "experience"],
+      "className": "strong"
+    },
+    "Python": {
+      "text": "Automatización y soluciones prácticas.",
+      "experienceYears": 10,
+      "use": ["skills", "experience", "conferences"],
+      "className": "soft"
+    },
+    "Angular": {
+      "text": "Frontend empresarial mantenible.",
+      "experienceYears": 8,
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "React": {
+      "text": "Interfaces modernas orientadas al usuario.",
+      "experienceYears": 8,
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "MongoDB": {
+      "text": "Persistencia flexible para plataformas.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "GitFlow": {
+      "text": "Disciplina para entrega continua.",
+      "experienceYears": 12,
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "Rundeck": {
+      "text": "Automatización operativa reproducible.",
+      "experienceYears": 6,
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "OpenCL": {
+      "text": "Procesamiento paralelo especializado.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "WebSphere": {
+      "text": "Plataformas corporativas integradas.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "Alfresco": {
+      "text": "Gestión documental e integración.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "Liferay": {
+      "text": "Portales empresariales conectados.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "Odoo": {
+      "text": "Integración operativa de negocio.",
+      "use": ["skills", "experience"],
+      "className": "soft"
+    },
+    "open source": {
+      "text": "Defensor activo del abierto.",
+      "use": ["about", "projects"],
+      "className": "strong"
+    },
+    "Inteligencia Artificial": {
+      "text": "Impacto real en expertos.",
+      "use": ["conferences", "articles"],
+      "className": "strong"
+    },
+    "Thorio": {
+      "text": "Educación accesible mediante software.",
+      "use": ["projects"],
+      "className": "strong"
+    },
+    "Ether Framework": {
+      "text": "Herramienta fundacional propia.",
+      "use": ["projects"],
+      "className": "strong"
     }
   }
 }
