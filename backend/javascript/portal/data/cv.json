@@ -418,6 +418,24 @@
       "event": "Nuevo Tools Consultoría S.A. de C.V.",
       "location": "2019",
       "type": "talk"
+    },
+    {
+      "title": "De estudiante a desarrollador y a trabajador",
+      "event": "Foro de Tecnologías de la Información y Software Libre 2025",
+      "location": "UPTx, Tlaxcala",
+      "type": "talk"
+    },
+    {
+      "title": "¿IA tu sabes?",
+      "event": "Foro de Tecnologías de la Información y Software Libre 2025",
+      "location": "UPTx, Tlaxcala",
+      "type": "workshop"
+    },
+    {
+      "title": "¿IA tú sabes? Explorando la Inteligencia Artificial y su impacto.",
+      "event": "UV-CA-565 Tecnologías e Innovación Educativa para el Desarrollo de la Humanidad",
+      "location": "Facultad de Contaduria y Administración, Universidad Veracruzana, Xalapa, Veracruz",
+      "type": "talk"
     }
   ],
   "articles": [
