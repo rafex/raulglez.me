@@ -39,5 +39,14 @@ spec:
                 port:
                   number: {{ $.Values.service.port }}
           {{- end }}
+          {{- if $.Values.ingress.admin.enabled }}
+          - path: /admin
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ $.Values.ingress.admin.serviceName }}
+                port:
+                  number: {{ $.Values.ingress.admin.servicePort }}
+          {{- end }}
     {{- end }}
 {{- end }}

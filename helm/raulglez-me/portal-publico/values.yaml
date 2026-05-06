@@ -63,6 +63,11 @@ ingress:
         - path: /
           pathType: Prefix
   tls: []
+  # Panel admin servido como ruta /admin/ en el mismo dominio
+  admin:
+    enabled: true
+    serviceName: raulglez-portal-admin
+    servicePort: 80
 
 resources:
   limits:

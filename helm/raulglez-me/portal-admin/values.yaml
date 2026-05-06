@@ -51,7 +51,7 @@ dataVolume:
   emptyDir: {}
 
 ingress:
-  enabled: true
+  enabled: false
   className: haproxy
   annotations:
     ingress.kubernetes.io/rewrite-target: /
