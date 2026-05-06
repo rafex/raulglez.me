@@ -9,7 +9,9 @@
     "build": "tsc",
     "start": "node dist/ai-server.js"
   },
-  "dependencies": {},
+  "dependencies": {
+    "mqtt": "5.15.1"
+  },
   "devDependencies": {
     "@types/node": "^22.19.17",
     "typescript": "^5.0.0"
