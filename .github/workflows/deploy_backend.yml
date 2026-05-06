@@ -32,8 +32,13 @@ jobs:
           if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
           elif [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
-            [ "$BRANCH" = "main" ] && echo "tag=latest" >> "$GITHUB_OUTPUT" || echo "tag=$BRANCH" >> "$GITHUB_OUTPUT"
+            HEAD_BRANCH="${{ github.event.workflow_run.head_branch }}"
+            if [ -z "$HEAD_BRANCH" ] || [ "$HEAD_BRANCH" = "main" ]; then
+              echo "tag=latest" >> "$GITHUB_OUTPUT"
+            else
+              # Para tags (e.g. v1.20260506-1) el publish ya subió esa imagen
+              echo "tag=${HEAD_BRANCH}" >> "$GITHUB_OUTPUT"
+            fi
           else
             echo "tag=latest" >> "$GITHUB_OUTPUT"
           fi
@@ -56,7 +61,7 @@ jobs:
       - name: Create app env secret
         run: |
           GROQ_MODEL_VALUE="${{ vars.GROQ_MODEL }}"
-          [ -z "$GROQ_MODEL_VALUE" ] && GROQ_MODEL_VALUE="openai/gpt-oss-20b"
+          [ -z "$GROQ_MODEL_VALUE" ] && GROQ_MODEL_VALUE="llama-3.3-70b-versatile"
           kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
             --from-literal=GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
             --from-literal=GROQ_MODEL="$GROQ_MODEL_VALUE" \
@@ -73,12 +78,14 @@ jobs:
         run: |
           helm upgrade --install mosquitto helm/raulglez-me/mosquitto \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --create-namespace \
             --wait --timeout 1m
 
       - name: Deploy Backend Portal
         run: |
           helm upgrade --install raulglez-backend-portal helm/raulglez-me/backend-portal \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --create-namespace \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend-portal \
             --set image.tag=${{ steps.tag.outputs.tag }} \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \

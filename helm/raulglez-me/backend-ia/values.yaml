@@ -41,9 +41,9 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# Sin volumen de datos (FAISS usa el índice embebido en la imagen)
+# Volumen para SQLite de interacciones (persistencia entre reinicios)
 dataVolume:
-  mountPath: ""
+  mountPath: /app/data
   emptyDir: {}
 
 ingress:

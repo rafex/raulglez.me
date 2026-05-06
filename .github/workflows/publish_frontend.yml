@@ -3,6 +3,7 @@ name: Publish Portal Publico
 on:
   push:
     branches: [main]
+    tags: ['v*']
     paths:
       - frontend/portal-publico/**
       - containers/Dockerfile.portal-publico
@@ -31,9 +32,17 @@ jobs:
           npm ci
           npm run build
 
-      - name: Set image name
+      - name: Set image tags
         id: meta
-        run: echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-portal-publico:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}" >> $GITHUB_OUTPUT
+        run: |
+          IMAGE="ghcr.io/${{ github.repository_owner }}/raulglez-portal-publico"
+          if [[ "${{ github.ref_type }}" == "tag" ]]; then
+            echo "tags=${IMAGE}:${{ github.ref_name }},${IMAGE}:latest" >> $GITHUB_OUTPUT
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "tags=${IMAGE}:latest" >> $GITHUB_OUTPUT
+          else
+            echo "tags=${IMAGE}:${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -48,4 +57,4 @@ jobs:
           context: .
           file: containers/Dockerfile.portal-publico
           push: true
-          tags: ${{ steps.meta.outputs.image }}
+          tags: ${{ steps.meta.outputs.tags }}

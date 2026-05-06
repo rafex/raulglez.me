@@ -6,32 +6,86 @@ Cómo llega `raulglez.me` a producción (k3s).
 
 | Servicio | Publish workflow | Deploy workflow | Trigger automático |
 |---|---|---|---|
-| `portal-publico` | `publish_frontend.yml` | `deploy_frontend.yml` | push `frontend/portal-publico/**` |
-| `portal-admin` | `publish_portal_admin.yml` | `deploy_portal_admin.yml` | push `frontend/portal-admin/**` |
-| `backend-portal` | `publish_backend.yml` | `deploy_backend.yml` | push `backend/javascript/portal/**` |
-| `backend-ia` | `publish_ai.yml` | `deploy_ai.yml` | push `backend/javascript/ia/**` o `backend/python/ia/**` |
+| `portal-publico` | `publish_frontend.yml` | `deploy_frontend.yml` | push rama `main` o tag `v*` en `frontend/portal-publico/**` |
+| `portal-admin` | `publish_portal_admin.yml` | `deploy_portal_admin.yml` | push rama `main` o tag `v*` en `frontend/portal-admin/**` |
+| `backend-portal` | `publish_backend.yml` | `deploy_backend.yml` | push rama `main` o tag `v*` en `backend/javascript/portal/**` |
+| `backend-ia` | `publish_ai.yml` | `deploy_ai.yml` | push rama `main` o tag `v*` en `backend/javascript/ia/**` o `backend/python/ia/**` |
 | Python base | `publish_python_base.yml` | — (base, no deploy directo) | push `backend/python/ia/requirements.txt` |
 
 Cada workflow de deploy se dispara automáticamente al completarse su publish correspondiente,
 o se puede ejecutar manualmente (`workflow_dispatch`) con un tag específico.
 
-## Flujo de release
+## Cómo se disparan los deploys
+
+### Opción A — Push a `main` (cambio de código)
 
 ```
-1. push a main en rutas relevantes
+push a main (ruta relevante)
         ↓
-2. Publish workflow → build → docker build-push → ghcr.io/rafex/raulglez-<servicio>:latest
+Publish workflow → build + docker build-push
+  → ghcr.io/rafex/raulglez-<servicio>:latest
         ↓
-3. Deploy workflow → kubectl configure → helm upgrade --install
+Deploy workflow (via workflow_run) → helm upgrade --install ... --set image.tag=latest
         ↓
-4. k3s aplica el nuevo Deployment → rollout verificado
+k3s aplica el nuevo Deployment → rollout verificado
 ```
 
-Para release con tag específico:
+Solo se dispara el publish/deploy del servicio cuya ruta cambió.
+Los demás servicios no se tocan.
+
+### Opción B — Tag de release (todas las imágenes versionadas)
+
 ```bash
-just release-tag v1.20260506-1   # crea y empuja el tag
-# Los workflows leen el tag y publican con ese tag + latest
+just release-tag v1.20260506-1   # crea y empuja el tag git
 ```
+
+```
+git push tag v1.20260506-1
+        ↓
+Todos los publish workflows se disparan (trigger: tags: ['v*'])
+  → publican ghcr.io/rafex/raulglez-<servicio>:v1.20260506-1
+  → y también ghcr.io/rafex/raulglez-<servicio>:latest
+        ↓
+Deploy workflows se disparan → despliegan la imagen con ese tag
+        ↓
+k3s actualiza los 4 servicios
+```
+
+**Nota**: Los paths filters se ignoran cuando el trigger es `tags: ['v*']` — todos los publish
+se disparan independientemente de qué archivos cambió el tag. Esto es el comportamiento esperado
+para un release completo de todas las imágenes.
+
+### Opción C — Manual (workflow_dispatch)
+
+Desde la UI de GitHub Actions → seleccionar workflow → "Run workflow" → ingresar el tag de imagen
+(p.ej. `v1.20260506-1` o `latest`). Útil para redesplegar sin cambiar código o para rollback.
+
+## Primer deploy (namespace vacío)
+
+El orden importa en el primer deploy porque `deploy_backend.yml` crea el namespace `mvps`
+y el Secret `raulglez-me-env` que los demás servicios necesitan.
+
+**Orden obligatorio en el primer deploy:**
+
+```
+1. Ejecutar deploy_backend.yml (manual dispatch)
+   → crea namespace mvps
+   → crea Secret raulglez-me-env
+   → despliega mosquitto + backend-portal
+
+2. Ejecutar deploy_ai.yml (manual dispatch)
+   → encuentra namespace mvps y Secret raulglez-me-env ya existentes
+   → despliega backend-ia
+
+3. Ejecutar deploy_frontend.yml (manual dispatch)
+   → despliega portal-publico
+
+4. Ejecutar deploy_portal_admin.yml (manual dispatch)
+   → despliega portal-admin
+```
+
+A partir del segundo deploy (código ya en producción), los workflows se disparan
+automáticamente en el orden correcto vía `workflow_run`, no hay dependencia de orden.
 
 ## Secrets requeridos en GitHub Actions
 

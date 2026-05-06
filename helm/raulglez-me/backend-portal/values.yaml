@@ -41,9 +41,9 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# Volumen para SQLite de sesiones/preguntas
+# backend-portal no usa SQLite — sin volumen de datos
 dataVolume:
-  mountPath: /app/data/db
+  mountPath: ""
   emptyDir: {}
 
 ingress:
