@@ -52,18 +52,17 @@ dataVolume:
 
 ingress:
   enabled: true
-  className: "haproxy"
+  className: haproxy
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    ingress.kubernetes.io/rewrite-target: /
+    ingress.kubernetes.io/ssl-redirect: "false"
+    ingress.kubernetes.io/backend-protocol: "http"
   hosts:
     - host: admin.raulglez.me
       paths:
         - path: /
           pathType: Prefix
-  tls:
-    - secretName: raulglez-admin-tls
-      hosts:
-        - admin.raulglez.me
+  tls: []
 
 resources:
   limits:
