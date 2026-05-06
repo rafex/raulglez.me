@@ -7,6 +7,7 @@ export interface CVData {
   skills: Skills;
   certifications: Certification[];
   conferences: Conference[];
+  articles?: Article[];
   projects: Project[];
   highlight_semantic?: HighlightSemanticMap;
 }
@@ -69,6 +70,13 @@ export interface Conference {
   title: string;
   event: string;
   location: string;
+  type?: string;
+}
+
+export interface Article {
+  title: string;
+  publication: string;
+  date: string;
 }
 
 export interface Project {
