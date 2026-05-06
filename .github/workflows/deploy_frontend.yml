@@ -1,8 +1,8 @@
-name: Deploy Frontend
+name: Deploy Portal Publico
 
 on:
   workflow_run:
-    workflows: ["Publish Frontend"]
+    workflows: ["Publish Portal Publico"]
     types: [completed]
   workflow_dispatch:
     inputs:
@@ -52,10 +52,10 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
-      - name: Deploy Portal (frontend)
+      - name: Deploy Portal Publico (frontend CV + Chat)
         run: |
-          helm upgrade --install raulglez-portal helm/raulglez-me/portal \
+          helm upgrade --install raulglez-portal-publico helm/raulglez-me/portal-publico \
             --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal-publico \
             --set image.tag=${{ steps.tag.outputs.tag }} \
             --wait --timeout 2m

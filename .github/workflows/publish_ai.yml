@@ -6,8 +6,8 @@ on:
     paths:
       - backend/javascript/ia/**
       - backend/python/ia/**
-      - backend/javascript/portal/data/**
       - containers/Dockerfile.backend-ia
+      # cv.json ya NO está en la imagen — se obtiene vía HTTP al arrancar
   workflow_dispatch:
 
 jobs:
