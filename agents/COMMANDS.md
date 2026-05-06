@@ -5,102 +5,149 @@ Comandos operativos del proyecto `raulglez.me`.
 ## Setup
 
 ```bash
-# Instalar dependencias del frontend
-cd frontend && npm ci
+# Instalar dependencias de los 4 componentes JS
+just setup
 
-# Instalar Helm (macOS)
-brew install helm
+# O manualmente por componente:
+cd frontend/portal-publico && npm ci
+cd frontend/portal-admin   && npm ci
+cd backend/javascript/portal && npm ci
+cd backend/javascript/ia     && npm ci
 ```
 
 ## Desarrollo
 
 ```bash
-# Iniciar Vite dev server (hot reload)
-cd frontend && npm run dev
-# → http://localhost:3000
+# Todo en paralelo: backend-portal :3001, backend-ia :3003, portal-publico :3000
+just dev
 
-# Previsualizar build de producción
-cd frontend && npm run build && npm run preview
-# → http://localhost:4173
+# Solo portal-publico (proxea /api y /ws → :3001)
+just dev-frontend     # → http://localhost:3000
+
+# Solo portal-admin (proxea /api/admin y /admin → :3001)
+just dev-admin        # → http://localhost:3002
+
+# Solo backend-portal con hot reload
+just dev-backend      # → http://localhost:3001
+
+# Solo backend-ia con hot reload
+just dev-ia           # → http://localhost:3003
 ```
 
 ## Build
 
 ```bash
-# Build del frontend (genera dist/)
-cd frontend && npm run build
+# Compilar todos los componentes
+just build
 
-# Build de imagen Docker local
-make -C containers build
+# Compilar por separado
+just build-frontend-publico   # Vite → frontend/portal-publico/dist/
+just build-frontend-admin     # Vite → frontend/portal-admin/dist/
+just build-backend-portal     # tsc → backend/javascript/portal/dist/
+just build-backend-ia         # tsc → backend/javascript/ia/dist/
 
-# Build multi-arch y push a GHCR
-make -C containers push TAG=v1.20260501
-
-# Ejecutar contenedor localmente
-make -C containers run
-# → http://localhost:8080
+# Construir imágenes Docker localmente
+just docker-build             # todos los servicios
+make -C containers portal-publico TAG=latest
+make -C containers portal-admin   TAG=latest
+make -C containers backend-portal TAG=latest
+make -C containers backend-ia     TAG=latest
 ```
 
 ## Helm
 
 ```bash
-# Validar chart
-helm lint helm/raulglez-me/
+# Validar los 5 charts
+just lint
 
-# Renderizar templates (sin instalar)
-helm template raulglez-me helm/raulglez-me/
+# Renderizar templates (dry-run)
+just helm-template portal-publico
+just helm-template portal-admin
+just helm-template backend-portal
+just helm-template backend-ia
+just helm-template mosquitto
 
-# Instalar/actualizar en cluster
-helm upgrade --install raulglez-me helm/raulglez-me/ \
-  --namespace default \
-  --set image.tag=v1.20260501 \
-  --wait --timeout 5m
+# Instalar/actualizar en cluster (ejemplos)
+helm upgrade --install raulglez-portal-publico helm/raulglez-me/portal-publico \
+  --namespace mvps --set image.tag=latest --wait --timeout 2m
 
-# Ver estado del release
-helm status raulglez-me
-
-# Rollback
-helm rollback raulglez-me
+helm upgrade --install raulglez-backend-portal helm/raulglez-me/backend-portal \
+  --namespace mvps \
+  --set image.tag=latest \
+  --set env.secretName=raulglez-me-env \
+  --wait --timeout 2m
 ```
 
 ## Kubernetes
 
 ```bash
-# Ver pods
-kubectl get pods -l app.kubernetes.io/instance=raulglez-me
+# Ver todos los pods del proyecto
+kubectl -n mvps get pods
 
-# Ver logs
-kubectl logs deployment/raulglez-me
+# Logs por servicio
+kubectl -n mvps logs deployment/raulglez-portal-publico
+kubectl -n mvps logs deployment/raulglez-portal-admin
+kubectl -n mvps logs deployment/raulglez-backend-portal
+kubectl -n mvps logs deployment/raulglez-backend-ia
+kubectl -n mvps logs deployment/mosquitto
 
-# Ver ingress
-kubectl get ingress raulglez-me
+# Port-forward para depuración local
+kubectl -n mvps port-forward svc/raulglez-backend-portal 3001:3000
 
-# Port-forward (debugging local)
-kubectl port-forward service/raulglez-me 8080:80
-# → http://localhost:8080
+# Ver eventos recientes (útil en rollout fallido)
+kubectl -n mvps get events --sort-by=.metadata.creationTimestamp | tail -30
 ```
 
 ## Docker
 
 ```bash
-# Build local
-docker build -f containers/Dockerfile.frontend -t raulglez-me:local .
+# Build individual
+docker build -f containers/Dockerfile.portal-publico -t raulglez-portal-publico:local .
+docker build -f containers/Dockerfile.backend-portal -t raulglez-backend-portal:local .
 
-# Ejecutar local
-docker run --rm -p 8080:8080 raulglez-me:local
-
-# Inspeccionar imagen
-docker inspect raulglez-me:local | jq '.[0].Config.User'
-# → "1001"
+# Ejecutar backend-portal localmente
+docker run --rm -p 3001:3000 \
+  -e GROQ_API_KEY=sk-... \
+  -e ADMIN_USER=admin \
+  -e ADMIN_PASSWORD=secret \
+  -e SESSION_SECRET=mysecret \
+  raulglez-backend-portal:local
 ```
 
-## CI/CD (manual)
+## CI/CD (release manual)
 
 ```bash
-# Crear tag y disparar pipeline
-git tag v1.$(date +%Y%m%d)
-git push origin v1.$(date +%Y%m%d)
+# Crear tag con fecha de hoy y disparar todos los pipelines
+just release-tag-today         # → v1.YYYYMMDD-1
+just release-tag-today 1 2     # → v1.YYYYMMDD-2
 
-# Deploy manual con tag específico
-# Usar Actions → Deploy → Run workflow en GitHub UI
+# Tag personalizado
+just release-tag v1.20260506-1
+```
+
+## Secretos locales (sops + age)
+
+```bash
+just secrets-keygen     # genera keys/dev.agekey
+just secrets-encrypt    # .env → .env.enc (requiere SOPS_AGE_RECIPIENTS)
+just secrets-decrypt    # .env.enc → .env (requiere SOPS_AGE_KEY_FILE)
+just secrets-edit       # editar .env.enc en línea
+```
+
+## Administración del índice FAISS
+
+```bash
+# Ver estado del índice (desde el cluster)
+curl http://raulglez-backend-ia:3000/reindex
+
+# Reconstruir índice manualmente
+curl -X POST http://raulglez-backend-ia:3000/reindex
+
+# O desde el panel admin en /api/admin/reindex
+```
+
+## Previsualización de build
+
+```bash
+just preview   # compila portal-publico y lanza en http://localhost:4173
 ```

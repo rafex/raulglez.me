@@ -1,129 +1,198 @@
 # raulglez.me
 
-Portal CV personal de **Raúl González** con frontend estático (Vite + Pug + TS) y backend Node.js para exponer datos, generar PDF dinámico e interactuar con IA sobre el CV.
+Portal CV personal de **Raúl González** — arquitectura multi-servicio con frontend estático,
+backend Node.js puro, chat IA en tiempo real (WebSocket + MQTT) y panel administrativo.
 
-## Estado actual
+## Servicios
 
-- Sitio público consume datos desde `backend/data/cv.json` por `GET /api/cv`.
-- El backend genera CV en PDF en tiempo real por `GET /api/cv.pdf` usando `pdfkit`.
-- Chat IA disponible por `POST /api/ai/ask` con persistencia de preguntas/respuestas.
-- `cv.json` usa estructura semántica con separación de datos:
-  - `contact.public` → visible en sitio.
-  - `contact.private` → solo para PDF.
+| Servicio | Descripción | Puerto dev |
+|---|---|---|
+| `portal-publico` | nginx — CV + Chat IA (estático) | — |
+| `portal-admin` | nginx — Panel admin interacciones IA (estático) | — |
+| `backend-portal` | Node.js — `/api/cv`, `/api/cv.pdf`, WebSocket `/ws/chat`, rutas admin | `3001` |
+| `backend-ia` | Node.js + Python — MQTT subscriber, RAG FAISS + Groq | `3003` |
+| `mosquitto` | Eclipse Mosquitto — broker MQTT (pub/sub) | `1883` |
 
-## Estructura
+## Arquitectura
 
-- `frontend/`: UI pública del CV.
-  - `src/scripts/main.ts`: orquestador.
-  - `src/scripts/modules/`: módulos (`renderers`, `accessibility`, `phone-canvas`, `observers`, `text-utils`, `chat`).
-  - `index.pug`: layout + toolbar del sitio.
-- `backend/`: API y exportación PDF.
-  - `src/server.ts`: rutas `/api/cv`, `/api/cv.pdf`, `/api/ai/ask`, `/api/ai/questions`, `/api/ai/reindex`.
-  - `src/ai.ts`: orquestación RAG + Groq + tracking de interacciones.
-  - `src/pdf.ts`: generador PDF desde JSON.
-  - `src/pdf.js`: bridge para modo dev con `--experimental-strip-types`.
-  - `ai/rag_faiss.py`: index/query FAISS + respuesta determinista.
-  - `data/interactions.sqlite`: tracking y revisión de preguntas IA.
-  - `data/cv.json`: fuente de verdad del CV.
-- `containers/`: imagen Docker.
-- `helm/`: despliegue en Kubernetes.
-- `agents/`: documentación operativa del proyecto.
-- `pipelines/`: documentación de CI/CD y secretos de despliegue.
+```
+Browser
+  ├─ GET /                → portal-publico (nginx, estático)
+  ├─ GET /api/cv          → backend-portal
+  ├─ GET /api/cv.pdf      → backend-portal
+  └─ WebSocket /ws/chat   → backend-portal
+                               └─ MQTT publish ai/ask → mosquitto → backend-ia
+                               ← MQTT subscribe ai/response/{id} ← backend-ia
+                                    └─ Python FAISS + Groq (RAG)
+                                         └─ cv.json desde backend-portal (HTTP)
 
-## Toolbar del sitio
+Browser (admin)
+  ├─ GET /                → portal-admin (nginx, estático)
+  ├─ GET /api/admin/questions → backend-portal (protegido por sesión)
+  ├─ PATCH /api/admin/questions/:id
+  ├─ GET /api/admin/prompt
+  └─ GET|POST /api/admin/reindex → backend-portal → backend-ia (HTTP)
+```
 
-La barra superior incluye:
+## Estructura del repositorio
 
-- `Modo lectura` (switch).
-- `Accesibilidad` (tamaño de fuente, tipografía OSS, paletas para daltonismo).
-- `Descargar PDF` (usa `/api/cv.pdf`, no archivo estático).
+```
+frontend/
+  portal-publico/         ← Vite + Pug + TypeScript (CV + Chat)
+  portal-admin/           ← Vite + TypeScript (panel admin)
 
-Además existe un botón flotante de chat para consultar el CV:
-- Requiere lead mínimo (`name`, `phone`).
-- Si Groq falla, responde en modo determinista (FAISS + base validada) y lo informa explícitamente.
+backend/
+  javascript/
+    portal/               ← Node.js puro: /api/cv, /api/cv.pdf, WS, admin
+      data/cv.json        ← fuente de verdad del CV
+    ia/                   ← Node.js: MQTT subscriber + orquestación RAG
+  python/
+    ia/                   ← Python: FAISS, sentence-transformers, rag_faiss.py
 
-Existe también un **Panel IA** en la barra superior para operación/revisión:
-- lista preguntas/respuestas registradas,
-- permite `status`, `rating`, `reviewer_note`, `adjusted_answer`,
-- incluye recarga y reindexado manual de FAISS.
+containers/
+  Dockerfile.portal-publico
+  Dockerfile.portal-admin
+  Dockerfile.backend-portal
+  Dockerfile.backend-ia   ← hereda de python-base (imagen estática ~2 GB)
+  Dockerfile.python-base  ← imagen base con faiss-cpu + sentence-transformers
+  nginx-portal-publico.conf
+  nginx-portal-admin.conf
+  nginx-main.conf
+  Makefile
 
-## Comandos
+helm/raulglez-me/
+  portal-publico/
+  portal-admin/
+  backend-portal/
+  backend-ia/
+  mosquitto/
 
-- `just setup`: instala dependencias frontend/backend.
-- `just dev`: inicia backend `:3001` + frontend `:3000` (sin abrir navegador).
-- `just dev-open`: abre `http://localhost:3000`.
-- `just build`: compila frontend + backend.
-- `just preview`: vista previa de build.
+agents/                   ← documentación operativa del proyecto
+pipelines/                ← documentación CI/CD
+.specnative/              ← framework SpecNative Development
+```
 
-## Nota de mantenimiento
+## Desarrollo local
 
-Cuando actualices contenido del CV, modifica `backend/data/cv.json`.
+```bash
+# Instalar dependencias de todos los componentes
+just setup
 
-- Lo público se refleja en el sitio (`/api/cv`).
-- Lo privado solo se usa en el PDF (`/api/cv.pdf`).
+# Iniciar todo en paralelo (backend-portal :3001, backend-ia :3003, portal-publico :3000)
+just dev
 
-## Variables de entorno relevantes
+# Solo panel admin (:3002, proxea /api/admin → :3001)
+just dev-admin
+```
 
-- `GROQ_API_KEY` (obligatoria para modo GenAI en chat).
-- `GROQ_MODEL` (opcional, default: `llama-3.3-70b-versatile`).
-- `GHCR_USERNAME` (secret de GitHub Actions para pull en cluster).
-- `GHCR_TOKEN` (secret de GitHub Actions con permiso `read:packages`).
+Ver todos los comandos disponibles: [`agents/COMMANDS.md`](agents/COMMANDS.md).
 
-En Kubernetes, estas variables deben vivir en un Secret (por default `raulglez-me-env`) referenciado por Helm.
+## Build y contenedores
 
-## Secretos (`sops + age`)
+```bash
+# Compilar todos los componentes
+just build
 
-El repo usa cifrado de `.env` con `sops` + `age`:
+# Construir todas las imágenes Docker
+just docker-build
 
-- Archivo cifrado versionable: `.env.enc`
-- Archivo plano local (ignorado): `.env`
+# Construir una imagen específica (desde containers/)
+make -C containers portal-publico TAG=latest
+```
 
-Flujo recomendado:
+## Variables de entorno
 
-1. `just secrets-keygen`
-2. exportar `SOPS_AGE_RECIPIENTS` con la llave pública
-3. crear `.env` desde `.env.example`
-4. `just secrets-encrypt` (usa `--age` con `SOPS_AGE_RECIPIENTS`)
-5. para usar local: `export SOPS_AGE_KEY_FILE=keys/dev.agekey && just secrets-decrypt`
+| Variable | Descripción | Obligatoria |
+|---|---|---|
+| `GROQ_API_KEY` | API key de Groq para modo GenAI | Sí (IA) |
+| `GROQ_MODEL` | Modelo Groq (default: `llama-3.3-70b-versatile`) | No |
+| `ADMIN_USER` | Usuario del panel admin | Sí (admin) |
+| `ADMIN_PASSWORD` | Contraseña del panel admin | Sí (admin) |
+| `SESSION_SECRET` | Secreto HMAC para cookie de sesión | Sí (admin) |
+| `COOKIE_SECURE` | Cookie solo HTTPS (`true` en prod) | No |
+| `CV_SERVICE_URL` | URL del backend-portal para backend-ia | No (default: `http://raulglez-backend-portal:3000`) |
+| `MQTT_URL` | URL del broker MQTT | No (default: `mqtt://mosquitto:1883`) |
 
-Notas:
-- Nunca commitear `.env` ni llaves privadas `.agekey`.
-- Sí se puede versionar `.env.enc`.
+En Kubernetes, todas viven en el Secret `raulglez-me-env` referenciado por Helm.
 
-## Estado de despliegue Helm
+## Secretos locales (sops + age)
 
-El chart `helm/raulglez-me` ya incluye:
-- estrategia rolling update,
-- `startupProbe` + `liveness/readiness`,
-- `HPA` y `PDB`,
-- `envFrom` desde Secret (`env.secretName`),
-- volumen writable `/app/data` para SQLite.
+```bash
+just secrets-keygen     # genera keys/dev.agekey
+just secrets-encrypt    # cifra .env → .env.enc (requiere SOPS_AGE_RECIPIENTS)
+just secrets-decrypt    # descifra .env.enc → .env (requiere SOPS_AGE_KEY_FILE)
+just secrets-edit       # edita .env.enc en línea
+```
 
-El workflow `.github/workflows/deploy.yml` ahora:
-- asegura namespace,
-- crea/actualiza `ghcr-pull-secret` con credenciales GHCR dedicadas,
-- crea/actualiza `raulglez-me-env` (`GROQ_API_KEY`, `GROQ_MODEL`),
-- ejecuta `helm lint` + `helm template` antes de `helm upgrade`,
-- agrega diagnóstico extendido en caso de fallo de rollout.
+Nunca versionar `.env` ni `*.agekey`. El archivo `.env.enc` sí se puede versionar.
 
-Documentación de CD:
-- [CD.md](/Users/rafex/repository/github/rafex/raulglez.me/pipelines/CD.md)
+## Helm charts
 
-## Nota de runtime para fallback determinista
+Cada servicio tiene su propio chart en `helm/raulglez-me/<servicio>/` con:
+- `values.yaml` con defaults de producción
+- templates de Deployment, Service, Ingress, HPA, PDB, ServiceAccount
 
-`containers/Dockerfile` fue actualizado para soportar el fallback local:
-- runtime en base Debian slim,
-- `python3` + `pip`,
-- copia `backend/ai`,
-- instalación de `backend/ai/requirements.txt`.
+```bash
+just lint                          # valida los 5 charts
+just helm-template portal-publico  # dry-run de un chart específico
+```
 
-## Reindexado FAISS
+## CI/CD (GitHub Actions)
 
-- `POST /api/ai/reindex`: reconstruye el índice manualmente.
-- `GET /api/ai/reindex`: devuelve estado del índice.
-- Invalidación automática:
-  - si cambia `backend/data/cv.json`, o
-  - si cambia `backend/data/interactions.sqlite`,
-  entonces el índice se reconstruye en la siguiente consulta.
+| Workflow | Trigger | Acción |
+|---|---|---|
+| `publish_frontend.yml` | push `frontend/portal-publico/**` | publica `raulglez-portal-publico` |
+| `publish_portal_admin.yml` | push `frontend/portal-admin/**` | publica `raulglez-portal-admin` |
+| `publish_backend.yml` | push `backend/javascript/portal/**` | publica `raulglez-backend-portal` |
+| `publish_ai.yml` | push `backend/javascript/ia/**` o `backend/python/ia/**` | publica `raulglez-backend-ia` |
+| `publish_python_base.yml` | push `backend/python/ia/requirements.txt` | publica imagen base Python (~2 GB) |
+| `deploy_frontend.yml` | tras publish portal-publico | `helm upgrade` portal-publico |
+| `deploy_portal_admin.yml` | tras publish portal-admin | `helm upgrade` portal-admin |
+| `deploy_backend.yml` | tras publish backend-portal | `helm upgrade` backend-portal + mosquitto + secretos |
+| `deploy_ai.yml` | tras publish backend-ia | `helm upgrade` backend-ia |
 
-Pendientes abiertos están en [TODO.md](/Users/rafex/repository/github/rafex/raulglez.me/TODO.md).
+Ver detalles en [`pipelines/CD.md`](pipelines/CD.md).
+
+## Release
+
+```bash
+# Crear y publicar tag de release (dispara Publish + Deploy)
+just release-tag v1.20260506-1
+
+# Atajo con fecha de hoy
+just release-tag-today 1 1
+```
+
+## cv.json — fuente de verdad
+
+`backend/javascript/portal/data/cv.json` contiene el CV completo:
+
+- `contact.public` → visible en el sitio (`/api/cv`)
+- `contact.private` → solo se usa en el PDF (`/api/cv.pdf`)
+
+El backend-ia obtiene este JSON vía HTTP al arrancar (con reintentos automáticos).
+
+## Panel admin
+
+Accesible en `http://portal-admin/`. Funcionalidades:
+
+- Lista interacciones del chat (pregunta, respuesta, modo, rating)
+- Calificación de respuestas (1–5 estrellas, status, nota del revisor, respuesta ajustada)
+- Vista del prompt del sistema IA
+- Estado y reindexado manual del índice FAISS
+
+Credenciales: variables `ADMIN_USER` / `ADMIN_PASSWORD` del Secret de Kubernetes
+(o GitHub Actions secrets `ADMIN_USER` / `ADMIN_PASSWORD`).
+
+## Documentación
+
+| Documento | Contenido |
+|---|---|
+| [`agents/PRODUCT.md`](agents/PRODUCT.md) | Problema, usuarios y objetivos |
+| [`agents/ARCHITECTURE.md`](agents/ARCHITECTURE.md) | Arquitectura detallada y flujos |
+| [`agents/STACK.md`](agents/STACK.md) | Stack tecnológico completo |
+| [`agents/COMMANDS.md`](agents/COMMANDS.md) | Comandos de desarrollo y operación |
+| [`agents/DECISIONS.md`](agents/DECISIONS.md) | Decisiones técnicas tomadas |
+| [`agents/CONVENTIONS.md`](agents/CONVENTIONS.md) | Convenciones de código |
+| [`pipelines/CD.md`](pipelines/CD.md) | Flujo de despliegue y secretos |
+| [`tasks/TODO.md`](tasks/TODO.md) | Tareas pendientes |
