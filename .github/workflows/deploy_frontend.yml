@@ -1,0 +1,72 @@
+name: Deploy Frontend
+
+on:
+  workflow_run:
+    workflows: ["Publish Frontend"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Container tag'
+        required: true
+        type: string
+        default: 'latest'
+
+env:
+  K3S_NAMESPACE: default
+
+jobs:
+  deploy:
+    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set tag
+        id: tag
+        run: |
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
+            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          elif [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
+            BRANCH="${{ github.event.workflow_run.head_branch }}"
+            [ "$BRANCH" = "main" ] && echo "tag=latest" >> "$GITHUB_OUTPUT" || echo "tag=$BRANCH" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: azure/setup-kubectl@v4
+        with: { version: 'latest' }
+      - uses: azure/setup-helm@v4
+        with: { version: 'latest' }
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p $HOME/.kube
+          printf '%s' "${{ secrets.KUBE_CONFIG_DATA }}" > "$HOME/.kube/config"
+          chmod 600 $HOME/.kube/config
+
+      - name: Deploy Frontend
+        run: |
+          helm upgrade --install raulglez-frontend helm/raulglez-me \
+            --namespace "${{ env.K3S_NAMESPACE }}" \
+            --set fullnameOverride=raulglez-frontend \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
+            --set image.tag=${{ steps.tag.outputs.tag }} \
+            --set service.port=80 \
+            --set securityContext.runAsNonRoot=false \
+            --set securityContext.readOnlyRootFilesystem=false \
+            --set securityContext.runAsUser=0 \
+            --set securityContext.capabilities.drop[0]=ALL \
+            --set securityContext.capabilities.add[0]=NET_BIND_SERVICE \
+            --set dataVolume.mountPath=/var/cache/nginx \
+            --set resources.limits.cpu=100m \
+            --set resources.limits.memory=128Mi \
+            --set resources.requests.cpu=50m \
+            --set resources.requests.memory=64Mi \
+            --set autoscaling.enabled=false \
+            --set pdb.enabled=false \
+            --set ingress.enabled=false \
+            --wait --timeout 2m
