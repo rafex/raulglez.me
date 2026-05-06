@@ -1,44 +1,45 @@
-# ─── Portal CV raulglez.me — Build & Push ───
+# ─── raulglez.me — Build local de imágenes por componente ───
 
-REGISTRY   ?= ghcr.io
-OWNER      ?= rafex
-IMAGE      ?= raulglez-me
-TAG        ?= latest
-PLATFORMS  ?= linux/amd64,linux/arm64
-FULL_IMAGE  = $(REGISTRY)/$(OWNER)/$(IMAGE):$(TAG)
+REGISTRY  ?= ghcr.io
+OWNER     ?= rafex
+TAG       ?= latest
 
-.PHONY: build push run clean
+.PHONY: all portal backend-portal backend-ia clean help
 
-## Build: construye la imagen Docker multi-arch
-build:
-	@echo "🔨 Building $(FULL_IMAGE) for platforms: $(PLATFORMS)..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		--file containers/Dockerfile \
-		--tag $(FULL_IMAGE) \
-		--load \
+## all: construye los 3 componentes
+all: portal backend-portal backend-ia
+
+## portal: frontend nginx (~80 MB)
+portal:
+	@echo "🔨 Building raulglez-portal:$(TAG)..."
+	docker build \
+		--file containers/Dockerfile.portal \
+		--tag $(REGISTRY)/$(OWNER)/raulglez-portal:$(TAG) \
 		.
 
-## Push: construye y publica la imagen en el registry
-push:
-	@echo "🚀 Building and pushing $(FULL_IMAGE)..."
-	docker buildx build \
-		--platform $(PLATFORMS) \
-		--file containers/Dockerfile \
-		--tag $(FULL_IMAGE) \
-		--push \
+## backend-portal: API Node.js (~180 MB)
+backend-portal:
+	@echo "🔨 Building raulglez-backend-portal:$(TAG)..."
+	docker build \
+		--file containers/Dockerfile.backend-portal \
+		--tag $(REGISTRY)/$(OWNER)/raulglez-backend-portal:$(TAG) \
 		.
 
-## Run: ejecuta el contenedor localmente en el puerto 3000
-run:
-	@echo "▶️  Running $(FULL_IMAGE) on http://localhost:3000"
-	docker run --rm -p 3000:3000 $(FULL_IMAGE)
+## backend-ia: Node.js + Python FAISS (~2.5 GB)
+backend-ia:
+	@echo "🔨 Building raulglez-backend-ia:$(TAG)..."
+	docker build \
+		--file containers/Dockerfile.backend-ia \
+		--tag $(REGISTRY)/$(OWNER)/raulglez-backend-ia:$(TAG) \
+		.
 
-## Clean: elimina la imagen local
+## clean: elimina las imágenes locales
 clean:
-	@echo "🧹 Removing local image $(FULL_IMAGE)..."
-	docker rmi $(FULL_IMAGE) 2>/dev/null || true
+	@echo "🧹 Removing local images..."
+	docker rmi $(REGISTRY)/$(OWNER)/raulglez-portal:$(TAG) 2>/dev/null || true
+	docker rmi $(REGISTRY)/$(OWNER)/raulglez-backend-portal:$(TAG) 2>/dev/null || true
+	docker rmi $(REGISTRY)/$(OWNER)/raulglez-backend-ia:$(TAG) 2>/dev/null || true
 
-## Help: muestra esta ayuda
+## help: muestra esta ayuda
 help:
-	@grep '^##' Makefile | sed 's/##//'
+	@grep '^##' containers/Makefile | sed 's/## /  /'

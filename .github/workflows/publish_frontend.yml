@@ -5,7 +5,7 @@ on:
     branches: [main]
     paths:
       - frontend/portal/**
-      - containers/Dockerfile.frontend
+      - containers/Dockerfile.portal
       - containers/nginx-frontend.conf
       - containers/nginx-main.conf
   workflow_dispatch:
@@ -33,7 +33,7 @@ jobs:
 
       - name: Set image name
         id: meta
-        run: echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-frontend:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}" >> $GITHUB_OUTPUT
+        run: echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-portal:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -46,6 +46,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: containers/Dockerfile.frontend
+          file: containers/Dockerfile.portal
           push: true
           tags: ${{ steps.meta.outputs.image }}

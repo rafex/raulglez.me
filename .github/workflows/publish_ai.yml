@@ -6,7 +6,7 @@ on:
     paths:
       - backend/ai/**
       - backend/data/**
-      - containers/Dockerfile.ai
+      - containers/Dockerfile.backend-ia
   workflow_dispatch:
 
 jobs:
@@ -21,7 +21,7 @@ jobs:
 
       - name: Set image name
         id: meta
-        run: echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-ai:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}" >> $GITHUB_OUTPUT
+        run: echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-backend-ia:${{ github.ref_name == 'main' && 'latest' || github.ref_name }}" >> $GITHUB_OUTPUT
 
       - name: Log in to GHCR
         uses: docker/login-action@v3
@@ -34,6 +34,6 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: containers/Dockerfile.ai
+          file: containers/Dockerfile.backend-ia
           push: true
           tags: ${{ steps.meta.outputs.image }}
