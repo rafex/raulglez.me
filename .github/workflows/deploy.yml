@@ -96,6 +96,9 @@ jobs:
       # ── Mosquitto (broker MQTT, imagen oficial ~5 MB) ──────────────
       - name: Deploy Mosquitto
         run: |
+          # Clean up any existing resources to avoid Helm field-manager conflicts
+          kubectl -n "${{ env.K3S_NAMESPACE }}" delete deployment mosquitto --ignore-not-found=true
+          kubectl -n "${{ env.K3S_NAMESPACE }}" delete svc mosquitto --ignore-not-found=true
           kubectl apply -f - <<'EOF'
           apiVersion: apps/v1
           kind: Deployment
@@ -137,6 +140,7 @@ jobs:
         run: |
           helm upgrade --install raulglez-frontend helm/raulglez-me \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --force \
             --set fullnameOverride=raulglez-frontend \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
             --set image.tag=${{ steps.tag.outputs.tag }} \
@@ -160,6 +164,7 @@ jobs:
         run: |
           helm upgrade --install raulglez-backend helm/raulglez-me \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --force \
             --set fullnameOverride=raulglez-backend \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend \
             --set image.tag=${{ steps.tag.outputs.tag }} \
@@ -181,6 +186,7 @@ jobs:
         run: |
           helm upgrade --install raulglez-ai helm/raulglez-me \
             --namespace "${{ env.K3S_NAMESPACE }}" \
+            --force \
             --set fullnameOverride=raulglez-ai \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-ai \
             --set image.tag=${{ steps.tag.outputs.tag }} \
