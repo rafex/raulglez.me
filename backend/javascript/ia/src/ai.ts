@@ -204,6 +204,9 @@ async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY no está configurada');
 
+  const model = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
+  console.log(`[ai] askGroq | model: ${model} | chunks: ${chunks.length} | question: "${question.substring(0, 80)}..."`);
+
   const context = chunks.map((c, i) => `(${i + 1}) [${c.source}] ${c.text}`).join('\n');
   const user = `CONTEXTO:\n${context}\n\nPREGUNTA:\n${question}`;
 
@@ -214,7 +217,7 @@ async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
       Authorization: `Bearer ${apiKey}`,
     },
     body: JSON.stringify({
-      model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
+      model,
       temperature: 0,
       max_tokens: 700,
       messages: [

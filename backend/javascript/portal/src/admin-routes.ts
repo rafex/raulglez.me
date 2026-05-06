@@ -123,6 +123,9 @@ export async function handleAdminRoute(
   url: string
 ): Promise<boolean> {
 
+  // Log de diagnóstico para todas las rutas admin
+  console.log(`[admin] ${method} ${url} | IP: ${getClientIp(req)} | Cookie: ${req.headers.cookie ? 'presente' : 'ausente'}`);
+
   // ── GET /admin ──────────────────────────────────────────────────────────────
   if (method === 'GET' && (url === '/admin' || url === '/admin/')) {
     const cookieHeader = req.headers.cookie ?? '';
@@ -150,26 +153,35 @@ export async function handleAdminRoute(
   // ── POST /admin/login ───────────────────────────────────────────────────────
   if (method === 'POST' && url === '/admin/login') {
     const ip = getClientIp(req);
+    console.log(`[admin] POST /admin/login | IP: ${ip}`);
+
+    // Leer body primero para loguear
+    const body = await readJsonBody(req);
+    console.log(`[admin] Login attempt | user: "${body.user}" | body keys: ${Object.keys(body).join(', ')}`);
+
     const rateCheck = checkRateLimit(ip);
     if (!rateCheck.allowed) {
+      console.log(`[admin] Rate limit alcanzado para IP ${ip}`);
       jsonError(res, 429, `Demasiados intentos. Espera ${rateCheck.remaining} segundos.`);
       return true;
     }
 
-    const body = await readJsonBody(req);
     const { user, password } = body as { user?: string; password?: string };
 
     if (!user || !password) {
+      console.log(`[admin] Login fallido: campos vacíos | user=${!!user} pass=${!!password}`);
       jsonError(res, 400, 'Usuario y contraseña son obligatorios');
       return true;
     }
 
     if (!verifyCredentials(user, password)) {
+      console.log(`[admin] Credenciales inválidas para usuario "${user}"`);
       recordFailedAttempt(ip);
       jsonError(res, 401, 'Credenciales inválidas');
       return true;
     }
 
+    console.log(`[admin] Login exitoso para "${user}"`);
     clearFailedAttempts(ip);
     const signedId = createSession(user);
     const maxAgeSec = Math.floor(SESSION_MAX_AGE_MS / 1000);

@@ -54,7 +54,6 @@ ingress:
   enabled: true
   className: "haproxy"
   annotations:
-    ingress.kubernetes.io/rewrite-target: /
     ingress.kubernetes.io/ssl-redirect: "false"
     ingress.kubernetes.io/backend-protocol: "http"
   hosts:
