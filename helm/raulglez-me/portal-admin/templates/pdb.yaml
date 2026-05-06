@@ -2,12 +2,12 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
-  name: {{ include "portal.fullname" . }}
+  name: {{ include "portal-admin.fullname" . }}
   labels:
-    {{- include "portal.labels" . | nindent 4 }}
+    {{- include "portal-admin.labels" . | nindent 4 }}
 spec:
   minAvailable: {{ .Values.pdb.minAvailable }}
   selector:
     matchLabels:
-      {{- include "portal.selectorLabels" . | nindent 6 }}
+      {{- include "portal-admin.selectorLabels" . | nindent 6 }}
 {{- end }}

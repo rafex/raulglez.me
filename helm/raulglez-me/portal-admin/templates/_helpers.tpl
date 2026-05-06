@@ -1,14 +1,14 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "portal.name" -}}
+{{- define "portal-admin.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Create a default fully qualified app name.
 */}}
-{{- define "portal.fullname" -}}
+{{- define "portal-admin.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -24,16 +24,16 @@ Create a default fully qualified app name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "portal.chart" -}}
+{{- define "portal-admin.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "portal.labels" -}}
-helm.sh/chart: {{ include "portal.chart" . }}
-{{ include "portal.selectorLabels" . }}
+{{- define "portal-admin.labels" -}}
+helm.sh/chart: {{ include "portal-admin.chart" . }}
+{{ include "portal-admin.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -43,17 +43,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "portal.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "portal.name" . }}
+{{- define "portal-admin.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "portal-admin.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Service account name
 */}}
-{{- define "portal.serviceAccountName" -}}
+{{- define "portal-admin.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "portal.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "portal-admin.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

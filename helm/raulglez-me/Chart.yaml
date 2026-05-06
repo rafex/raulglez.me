@@ -1,9 +1,11 @@
 apiVersion: v2
 name: raulglez-me
-description: Portal web CV personal — raulglez.me
+description: |
+  Directorio organizador de los 5 charts independientes de raulglez.me.
+  No se instala directamente — cada sub-chart se despliega por separado:
+    helm upgrade --install <release> helm/raulglez-me/<servicio>
 type: application
 version: 0.1.0
-appVersion: "1.0.0"
 keywords:
   - cv
   - portfolio
