@@ -15,7 +15,7 @@
 #   just clean               → elimina artefactos
 #   just lint                → valida todos los Helm charts
 #   just all                 → setup + build
-#   just release-tag v1.20260504-1   → crea y empuja tag para disparar Publish+Deploy
+#   just release-tag v1.20260504-1   → crea y empuja tag (dispara Publish+Deploy de servicios modificados)
 #   just release-tag-today 1 1        → crea tag v1.YYYYmmDD-1 y lo empuja
 #   just secrets-keygen      → genera llave age local
 #   just secrets-encrypt     → cifra .env → .env.enc con sops
@@ -123,6 +123,99 @@ helm-template service='portal-publico':
     @echo "📋 Renderizando Helm template: {{service}}"
     helm template raulglez-{{service}} helm/raulglez-me/{{service}}/
 
+# ─── CI/CD — GitHub Actions ──────────────────────────────
+#
+# Publicar imágenes (build + push a GHCR):
+#   just publish-portal-publico
+#   just publish-portal-admin
+#   just publish-backend
+#   just publish-ai
+#   just publish-all
+#
+# Desplegar en k3s (Helm):
+#   just deploy-portal-publico
+#   just deploy-portal-admin
+#   just deploy-backend
+#   just deploy-ai
+#   just deploy-all
+#
+# Ship = publish + deploy automático (deploy se dispara solo al completar publish):
+#   just ship-portal-admin
+#   just ship-ai
+
+## Publica imagen del portal público a GHCR
+publish-portal-publico:
+    @echo "📦 Publicando portal-publico..."
+    gh workflow run "Publish Portal Publico" --ref main
+
+## Publica imagen del portal admin a GHCR
+publish-portal-admin:
+    @echo "📦 Publicando portal-admin..."
+    gh workflow run "Publish Portal Admin" --ref main
+
+## Publica imagen del backend API a GHCR
+publish-backend:
+    @echo "📦 Publicando backend..."
+    gh workflow run "Publish Backend" --ref main
+
+## Publica imagen del servicio IA a GHCR
+publish-ai:
+    @echo "📦 Publicando IA..."
+    gh workflow run "Publish AI" --ref main
+
+## Publica imagen base Python a GHCR
+publish-python-base:
+    @echo "📦 Publicando Python base..."
+    gh workflow run "Publish Python Base" --ref main
+
+## Publica todas las imágenes
+publish-all: publish-portal-publico publish-portal-admin publish-backend publish-ai
+
+## Despliega portal público en k3s (tag por defecto: latest)
+deploy-portal-publico tag='latest':
+    @echo "🚀 Desplegando portal-publico (tag={{tag}})..."
+    gh workflow run "Deploy Portal Publico" -f tag="{{tag}}" --ref main
+
+## Despliega portal admin en k3s (tag por defecto: latest)
+deploy-portal-admin tag='latest':
+    @echo "🚀 Desplegando portal-admin (tag={{tag}})..."
+    gh workflow run "Deploy Portal Admin" -f tag="{{tag}}" --ref main
+
+## Despliega backend API en k3s (tag por defecto: latest)
+deploy-backend tag='latest':
+    @echo "🚀 Desplegando backend (tag={{tag}})..."
+    gh workflow run "Deploy Backend" -f tag="{{tag}}" --ref main
+
+## Despliega servicio IA en k3s (tag por defecto: latest)
+deploy-ai tag='latest':
+    @echo "🚀 Desplegando IA (tag={{tag}})..."
+    gh workflow run "Deploy AI" -f tag="{{tag}}" --ref main
+
+## Despliega todos los servicios en k3s
+deploy-all tag='latest':
+    @echo "🚀 Desplegando todos los servicios (tag={{tag}})..."
+    gh workflow run "Deploy Portal Publico" -f tag="{{tag}}" --ref main
+    gh workflow run "Deploy Portal Admin" -f tag="{{tag}}" --ref main
+    gh workflow run "Deploy Backend" -f tag="{{tag}}" --ref main
+    gh workflow run "Deploy AI" -f tag="{{tag}}" --ref main
+
+## Ship portal-admin: publica imagen y despliega
+ship-portal-admin:
+    @echo "🚢 Shipping portal-admin..."
+    gh workflow run "Publish Portal Admin" --ref main
+    @echo "✅ Publish disparado. Deploy se ejecutará automáticamente al completar."
+
+## Ship IA: publica imagen y despliega
+ship-ai:
+    @echo "🚢 Shipping IA..."
+    gh workflow run "Publish AI" --ref main
+    @echo "✅ Publish disparado. Deploy se ejecutará automáticamente al completar."
+
+## Muestra el estado de los últimos workflows
+ci-status:
+    @echo "📊 Últimos 10 workflow runs:"
+    gh run list --limit 10
+
 # ─── Release tags (GitHub Actions) ───────────────────────
 
 ## Crea y publica un tag (ej: just release-tag v1.20260504-1)
@@ -132,7 +225,7 @@ release-tag tag:
     git tag "{{tag}}"
     @echo "🚀 Publicando tag {{tag}} en origin"
     git push origin "{{tag}}"
-    @echo "✅ Tag publicado. GitHub Actions debe ejecutar Publish Container + Deploy."
+    @echo "✅ Tag publicado. GitHub Actions ejecutará Publish + Deploy de los servicios modificados."
 
 ## Crea y publica tag con formato v#.YYYYmmDD-# (ej: just release-tag-today 1 1)
 release-tag-today major='1' patch='1':
@@ -143,7 +236,7 @@ release-tag-today major='1' patch='1':
     git tag "$tag"; \
     echo "🚀 Publicando tag $tag en origin"; \
     git push origin "$tag"; \
-    echo "✅ Tag publicado. GitHub Actions debe ejecutar Publish Container + Deploy."'
+    echo "✅ Tag publicado. GitHub Actions ejecutará Publish + Deploy de los servicios modificados."'
 
 # ─── Secrets (sops + age) ────────────────────────────────
 
