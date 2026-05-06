@@ -44,4 +44,5 @@ jobs:
           context: .
           file: containers/Dockerfile.backend-portal
           push: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
