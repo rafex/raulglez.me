@@ -105,11 +105,20 @@
         "technical": [
           "Cloud Architecture (Azure)",
           "DevOps & Automatización",
-          "Java, Spring Boot, Full-Stack"
+          "Java",
+          "Spring Boot",
+          "Angular", 
+          "React",
+          "Full-Stack",
+          "Linux Administration"
         ],
         "competencies": [
           "Orientación a resultados",
-          "Resolución de problemas complejos"
+          "Resolución de problemas complejos",
+          "Levantamiento de requerimientos y diseño de soluciones",
+          "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
+          "Gestión de personal técnico y liderazgo de equipos",
+          "Comunicación efectiva con stakeholders técnicos y de negocio"
         ]
       }
     },
@@ -126,13 +135,18 @@
       ],
       "skills": {
         "technical": [
-          "Arquitectura de Microservicios (Java Puro)",
-          "Virtualización (KVM, LXC) y Linux",
-          "Automatización (Bash, Python)"
+          "Arquitectura de Microservicios (Java Puro/Bibliotecas estándar)",
+          "Virtualización (KVM, LXC)",
+          "Automatización (Bash, Python)",
+          "Linux Administration"
+          "Shell Scripting"
         ],
         "competencies": [
           "Autogestión y emprendimiento",
-          "Maestría técnica y optimización"
+          "Maestría técnica y optimización",
+          "Levantamiento de requerimientos y diseño de soluciones",
+          "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
+          "Comunicación efectiva con stakeholders técnicos y de negocio"
         ]
       }
     },
@@ -236,13 +250,14 @@
   ],
   "skills": {
     "technical": [
-      { "name": "Java (J2EE/J2SE) & Spring Ecosystem", "experienceYears": 19 },
-      { "name": "Arquitectura de Microservicios (REST, gRPC)", "experienceYears": 8 },
+      { "name": "Java (J2EE/J2SE)", "experienceYears": 19 },
+      { "name": "Spring Ecosystem", "experienceYears": 12 },
+      { "name": "Arquitectura de Microservicios", "experienceYears": 8 },
       { "name": "Cloud Computing (Azure, GCP, AWS)", "experienceYears": 5 },
-      { "name": "Contenerización (Docker, K8s) y Virtualización (KVM, LXC, Proxmox, VMware)", "experienceYears": 8 },
-      { "name": "Linux Administration & Scripting (Bash, Python)", "experienceYears": 19 },
-      { "name": "CI/CD (Jenkins, Sonar, Git, GitFlow)", "experienceYears": 10 },
-      { "name": "Bases de Datos (PostgreSQL, MySQL, Oracle, SQL Server)", "experienceYears": 19 },
+      { "name": "Contenerización (Docker, K8s) y Virtualización (KVM, LXC, Proxmox, VMware)", "experienceYears": 10 },
+      { "name": "Linux Administration", "experienceYears": 19 },
+      { "name": "CI/CD (Jenkins, Sonar, Git, GitFlow)", "experienceYears": 12 },
+      { "name": "Bases de Datos (PostgreSQL, MySQL, Oracle, SQL Server)", "experienceYears": 10 },
       { "name": "Python", "experienceYears": 10 },
       { "name": "JavaScript/TypeScript (Angular, React)", "experienceYears": 8 },
       { "name": "Orquestación (Rundeck) y Automatización", "experienceYears": 6 }
@@ -255,7 +270,12 @@
       "Definición de Estándares de Código y Mejores Prácticas",
       "Comunicación y Alineamiento con Stakeholders de Negocio",
       "Toma de Decisiones basada en Datos y con apoyo de IA",
-      "Resolución Analítica de Problemas Complejos"
+      "Resolución Analítica de Problemas Complejos",
+      "Gestión de personal técnico y liderazgo de equipos",
+      "Trabajo con equipos multidisciplinarios y gestión de proyectos de integración",
+      "Levantamiento de requerimientos y diseño de soluciones",
+      "Comunicación efectiva con stakeholders técnicos y de negocio",
+      "Autogestión y emprendimiento"
     ]
   },
   "certifications": [
@@ -328,24 +348,6 @@
   ],
   "conferences": [
     {
-      "title": "Claude Code Leak: cuando el hype supera a la ingeniería",
-      "event": "Artículo en LinkedIn",
-      "location": "2026",
-      "type": "publication"
-    },
-     {
-      "title": "¿Muerte del Software o el eterno retorno de la 'Crisis de 1968'?",
-      "event": "Debate en LinkedIn",
-      "location": "2026",
-      "type": "publication"
-    },
-    {
-      "title": "COBOL, IA y la democratización del conocimiento técnico",
-      "event": "Artículo en LinkedIn",
-      "location": "2026",
-      "type": "publication"
-    },
-    {
       "title": "Taller de Python",
       "event": "Congreso Internacional en Sistemas Computacionales Administrativos",
       "location": "2011",
@@ -358,12 +360,24 @@
       "type": "talk"
     }
   ],
-  "projects": [
+  "articles": [
     {
-      "name": "Análisis Técnico 'Claude Code Leak'",
-      "url": "https://www.linkedin.com/in/soft-architect-raul-gonzalez/",
-      "description": "Artículo que desmonta el hype mediático sobre una supuesta filtración de código de IA con un análisis técnico riguroso."
+      "title": "Claude Code Leak: cuando el hype supera a la ingeniería",
+      "publication": "LinkedIn",
+      "date": "2026-01-15"
     },
+    {
+      "title": "¿Muerte del Software o el eterno retorno de la 'Crisis de 1968'?",
+      "publication": "LinkedIn",
+      "date": "2026-01-10"
+    },
+    {
+      "title": "COBOL, IA y la democratización del conocimiento técnico",
+      "publication": "LinkedIn",
+      "date": "2026-01-05"
+    }
+  ],
+  "projects": [
     {
       "name": "Blog theworldofrafex",
       "url": "https://theworldofrafex.blog",
@@ -371,7 +385,7 @@
     },
     {
       "name": "Ether Framework",
-      "url": "https://github.com/rafex/ether",
+      "url": "https://ether.rafex.io/",
       "description": "Framework de desarrollo Java propio, demostrando mi capacidad de crear herramientas fundacionales."
     },
     {
