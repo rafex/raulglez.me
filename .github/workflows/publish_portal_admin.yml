@@ -30,7 +30,7 @@ jobs:
         run: |
           cd frontend/portal-admin
           npm ci
-          npm run pug && vite build --base /admin/
+          npm run pug && npx vite build --base /admin/
 
       - name: Set image tags
         id: meta
