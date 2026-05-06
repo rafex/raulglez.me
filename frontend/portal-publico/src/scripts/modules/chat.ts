@@ -142,7 +142,47 @@ function connectWs(
   return socket;
 }
 
+// ─── Highlights del CV para loading messages ───────────────────────────────
+
+let cvHighlights: string[] = [];
+
+async function loadCvHighlights(): Promise<void> {
+  try {
+    const res = await fetch('/api/cv');
+    if (!res.ok) return;
+    const data = await res.json();
+    const snippets: string[] = [];
+
+    // Roles de experiencia
+    for (const exp of (data.experience ?? [])) {
+      if (exp.role) snippets.push(exp.role);
+    }
+    // Certificaciones
+    for (const cert of (data.certifications ?? [])) {
+      if (cert.name) snippets.push(cert.name.split(',')[0].trim());
+    }
+    // Charlas
+    for (const talk of (data.conferences ?? [])) {
+      if (talk.title) snippets.push(talk.title);
+    }
+
+    // Barajar y limitar
+    for (let i = snippets.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [snippets[i], snippets[j]] = [snippets[j], snippets[i]];
+    }
+    cvHighlights = snippets.slice(0, 8);
+  } catch {
+    cvHighlights = ['Arquitecto TI', '14+ años de experiencia', 'Full Stack', 'Java & TypeScript'];
+  }
+}
+
+// ─── Loading con mensajes rotativos ──────────────────────────────────────────
+
 let loadingLi: HTMLLIElement | null = null;
+let loadingBubble: HTMLElement | null = null;
+let loadingCycle: ReturnType<typeof setInterval> | null = null;
+let loadingIdx = 0;
 
 function showLoading(messages: HTMLElement): void {
   loadingLi = document.createElement('li');
@@ -152,13 +192,28 @@ function showLoading(messages: HTMLElement): void {
     `<div class="cv-chat__bubble">Consultando…</div>`;
   messages.appendChild(loadingLi);
   messages.scrollTop = messages.scrollHeight;
+
+  loadingBubble = loadingLi.querySelector('.cv-chat__bubble');
+  loadingIdx = 0;
+
+  // Rotar mensajes cada 2.5s si hay highlights
+  if (cvHighlights.length > 0 && loadingBubble) {
+    loadingCycle = setInterval(() => {
+      loadingIdx = (loadingIdx + 1) % cvHighlights.length;
+      if (loadingBubble) {
+        loadingBubble.textContent = cvHighlights[loadingIdx];
+      }
+    }, 2500);
+  }
 }
 
 function removeLoading(messages: HTMLElement): void {
+  if (loadingCycle) { clearInterval(loadingCycle); loadingCycle = null; }
   if (loadingLi && messages.contains(loadingLi)) {
     messages.removeChild(loadingLi);
   }
   loadingLi = null;
+  loadingBubble = null;
 }
 
 // ─── Ping periódico para mantener viva la conexión ────────────────────────────
@@ -176,6 +231,8 @@ function startPing(socket: WebSocket): void {
 // ─── Inicialización del chat ──────────────────────────────────────────────────
 
 export function initChat(): void {
+  loadCvHighlights();
+
   const toggle = document.querySelector('#chat-toggle') as HTMLButtonElement | null;
   const closeBtn = document.querySelector('#chat-close') as HTMLButtonElement | null;
   const windowEl = document.querySelector('#cv-chat-window') as HTMLElement | null;
