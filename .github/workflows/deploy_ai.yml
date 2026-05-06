@@ -65,6 +65,4 @@ jobs:
             --create-namespace \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend-ia \
             --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set image.pullPolicy=Always \
-            --set env.secretName="${{ env.APP_ENV_SECRET }}" \
             --wait --timeout 15m
