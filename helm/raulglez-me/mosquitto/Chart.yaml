@@ -1,0 +1,14 @@
+apiVersion: v2
+name: mosquitto
+description: Broker MQTT Mosquitto — cola de mensajes entre backend-portal y backend-ia
+type: application
+version: 0.1.0
+appVersion: "2"
+keywords:
+  - mqtt
+  - mosquitto
+  - broker
+  - messaging
+maintainers:
+  - name: Raul Gonzalez
+    email: rafex@rafex.dev

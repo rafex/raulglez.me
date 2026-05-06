@@ -1,0 +1,14 @@
+apiVersion: v2
+name: backend-portal
+description: Backend portal CV — API Node.js pura, sirve cv.json + panel admin + PDF
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - cv
+  - backend
+  - nodejs
+  - api
+maintainers:
+  - name: Raul Gonzalez
+    email: rafex@rafex.dev

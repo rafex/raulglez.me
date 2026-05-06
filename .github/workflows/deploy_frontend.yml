@@ -52,34 +52,10 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
-      - name: Clean legacy kubectl resources
+      - name: Deploy Portal (frontend)
         run: |
-          kubectl delete deployment raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
-          kubectl delete svc raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
-          kubectl delete ingress raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
-          helm rollback raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" 2>/dev/null || true
-
-      - name: Deploy Frontend
-        run: |
-          helm upgrade --install raulglez-frontend helm/raulglez-me \
+          helm upgrade --install raulglez-portal helm/raulglez-me/portal \
             --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set fullnameOverride=raulglez-frontend \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal \
             --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set image.pullPolicy=Always \
-            --set service.port=80 \
-            --set podSecurityContext.fsGroup=101 \
-            --set securityContext.runAsNonRoot=true \
-            --set securityContext.readOnlyRootFilesystem=false \
-            --set securityContext.runAsUser=101 \
-            --set securityContext.capabilities.drop[0]=ALL \
-            --set securityContext.capabilities.add[0]=NET_BIND_SERVICE \
-            --set dataVolume.mountPath=/tmp/nginx \
-            --set resources.limits.cpu=100m \
-            --set resources.limits.memory=128Mi \
-            --set resources.requests.cpu=50m \
-            --set resources.requests.memory=64Mi \
-            --set autoscaling.enabled=false \
-            --set pdb.enabled=false \
-            --set ingress.enabled=false \
             --wait --timeout 2m

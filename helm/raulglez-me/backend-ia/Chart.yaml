@@ -1,0 +1,15 @@
+apiVersion: v2
+name: backend-ia
+description: Backend IA — Node.js + Python FAISS + Groq para búsqueda semántica del CV
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - ai
+  - faiss
+  - groq
+  - rag
+  - backend
+maintainers:
+  - name: Raul Gonzalez
+    email: rafex@rafex.dev

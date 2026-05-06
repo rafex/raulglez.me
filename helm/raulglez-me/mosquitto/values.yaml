@@ -1,0 +1,92 @@
+# ─── Values para mosquitto (broker MQTT) ───
+# Imagen oficial eclipse-mosquitto ~5 MB, no requiere imagen propia
+replicaCount: 1
+
+image:
+  repository: eclipse-mosquitto
+  pullPolicy: IfNotPresent
+  tag: "2"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "mosquitto"
+
+serviceAccount:
+  create: true
+  automount: false
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  runAsNonRoot: false
+  readOnlyRootFilesystem: false
+
+service:
+  type: ClusterIP
+  port: 1883
+
+deployment:
+  strategy:
+    type: Recreate
+  progressDeadlineSeconds: 120
+
+# Sin secreto de entorno
+env:
+  secretName: ""
+
+# Sin volumen de datos (broker stateless para este caso de uso)
+dataVolume:
+  mountPath: ""
+  emptyDir: {}
+
+# Sin ingress (solo acceso interno entre pods)
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts: []
+  tls: []
+
+resources:
+  limits:
+    cpu: 50m
+    memory: 64Mi
+  requests:
+    cpu: 10m
+    memory: 32Mi
+
+livenessProbe:
+  tcpSocket:
+    port: 1883
+  initialDelaySeconds: 5
+  periodSeconds: 30
+
+readinessProbe:
+  tcpSocket:
+    port: 1883
+  initialDelaySeconds: 3
+  periodSeconds: 10
+
+startupProbe:
+  tcpSocket:
+    port: 1883
+  failureThreshold: 10
+  periodSeconds: 5
+
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}

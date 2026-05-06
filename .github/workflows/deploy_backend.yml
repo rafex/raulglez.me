@@ -69,32 +69,17 @@ jobs:
             --namespace="${{ env.K3S_NAMESPACE }}" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      - name: Clean legacy kubectl resources
+      - name: Deploy Mosquitto (broker MQTT)
         run: |
-          kubectl delete deployment raulglez-backend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
-          kubectl delete svc raulglez-backend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
-          helm rollback raulglez-backend -n "${{ env.K3S_NAMESPACE }}" 2>/dev/null || true
-
-      - name: Deploy Backend
-        run: |
-          helm upgrade --install raulglez-backend helm/raulglez-me \
+          helm upgrade --install mosquitto helm/raulglez-me/mosquitto \
             --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set fullnameOverride=raulglez-backend \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend \
+            --wait --timeout 1m
+
+      - name: Deploy Backend Portal
+        run: |
+          helm upgrade --install raulglez-backend-portal helm/raulglez-me/backend-portal \
+            --namespace "${{ env.K3S_NAMESPACE }}" \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend-portal \
             --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set image.pullPolicy=Always \
-            --set service.port=3000 \
             --set env.secretName="${{ env.APP_ENV_SECRET }}" \
-            --set livenessProbe.httpGet.path=/health \
-            --set readinessProbe.httpGet.path=/health \
-            --set startupProbe.httpGet.path=/health \
-            --set resources.limits.cpu=500m \
-            --set resources.limits.memory=512Mi \
-            --set resources.requests.cpu=100m \
-            --set resources.requests.memory=128Mi \
-            --set autoscaling.enabled=true \
-            --set autoscaling.maxReplicas=3 \
-            --set pdb.enabled=true \
-            --set pdb.minAvailable=1 \
-            --set ingress.enabled=false \
             --wait --timeout 2m

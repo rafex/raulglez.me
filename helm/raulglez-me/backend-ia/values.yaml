@@ -1,0 +1,94 @@
+# ─── Values para backend-ia (Node.js + Python FAISS + Groq) ───
+replicaCount: 1
+
+image:
+  repository: ghcr.io/rafex/raulglez-backend-ia
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: "raulglez-backend-ia"
+
+serviceAccount:
+  create: true
+  automount: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+
+podSecurityContext: {}
+
+securityContext:
+  runAsNonRoot: true
+  readOnlyRootFilesystem: false
+  runAsUser: 1001
+  capabilities:
+    drop: [ALL]
+
+service:
+  type: ClusterIP
+  port: 3000
+
+deployment:
+  strategy:
+    # Recreate para evitar conflictos de índice FAISS en memoria
+    type: Recreate
+  progressDeadlineSeconds: 900
+
+env:
+  secretName: raulglez-me-env
+
+# Sin volumen de datos (FAISS usa el índice embebido en la imagen)
+dataVolume:
+  mountPath: ""
+  emptyDir: {}
+
+ingress:
+  enabled: false
+  className: "haproxy"
+  annotations: {}
+  hosts: []
+  tls: []
+
+# Recursos elevados por FAISS + sentence-transformers en memoria
+resources:
+  limits:
+    cpu: 1000m
+    memory: 2Gi
+  requests:
+    cpu: 100m
+    memory: 512Mi
+
+# Probes con tiempos extendidos — imagen ~2.5 GB, arranque lento
+livenessProbe:
+  httpGet: { path: /health, port: http }
+  initialDelaySeconds: 90
+  periodSeconds: 30
+
+readinessProbe:
+  httpGet: { path: /health, port: http }
+  initialDelaySeconds: 60
+  periodSeconds: 15
+
+# 90 intentos × 10s = 15 min de margen para carga inicial
+startupProbe:
+  httpGet: { path: /health, port: http }
+  failureThreshold: 90
+  periodSeconds: 10
+
+# Sin autoscaling — FAISS es stateful en memoria, no escala horizontalmente
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 1
+  targetCPUUtilizationPercentage: 80
+
+pdb:
+  enabled: false
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
