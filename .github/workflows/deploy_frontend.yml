@@ -67,9 +67,10 @@ jobs:
             --set image.tag=${{ steps.tag.outputs.tag }} \
             --set image.pullPolicy=Always \
             --set service.port=80 \
-            --set securityContext.runAsNonRoot=false \
+            --set podSecurityContext.fsGroup=101 \
+            --set securityContext.runAsNonRoot=true \
             --set securityContext.readOnlyRootFilesystem=false \
-            --set securityContext.runAsUser=0 \
+            --set securityContext.runAsUser=101 \
             --set securityContext.capabilities.drop[0]=ALL \
             --set securityContext.capabilities.add[0]=NET_BIND_SERVICE \
             --set dataVolume.mountPath=/tmp/nginx \
