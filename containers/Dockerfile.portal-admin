@@ -5,9 +5,9 @@
 
 FROM nginx:alpine
 
-COPY frontend/portal-admin/dist /usr/share/nginx/html
+COPY frontend/portal-admin/dist /usr/share/nginx/html/admin
 
-# Proxy /api/admin/* y /admin/* al backend-portal
+# API admin + auth → backend-portal; SPA servida por nginx desde /admin/
 COPY containers/nginx-portal-admin.conf /etc/nginx/conf.d/default.conf
 
 # Config principal con pid en /tmp/nginx (ejecutamos como UID 101)
