@@ -1,46 +1,68 @@
 # Session Resume
 
-_Sesión: 2026-05-04-deploy-fixes-final | Cerrada: 2026-05-05 | Agente: deepseek-v4-pro_
+_Sesión: 2026-05-05-desacoplamiento | Cerrada: 2026-05-06 | Agente: deepseek-v4-pro_
 
 ## Estado al cerrar
 
-✅ **Todo funcionando en producción.** `v1.20260504-11` desplegado en k3s. Chat IA (GenAI vía Groq) responde correctamente. Ingress configurado con haproxy.
+✅ **Arquitectura desacoplada en producción.** 3 servicios independientes + Mosquitto corriendo en k3s.
 
-## Bugs corregidos (6 bugs raíz)
+## Servicios en k3s
 
-| # | Bug | Fix |
-|---|-----|-----|
-| 1 | Imagen `raulglez-me` (guion) rechazada por GHCR → 403 | values.yaml: `raulglez.me` (punto) |
-| 2 | `node_modules` no copiado → CrashLoopBackOff | Dockerfile: `COPY node_modules` |
-| 3 | emptyDir en /app/data borraba cv.json | mountPath: `/app/data/db` + rutas ajustadas |
-| 4 | Rutas ai.ts: backend/data/cv.json → 404 | CV_JSON/DB_PATH → `/app/data/` |
-| 5 | Ingress className: nginx en cluster haproxy → redirect loop | className: haproxy, sin TLS |
-| 6 | OOM: sentence-transformers >128Mi → SIGKILL | RAM limits: 1Gi + timeout 45s |
-
-## Tags creados
-
-- `v1.20260504-8`: fixes #1, #2
-- `v1.20260504-9`: fixes #3, #4, #5  
-- `v1.20260504-10`: quita Panel IA header + RAM 512Mi
-- `v1.20260504-11`: RAM 1Gi + timeout spawn Python
+| Servicio | Imagen | Tamaño | Estado |
+|----------|--------|--------|--------|
+| `raulglez-frontend` | `ghcr.io/rafex/raulglez-frontend:latest` | ~80 MB | ✅ |
+| `raulglez-backend` | `ghcr.io/rafex/raulglez-backend:latest` | ~180 MB | ✅ |
+| `raulglez-ai` | `ghcr.io/rafex/raulglez-ai:latest` | ~2.5 GB | ✅ |
+| `mosquitto` | `eclipse-mosquitto:2` | ~5 MB | ✅ |
 
 ## Endpoints verificados
 
-| Endpoint | Estado | Notas |
-|----------|--------|-------|
-| `GET /api/cv` | ✅ | 10 secciones, datos públicos |
-| `GET /api/ai/reindex` | ✅ | FAISS up_to_date |
-| `POST /api/ai/ask` | ✅ | GenAI mode, 3-5s/request |
-| `GET /api/ai/questions` | ✅ | 0 questions (sin data aún) |
+| Endpoint | Modo | Estado |
+|----------|------|--------|
+| `GET /api/cv` | - | ✅ 10 secciones |
+| `POST /api/ai/ask` | genai | ✅ Responde con datos del CV |
+| Backend → AI | HTTP interno | ✅ Conectividad confirmada |
 
-## Configuración actual
+## Flujo de la arquitectura
 
-- **Imagen**: `ghcr.io/rafex/raulglez.me:v1.20260504-11`
-- **RAM**: 1Gi limit, 256Mi request
-- **Ingress**: haproxy, solo HTTP (TLS vía proxy host)
-- **Secret**: `raulglez-me-env` con GROQ_API_KEY + GROQ_MODEL
-- **FAISS**: índice en `/app/backend/ai/index/`, modelo all-MiniLM-L6-v2
+```
+Usuario → haproxy Ingress → raulglez-frontend (nginx:80)
+                                │ /api/* → proxy_pass
+                                ▼
+                         raulglez-backend (Node.js:3000)
+                                │ /api/ai/* → fetch HTTP
+                                ▼
+                         raulglez-ai (Node.js:3000 + Python FAISS)
+```
 
-## Próximo paso recomendado
+## Bugs corregidos (10 bugs total)
 
-El sistema está operativo. La sesión está cerrada.
+| # | Bug | Fix |
+|---|-----|-----|
+| 1 | Imagen raulglez-me → GHCR 403 | values.yaml: raulglez.me |
+| 2 | node_modules no copiado | Dockerfile: COPY node_modules |
+| 3 | emptyDir borraba cv.json | mountPath: /app/data/db |
+| 4 | Rutas ai.ts incorrectas | CV_JSON/DB_PATH → /app/data/ |
+| 5 | Ingress nginx en cluster haproxy | className: haproxy |
+| 6 | OOM sentence-transformers | RAM: 128Mi → 1Gi/2Gi |
+| 7 | tag main vs latest | deploy.yml: main→latest |
+| 8 | nginx no resolver DNS | proxy_pass estático + orden deploy |
+| 9 | nginx Permission denied | emptyDir /var/cache/nginx |
+| 10 | containerPort 3000 ≠ AI_PORT 3001 | AI_PORT=3000 + Secret |
+
+## Commits
+
+- `06f708c`: feat inicial — 3 Dockerfiles, workflows, ai-server.ts
+- `c53b29c`: fix tag main→latest
+- `7fcb4cd`: fix fullnameOverride
+- `d4da3cf`: fix nginx variable proxy_pass
+- `d175ee2`: fix nginx revert to static
+- `12bdb00`: fix containerPort + deploy.yml + AI_SERVICE_URL en Secret
+
+## Próximo paso
+
+El sistema está operativo. Para cambios futuros:
+- Cambios en frontend: `gh workflow run "Publish Frontend" --ref main`
+- Cambios en backend: `gh workflow run "Publish Backend" --ref main`
+- Cambios en AI: `gh workflow run "Publish AI" --ref main`
+- Deploy completo: `gh workflow run Deploy -f tag=latest -f environment=production`
