@@ -1,12 +1,12 @@
 {
   "header": {
     "nickname": "Raúl González",
-    "name": "Lic. Raúl",
+    "name": "Raúl",
     "lastname": "González",
-    "fullname": "Lic. Raúl Eduardo González Argote",
-    "title": "Arquitecto de Software | Especialista en Soluciones Cloud-Native de Alto Rendimiento | Open Source Advocate",
-    "role": "Arquitecto TI",
-    "vision": "Diseñar y evolucionar arquitecturas de software resilientes y de alto impacto que resuelven problemas complejos de negocio, utilizando un enfoque pragmático que integra lo mejor de las tecnologías cloud-nativas, el open source y las prácticas de ingeniería modernas. Creo en una arquitectura que es debate, criterio y ejecución, no solo diagramas."
+    "fullname": "Raúl Eduardo González Argote",
+    "title": "Arquitecto de Software | Especialista en Soluciones Cloud-Native de Alto Rendimiento | Open Source Advocate | AI Booster",
+    "role": "Arquitecto TICs",
+      "vision": "Diseñar y evolucionar arquitecturas de software resilientes y de alto impacto que resuelven problemas complejos de negocio, utilizando un enfoque pragmático que integra lo mejor de las tecnologías cloud-nativas, el open source, la IA como extensión de las capacidades de expertos y las prácticas de ingeniería modernas. Creo en una arquitectura que es debate, criterio y ejecución, no solo diagramas."
   },
   "contact": {
     "public": {
@@ -16,10 +16,10 @@
     "private": {
       "phone": "55 80 99 50 29",
       "email": "rafex@rafex.dev",
-      "location": "Ciudad de México, Benito Juárez"
+      "location": "Ciudad de México, Benito Juárez, México"
     }
   },
-  "about": "Arquitecto de software con más de 14 años de experiencia liderando el diseño y la modernización de sistemas críticos para banca, gobierno y seguros. Mi enfoque combina un profundo conocimiento técnico en Java, Spring y ecosistemas cloud (Azure, AWS, GCP) con una visión estratégica de la arquitectura como motor de negocio. Soy un firme defensor del open source y la automatización, y complemento mi práctica profesional con la docencia y el análisis de tendencias tecnológicas en mi blog y en LinkedIn, donde genero debate sobre el futuro de la ingeniería de software.",
+  "about": "Arquitecto de software con más de 14 años de experiencia liderando el diseño y la modernización de sistemas críticos para banca, gobierno y seguros. Mi enfoque combina un profundo conocimiento técnico en Java, Spring y ecosistemas cloud (Azure, AWS, GCP) con una visión estratégica de la arquitectura como motor de negocio. Soy un firme defensor del open source, la automatización y del uso de la IA para potenciar las capacidades de expertos, incorporándola con criterio en proyectos de gran envergadura aun dentro de la volatilidad propia de esta nueva ola tecnológica. Complemento mi práctica profesional con la docencia y el análisis de tendencias tecnológicas en mi blog y en LinkedIn, donde genero debate sobre el futuro de la ingeniería de software.",
   "education": [
     {
       "degree": "Licenciatura en Sistemas Computacionales Administrativos",
@@ -35,17 +35,31 @@
       "period": "Jul 2024 - Presente",
       "location": "CDMX, Híbrido",
       "highlights": [
+        "Responsable de IA en América, liderando la definición de estrategias y arquitecturas para la integración de IA en soluciones bancarias, con un enfoque en la mejora de la experiencia del cliente y la optimización de procesos internos.",
         "Responsable de la evolución arquitectónica de las plataformas de firma y evidencias, definiendo su roadmap y asegurando su alineamiento con la estrategia de negocio.",
         "Lidero la gestión de proyectos de integración, coordinando equipos multidisciplinarios y actuando como punto de contacto entre negocio y tecnología."
       ],
       "skills": {
         "technical": [
           "Arquitectura de Soluciones Cloud-Nativas",
-          "Java, Spring Boot, Spring Cloud"
+          "Java",
+          "OpenAI"
+          "LLMs",
+          "SLM"
+          "Agentes de IA",
+          "AWS",
+          "Azure",
+          "GCP"
         ],
         "competencies": [
           "Pensamiento estratégico",
-          "Liderazgo técnico transversal"
+          "Liderazgo técnico transversal",
+          "Negociación y gestión de stakeholders",
+          "Toma de decisiones basada en datos",
+          "Gestión de proyectos de integración",
+          "Delegacion efectiva y mentoría de equipos",
+          "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
+          "Gestión de personal técnico y liderazgo de equipos"
         ]
       }
     },
@@ -55,17 +69,25 @@
       "period": "Ene 2023 - Jun 2024",
       "location": "CDMX, Híbrido",
       "highlights": [
+        "Responsable de una plataforma interna de resguardo de información crítica, liderando su evolución arquitectónica y asegurando su alineamiento con las necesidades del negocio.",
         "Actué como Tech Lead de la Plataforma de Firma en México, creando modelos de solución y guiando a los proyectos en su integración.",
         "Fui el Component Owner de la Plataforma de Evidencias en México, responsable de crear los modelos de solución, capacitar al equipo técnico y gestionar la carga de trabajo para cada periodo de entrega."
       ],
       "skills": {
         "technical": [
           "Arquitectura de Microservicios",
-          "Java, Spring Boot"
+          "Java",
+          "Spring Boot",
+          "AWS",
+          "Git",
+          "MongoDB"
         ],
         "competencies": [
           "Mentoría y capacitación técnica",
-          "Gestión de cargas de trabajo"
+          "Gestión de cargas de trabajo",
+          "Levantamiento de requerimientos y diseño de soluciones",
+          "Diseño de Arquitectura de Alto Rendimiento y Alta Disponibilidad",
+          "Gestión de personal técnico y liderazgo de equipos"
         ]
       }
     },
