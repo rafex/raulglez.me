@@ -46,4 +46,5 @@ jobs:
           context: .
           file: containers/Dockerfile.backend-ia
           push: true
+          no-cache: true
           tags: ${{ steps.meta.outputs.tags }}
