@@ -45,7 +45,11 @@ jobs:
       - name: Configure kubeconfig
         run: |
           mkdir -p $HOME/.kube
-          printf '%s' "${{ secrets.KUBE_CONFIG_DATA }}" > "$HOME/.kube/config"
+          if echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d >/tmp/kubeconfig.decoded 2>/dev/null; then
+            cp /tmp/kubeconfig.decoded "$HOME/.kube/config"
+          else
+            printf '%s' "${{ secrets.KUBE_CONFIG_DATA }}" > "$HOME/.kube/config"
+          fi
           chmod 600 $HOME/.kube/config
 
       - name: Deploy Frontend
