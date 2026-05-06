@@ -23,6 +23,7 @@ frontend/portal-publico/dist/
 frontend/portal-publico/.vite/
 frontend/portal-publico/index.html
 frontend/portal-admin/node_modules/
+frontend/portal-admin/index.html
 frontend/portal-admin/dist/
 frontend/portal-admin/.vite/
 

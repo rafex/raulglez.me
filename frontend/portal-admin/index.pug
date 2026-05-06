@@ -1,0 +1,190 @@
+doctype html
+html(lang="es")
+  head
+    meta(charset="UTF-8")
+    meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    meta(name="robots" content="noindex, nofollow")
+    title Panel Admin — raulglez.me
+    link(rel="stylesheet" href="/src/styles/variables.css")
+    link(rel="stylesheet" href="/src/styles/admin.css")
+  body
+    // PANTALLA DE LOGIN
+    #login-screen.login-screen(hidden)
+      .login-card
+        h1.login-title Panel Administrativo
+        p.login-subtitle raulglez.me
+        form#login-form.login-form(autocomplete="on")
+          .form-group
+            label(for="login-user") Usuario
+            input#login-user(
+              type="text"
+              name="username"
+              autocomplete="username"
+              placeholder="admin"
+              required
+            )
+          .form-group
+            label(for="login-password") Contraseña
+            input#login-password(
+              type="password"
+              name="current-password"
+              autocomplete="current-password"
+              placeholder="••••••••"
+              required
+            )
+          p#login-error.login-error(hidden)
+          button#login-btn.btn.btn-primary.btn-block(type="submit") Entrar
+
+    // PANEL PRINCIPAL
+    #admin-panel.admin-layout(hidden)
+      // Sidebar
+      aside.admin-sidebar
+        .sidebar-brand
+          span.sidebar-icon ⚙️
+          span.sidebar-title Admin
+        nav.sidebar-nav
+          button.nav-item.active(data-section="interactions")
+            span.nav-icon 💬
+            |  Interacciones
+          button.nav-item(data-section="prompt")
+            span.nav-icon 🧠
+            |  Prompt IA
+          button.nav-item(data-section="faiss")
+            span.nav-icon 🗂️
+            |  Índice FAISS
+        button#logout-btn.btn-logout
+          span 🚪
+          |  Cerrar sesión
+
+      // Contenido principal
+      main.admin-content
+        // Sección: Interacciones
+        section#section-interactions.admin-section.active
+          .section-header
+            h2.section-title Interacciones del Chat
+            .section-actions
+              select#filter-status.filter-select
+                option(value="") Todos los estados
+                option(value="pending") Pendiente
+                option(value="approved") Aprobado
+                option(value="rejected") Rechazado
+              button#refresh-btn.btn.btn-secondary ↻ Actualizar
+          #interactions-loading.loading-msg Cargando interacciones…
+          #interactions-empty.empty-msg(hidden) No hay interacciones todavía.
+          #interactions-table-wrap.table-wrapper(hidden)
+            table#interactions-table.admin-table
+              thead
+                tr
+                  th #
+                  th Fecha
+                  th Nombre
+                  th Empresa
+                  th Pregunta
+                  th Estado
+                  th Rating
+                  th Modo
+                  th Acciones
+              tbody#interactions-body
+          // Modal de detalle / calificación
+          #detail-modal.modal-overlay(hidden)
+            .modal-card
+              .modal-header
+                h3.modal-title
+                  | Detalle de interacción 
+                  span#modal-id
+                button#modal-close-btn.modal-close ✕
+              .modal-body
+                .detail-grid
+                  .detail-col
+                    p
+                      strong Nombre:
+                      |  
+                      span#d-name
+                    p
+                      strong Teléfono:
+                      |  
+                      span#d-phone
+                    p
+                      strong WhatsApp:
+                      |  
+                      span#d-whatsapp
+                    p
+                      strong Email:
+                      |  
+                      span#d-email
+                    p
+                      strong Empresa:
+                      |  
+                      span#d-company
+                    p
+                      strong Posición:
+                      |  
+                      span#d-position
+                    p
+                      strong Fecha:
+                      |  
+                      span#d-date
+                    p
+                      strong Modo:
+                      |  
+                      span#d-mode
+                  .detail-col
+                    .form-group
+                      label: strong Pregunta
+                      #d-question.detail-text
+                    .form-group
+                      label: strong Respuesta dada
+                      #d-answer.detail-text
+                hr.modal-divider
+                h4 Calificación y revisión
+                .rating-grid
+                  .form-group
+                    label(for="edit-status") Estado
+                    select#edit-status.filter-select
+                      option(value="pending") Pendiente
+                      option(value="approved") Aprobado
+                      option(value="rejected") Rechazado
+                  .form-group
+                    label(for="edit-rating") Rating (1–5)
+                    #star-row.star-row
+                      button.star(type="button" data-val="1") ★
+                      button.star(type="button" data-val="2") ★
+                      button.star(type="button" data-val="3") ★
+                      button.star(type="button" data-val="4") ★
+                      button.star(type="button" data-val="5") ★
+                    input#edit-rating(type="hidden" value="")
+                .form-group
+                  label(for="edit-note") Nota del revisor
+                  textarea#edit-note.admin-textarea(rows="3" placeholder="Comentario sobre esta respuesta…")
+                .form-group
+                  label(for="edit-adjusted") Respuesta ajustada (se usará en el RAG)
+                  textarea#edit-adjusted.admin-textarea(rows="5" placeholder="Versión corregida de la respuesta para reentrenamiento…")
+              .modal-footer
+                button#modal-cancel-btn.btn.btn-secondary Cancelar
+                button#modal-save-btn.btn.btn-primary Guardar
+              p#modal-error.login-error(hidden)
+
+        // Sección: Prompt IA
+        section#section-prompt.admin-section(hidden)
+          .section-header
+            h2.section-title Prompt del Sistema (IA)
+          #prompt-loading.loading-msg Cargando prompt…
+          #prompt-content.prompt-card(hidden)
+            .prompt-meta
+              span
+                | Modelo: 
+                strong#prompt-model
+            ol#prompt-list.prompt-list
+
+        // Sección: FAISS
+        section#section-faiss.admin-section(hidden)
+          .section-header
+            h2.section-title Índice FAISS
+            .section-actions
+              button#reindex-btn.btn.btn-danger ⚡ Reindexar
+          #faiss-loading.loading-msg Cargando estado…
+          #faiss-content.faiss-card(hidden)
+            pre#faiss-status.faiss-pre
+          p#reindex-msg.reindex-msg(hidden)
+
+    script(type="module" src="/src/scripts/admin.ts")
