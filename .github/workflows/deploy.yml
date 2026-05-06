@@ -1,12 +1,8 @@
-name: Deploy
+name: Deploy (legacy — solo manual, para full redeploy)
 
 on:
-  workflow_run:
-    workflows:
-      - "Publish Frontend"
-      - "Publish Backend"
-      - "Publish AI"
-    types: [completed]
+  # Desactivado el trigger automático. Los 3 deploy_*.yml por servicio lo reemplazan.
+  # Solo se usa manualmente cuando se necesita redeploy completo del sistema.
   workflow_dispatch:
     inputs:
       tag:
