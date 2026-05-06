@@ -50,9 +50,8 @@ dataVolume:
   mountPath: ""
   emptyDir: {}
 
-# Acceso interno al cluster — no exponer públicamente
 ingress:
-  enabled: false
+  enabled: true
   className: "haproxy"
   annotations:
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
