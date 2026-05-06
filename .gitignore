@@ -34,6 +34,7 @@ backend/javascript/portal/dist/
 backend/javascript/ia/node_modules/
 backend/javascript/ia/dist/
 backend/python/ia/index/
+backend/ai/
 
 # Secrets (plaintext local)
 .env
