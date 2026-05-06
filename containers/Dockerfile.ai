@@ -1,16 +1,16 @@
 # ─── raulglez-ai (~2.5 GB) — IMAGEN ESTÁTICA ──────────────────────
 # Node.js + Python + sentence-transformers + FAISS.
-# Solo se reconstruye cuando cambia backend/ai/** o backend/src/ai.ts.
-# Los scripts (rag_faiss.py) y datos (cv.json, sqlite) se montan vía volumen.
+# Solo se reconstruye cuando cambia backend/ai/src/** o backend/ai/python/**.
+# La capa Python es estática (sentence-transformers preinstalado).
 
 FROM node:lts-slim AS builder
 
 WORKDIR /app
 
-COPY backend/package*.json ./
+COPY backend/ai/package*.json ./
 RUN npm ci
 
-COPY backend/ ./
+COPY backend/ai/ ./
 RUN npm run build
 
 
@@ -39,18 +39,18 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 
-# ── Scripts y datos (se montan vía volumen en runtime) ────────────
-COPY --from=builder --chown=appuser:appgroup /app/ai ./backend/ai
-COPY --from=builder --chown=appuser:appgroup /app/data ./data
+# ── Scripts Python y datos ─────────────────────────────────────────
+COPY --chown=appuser:appgroup backend/ai/python ./python
+COPY --chown=appuser:appgroup backend/data ./data
 
-RUN mkdir -p /app/data/db /app/backend/ai/index && \
-    chown -R appuser:appgroup /app/data /app/backend
+RUN mkdir -p /app/data/db /app/python/index && \
+    chown -R appuser:appgroup /app/data /app/python
 
 USER appuser
 
-EXPOSE 3001
+EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
-    CMD curl -fsS http://localhost:3001/health || exit 1
+    CMD curl -fsS http://localhost:3000/health || exit 1
 
 CMD ["node", "dist/ai-server.js"]

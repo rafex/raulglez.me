@@ -1,7 +1,7 @@
 {
-  "name": "backend",
+  "name": "portal-backend",
   "version": "1.0.0",
-  "description": "API backend — sirve cv.json protegido + assets estáticos del frontend",
+  "description": "API backend — sirve /api/cv, /api/cv.pdf, /api/ai/ask (proxy), /health",
   "private": true,
   "type": "module",
   "scripts": {

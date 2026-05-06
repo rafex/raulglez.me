@@ -42,11 +42,11 @@ type QuestionRow = {
 };
 
 const ROOT = process.cwd();
-const AI_DIR = path.join(ROOT, 'backend', 'ai');
+const AI_DIR = path.join(ROOT, 'python');
 const CV_JSON = path.join(ROOT, 'data', 'cv.json');
 const DB_PATH = path.join(ROOT, 'data', 'db', 'interactions.sqlite');
-const INDEX_DIR = path.join(AI_DIR, 'index');
-const PY_RAG_SCRIPT = path.join(AI_DIR, 'rag_faiss.py');
+const INDEX_DIR = path.join(ROOT, 'python', 'index');
+const PY_RAG_SCRIPT = path.join(ROOT, 'python', 'rag_faiss.py');
 
 let db: DatabaseSync | null = null;
 

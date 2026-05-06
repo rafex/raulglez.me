@@ -52,6 +52,12 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
+      - name: Clean legacy kubectl resources
+        run: |
+          kubectl delete deployment raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+          kubectl delete svc raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+          kubectl delete ingress raulglez-frontend -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+
       - name: Deploy Frontend
         run: |
           helm upgrade --install raulglez-frontend helm/raulglez-me \
@@ -60,12 +66,13 @@ jobs:
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
             --set image.tag=${{ steps.tag.outputs.tag }} \
             --set service.port=80 \
+            --set podSecurityContext={} \
             --set securityContext.runAsNonRoot=false \
             --set securityContext.readOnlyRootFilesystem=false \
             --set securityContext.runAsUser=0 \
             --set securityContext.capabilities.drop[0]=ALL \
             --set securityContext.capabilities.add[0]=NET_BIND_SERVICE \
-            --set dataVolume.mountPath=/var/cache/nginx \
+            --set dataVolume.mountPath=/tmp/nginx \
             --set resources.limits.cpu=100m \
             --set resources.limits.memory=128Mi \
             --set resources.requests.cpu=50m \

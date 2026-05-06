@@ -1,0 +1,17 @@
+{
+  "name": "ai-server",
+  "version": "1.0.0",
+  "description": "AI server — sirve /ask, /questions, /reindex con Groq + FAISS fallback",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node --watch --experimental-strip-types src/ai-server.ts",
+    "build": "tsc",
+    "start": "node dist/ai-server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@types/node": "^22.19.17",
+    "typescript": "^5.0.0"
+  }
+}

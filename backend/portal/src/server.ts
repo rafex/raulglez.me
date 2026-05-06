@@ -93,6 +93,13 @@ const server = http.createServer(async (req, res) => {
   const method = req.method ?? 'GET';
   const url = (req.url ?? '/').split('?')[0];
 
+  // ── Health check ─────────────────────────────────────────────────────
+  if (url === '/health') {
+    res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
+    res.end(JSON.stringify({ status: 'ok', service: 'backend' }));
+    return;
+  }
+
   if (url === '/api/cv') {
     const cvData = toPublicCv(JSON.parse(readCvData()));
     res.writeHead(200, {
