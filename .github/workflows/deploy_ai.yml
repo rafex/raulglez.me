@@ -57,6 +57,7 @@ jobs:
         run: |
           kubectl delete deployment raulglez-ai -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
           kubectl delete svc raulglez-ai -n "${{ env.K3S_NAMESPACE }}" --ignore-not-found
+          helm rollback raulglez-ai -n "${{ env.K3S_NAMESPACE }}" 2>/dev/null || true
 
       - name: Deploy AI
         run: |
