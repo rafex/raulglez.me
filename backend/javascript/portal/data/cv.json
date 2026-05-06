@@ -43,9 +43,9 @@
         "technical": [
           "Arquitectura de Soluciones Cloud-Nativas",
           "Java",
-          "OpenAI"
+          "OpenAI",
           "LLMs",
-          "SLM"
+          "SLM",
           "Agentes de IA",
           "AWS",
           "Azure",
@@ -138,7 +138,7 @@
           "Arquitectura de Microservicios (Java Puro/Bibliotecas estándar)",
           "Virtualización (KVM, LXC)",
           "Automatización (Bash, Python)",
-          "Linux Administration"
+          "Linux Administration",
           "Shell Scripting"
         ],
         "competencies": [
@@ -348,15 +348,75 @@
   ],
   "conferences": [
     {
-      "title": "Taller de Python",
-      "event": "Congreso Internacional en Sistemas Computacionales Administrativos",
-      "location": "2011",
+      "title": "Ingeniería Social",
+      "event": "Meg",
+      "location": "Córdoba, Veracruz",
+      "type": "talk"
+    },
+    {
+      "title": "Como dejar de pensar Windows",
+      "event": "FLISOL 2011",
+      "location": "Orizaba, Veracruz",
       "type": "talk"
     },
     {
       "title": "La fuerza de las comunidades",
-      "event": "Campus Party México 2011",
+      "event": "Mesa redonda en Campus Party México 2011",
       "location": "CDMX",
+      "type": "talk"
+    },
+    {
+      "title": "Las redes sociales en México",
+      "event": "Congreso Internacional en Sistemas Computacionales Administrativos 2011",
+      "location": "Xalapa, Veracruz",
+      "type": "talk"
+    },
+    {
+      "title": "Taller de Python",
+      "event": "Congreso Internacional en Sistemas Computacionales Administrativos 2011",
+      "location": "Xalapa, Veracruz",
+      "type": "talk"
+    },
+    {
+      "title": "Computación en la NUBE",
+      "event": "55o Aniversario del Instituto Tecnológico de Orizaba 2012",
+      "location": "Orizaba, Veracruz",
+      "type": "talk"
+    },
+    {
+      "title": "Como dejar de pensar Windows",
+      "event": "FLISOL 2015",
+      "location": "Querétaro, Querétaro",
+      "type": "talk"
+    },
+    {
+      "title": "Regalando código también se gana",
+      "event": "FLISOL 2014",
+      "location": "Querétaro, Querétaro",
+      "type": "talk"
+    },
+    {
+      "title": "Módulo 1. Introducción a la programación",
+      "event": "KMMX, Academia Programador Java 2019",
+      "location": "CDMX",
+      "type": "course"
+    },
+    {
+      "title": "Módulo 3. Fundamentos de programación con Java",
+      "event": "KMMX, Academia Programador Java 2019",
+      "location": "CDMX",
+      "type": "course"
+    },
+    {
+      "title": "Módulo 4. Estructuras de Datos y algoritmos con Java",
+      "event": "KMMX, Academia Programador Java 2019",
+      "location": "CDMX",
+      "type": "course"
+    },
+    {
+      "title": "Curso de capacitación Java",
+      "event": "Nuevo Tools Consultoría S.A. de C.V.",
+      "location": "2019",
       "type": "talk"
     }
   ],
@@ -378,6 +438,11 @@
     }
   ],
   "projects": [
+    {
+      "name": "ThorioIDE",
+      "url": "https://thorioide.v1.rafex.cloud/",
+      "description": "Thorio es un pseudo código en español funciona con Java, esta diseñado para facilitar la enseñanza de programación a personas sin experiencia técnica, eliminando la barrera del idioma y la sintaxis compleja. Es un proyecto open source que busca democratizar el acceso a la programación."
+    },
     {
       "name": "Blog theworldofrafex",
       "url": "https://theworldofrafex.blog",
