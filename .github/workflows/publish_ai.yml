@@ -4,8 +4,9 @@ on:
   push:
     branches: [main]
     paths:
-      - backend/ai/**
-      - backend/data/**
+      - backend/javascript/ia/**
+      - backend/python/ia/**
+      - backend/javascript/portal/data/**
       - containers/Dockerfile.backend-ia
   workflow_dispatch:
 

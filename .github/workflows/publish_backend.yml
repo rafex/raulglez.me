@@ -4,8 +4,7 @@ on:
   push:
     branches: [main]
     paths:
-      - backend/portal/**
-      - backend/data/**
+      - backend/javascript/portal/**
       - containers/Dockerfile.backend-portal
   workflow_dispatch:
 

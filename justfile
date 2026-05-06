@@ -2,17 +2,18 @@
 # https://github.com/casey/just
 #
 # Uso:
-#   just dev              → inicia backend (:3001) + Vite (:3000) en paralelo (sin abrir navegador)
+#   just dev              → inicia portal (:3001) + IA (:3002) + Vite (:3000) en paralelo
 #   just dev-open         → abre http://localhost:3000 en navegador
 #   just dev-frontend     → solo Vite dev server (:3000, proxea /api a :3001)
-#   just dev-backend      → solo backend Node.js (:3001, hot reload)
+#   just dev-backend      → solo backend/javascript/portal (:3001, hot reload)
+#   just dev-ia           → solo backend/javascript/ia (:3002, hot reload)
 #   just build            → compila frontend + backend
 #   just preview          → previsualiza build completo (:3000)
 #   just docker-run       → ejecuta contenedor local (:3000)
 #   just docker-build     → construye imagen Docker
 #   just setup            → instala dependencias por primera vez
 #   just clean            → elimina artefactos
-#   just lint             → valida Helm chart
+#   just lint             → valida Helm charts
 #   just all              → setup + build
 #   just release-tag v1.20260504-1   → crea y empuja tag para disparar Publish+Deploy
 #   just release-tag-today 1 1        → crea tag v1.YYYYmmDD-1 y lo empuja
@@ -23,30 +24,35 @@
 
 # ─── Desarrollo ───────────────────────────────────────────
 
-## Inicia backend + Vite en paralelo (desarrollo completo)
+## Inicia portal + IA + Vite en paralelo (desarrollo completo)
 dev:
-    @echo "🚀 Iniciando backend :3001 y Vite :3000 ..."
-    just dev-backend & just dev-frontend
+    @echo "🚀 Iniciando portal :3001, IA :3002 y Vite :3000 ..."
+    just dev-backend & just dev-ia & just dev-frontend
 
 ## Abre el navegador en http://localhost:3000
 dev-open:
     @echo "🌐 Abriendo navegador en http://localhost:3000"
     open http://localhost:3000
 
-## Solo Vite dev server (:3000, proxea /api → backend :3001)
+## Solo Vite dev server (:3000, proxea /api → backend-portal :3001)
 dev-frontend:
     @echo "🖥️  Iniciando Vite en http://localhost:3000"
-    cd frontend && npm run dev
+    cd frontend/portal && npm run dev
 
-## Solo backend Node.js con hot reload (:3001)
+## Solo backend portal Node.js con hot reload (:3001)
 dev-backend:
-    @echo "⚙️  Iniciando backend en http://localhost:3001"
-    cd backend && PORT=3001 npm run dev
+    @echo "⚙️  Iniciando backend-portal en http://localhost:3001"
+    cd backend/javascript/portal && PORT=3001 npm run dev
+
+## Solo servicio IA Node.js con hot reload (:3002)
+dev-ia:
+    @echo "🤖  Iniciando backend-ia en http://localhost:3002"
+    cd backend/javascript/ia && AI_PORT=3002 AI_SERVICE_URL=http://localhost:3002 npm run dev
 
 ## Previsualiza el build de producción (:4173)
 preview: build
     @echo "👀 Previsualizando build en http://localhost:4173"
-    cd frontend && npm run preview
+    cd frontend/portal && npm run preview
 
 # ─── Build ───────────────────────────────────────────────
 
@@ -80,14 +86,18 @@ setup:
 clean:
     make clean
 
-## Valida el Helm chart
+## Valida los Helm charts
 lint:
-    make lint
+    @echo "🔍 Validando Helm charts..."
+    helm lint helm/raulglez-me/portal
+    helm lint helm/raulglez-me/backend-portal
+    helm lint helm/raulglez-me/backend-ia
+    helm lint helm/raulglez-me/mosquitto
 
 ## Renderiza templates Helm (dry-run)
-helm-template:
-    @echo "📋 Renderizando Helm templates..."
-    helm template raulglez-me helm/raulglez-me/
+helm-template service='portal':
+    @echo "📋 Renderizando Helm template: {{service}}"
+    helm template raulglez-{{service}} helm/raulglez-me/{{service}}/
 
 # ─── Release tags (GitHub Actions) ───────────────────────
 

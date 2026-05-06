@@ -1,16 +1,16 @@
-# ─── raulglez-ai (~2.5 GB) — IMAGEN ESTÁTICA ──────────────────────
+# ─── raulglez-backend-ia (~2.5 GB) — IMAGEN ESTÁTICA ────────────────
 # Node.js + Python + sentence-transformers + FAISS.
-# Solo se reconstruye cuando cambia backend/ai/src/** o backend/ai/python/**.
+# Solo se reconstruye cuando cambia backend/javascript/ia/** o backend/python/ia/**.
 # La capa Python es estática (sentence-transformers preinstalado).
 
 FROM node:lts-slim AS builder
 
 WORKDIR /app
 
-COPY backend/ai/package*.json ./
+COPY backend/javascript/ia/package*.json ./
 RUN npm ci
 
-COPY backend/ai/ ./
+COPY backend/javascript/ia/ ./
 RUN npm run build
 
 
@@ -40,8 +40,8 @@ COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 
 # ── Scripts Python y datos ─────────────────────────────────────────
-COPY --chown=appuser:appgroup backend/ai/python ./python
-COPY --chown=appuser:appgroup backend/data ./data
+COPY --chown=appuser:appgroup backend/python/ia ./python
+COPY --chown=appuser:appgroup backend/javascript/portal/data ./data
 
 RUN mkdir -p /app/data/db /app/python/index && \
     chown -R appuser:appgroup /app/data /app/python

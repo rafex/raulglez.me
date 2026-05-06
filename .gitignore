@@ -26,10 +26,11 @@ frontend/portal/index.html
 # Backend build artifacts
 backend/node_modules/
 backend/dist/
-backend/portal/node_modules/
-backend/portal/dist/
-backend/ai/node_modules/
-backend/ai/dist/
+backend/javascript/portal/node_modules/
+backend/javascript/portal/dist/
+backend/javascript/ia/node_modules/
+backend/javascript/ia/dist/
+backend/python/ia/index/
 
 # Secrets (plaintext local)
 .env

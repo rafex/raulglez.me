@@ -1,16 +1,16 @@
-# ─── raulglez-backend (~180 MB) ────────────────────────────────────
+# ─── raulglez-backend-portal (~180 MB) ──────────────────────────────
 # Node.js puro, sin Python ni FAISS.
 # Delega /api/ai/* al servicio AI interno vía AI_SERVICE_URL.
-# Se reconstruye con cambios en backend/portal/src/**.
+# Se reconstruye con cambios en backend/javascript/portal/**.
 
 FROM node:lts-slim AS builder
 
 WORKDIR /app
 
-COPY backend/portal/package*.json ./
+COPY backend/javascript/portal/package*.json ./
 RUN npm ci
 
-COPY backend/portal/ ./
+COPY backend/javascript/portal/ ./
 RUN npm run build
 
 
@@ -23,7 +23,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
-COPY --chown=appuser:appgroup backend/data ./data
+COPY --chown=appuser:appgroup backend/javascript/portal/data ./data
 
 RUN mkdir -p /app/data/db && chown appuser:appgroup /app/data/db
 
