@@ -1,0 +1,51 @@
+name: Publish Python Base
+
+# ── Solo se ejecuta cuando cambian las dependencias Python ─────────────
+# Imagen estática ~2.5 GB — no reconstruir con cambios de código.
+on:
+  push:
+    branches: [main]
+    paths:
+      - backend/python/ia/requirements.txt
+      - containers/Dockerfile.python-base
+  workflow_dispatch:
+    inputs:
+      force:
+        description: 'Forzar rebuild aunque no haya cambios'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set image name
+        id: meta
+        run: |
+          TAG="${{ github.ref_name == 'main' && 'latest' || github.ref_name }}"
+          echo "image=ghcr.io/${{ github.repository_owner }}/raulglez-python-base:${TAG}" >> $GITHUB_OUTPUT
+          echo "tag=${TAG}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Build sin caché — la imagen debe ser completamente reproducible
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: containers/Dockerfile.python-base
+          push: true
+          tags: ${{ steps.meta.outputs.image }}
+          # Sin cache-from — la imagen base debe ser determinista

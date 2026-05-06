@@ -2,31 +2,31 @@
 # https://github.com/casey/just
 #
 # Uso:
-#   just dev              → inicia portal (:3001) + IA (:3002) + Vite (:3000) en paralelo
-#   just dev-open         → abre http://localhost:3000 en navegador
-#   just dev-frontend     → solo Vite dev server (:3000, proxea /api a :3001)
-#   just dev-backend      → solo backend/javascript/portal (:3001, hot reload)
-#   just dev-ia           → solo backend/javascript/ia (:3002, hot reload)
-#   just build            → compila frontend + backend
-#   just preview          → previsualiza build completo (:3000)
-#   just docker-run       → ejecuta contenedor local (:3000)
-#   just docker-build     → construye imagen Docker
-#   just setup            → instala dependencias por primera vez
-#   just clean            → elimina artefactos
-#   just lint             → valida Helm charts
-#   just all              → setup + build
+#   just dev                 → inicia backend-portal (:3001) + IA (:3002) + Vite portal-publico (:3000)
+#   just dev-open            → abre http://localhost:3000 en navegador
+#   just dev-frontend        → solo Vite portal-publico (:3000, proxea /api y /ws → :3001)
+#   just dev-admin           → solo Vite portal-admin (:3002, proxea /api/admin → :3001)
+#   just dev-backend         → solo backend/javascript/portal (:3001, hot reload)
+#   just dev-ia              → solo backend/javascript/ia (:3003, hot reload)
+#   just build               → compila frontend y backend
+#   just preview             → previsualiza portal-publico (:4173)
+#   just docker-build        → construye todas las imágenes Docker
+#   just setup               → instala dependencias por primera vez
+#   just clean               → elimina artefactos
+#   just lint                → valida todos los Helm charts
+#   just all                 → setup + build
 #   just release-tag v1.20260504-1   → crea y empuja tag para disparar Publish+Deploy
 #   just release-tag-today 1 1        → crea tag v1.YYYYmmDD-1 y lo empuja
-#   just secrets-keygen   → genera llave age local
-#   just secrets-encrypt  → cifra .env → .env.enc con sops
-#   just secrets-decrypt  → descifra .env.enc → .env
-#   just secrets-edit     → edita .env.enc directamente con sops
+#   just secrets-keygen      → genera llave age local
+#   just secrets-encrypt     → cifra .env → .env.enc con sops
+#   just secrets-decrypt     → descifra .env.enc → .env
+#   just secrets-edit        → edita .env.enc directamente con sops
 
 # ─── Desarrollo ───────────────────────────────────────────
 
-## Inicia portal + IA + Vite en paralelo (desarrollo completo)
+## Inicia backend-portal + IA + portal-publico en paralelo (desarrollo completo)
 dev:
-    @echo "🚀 Iniciando portal :3001, IA :3002 y Vite :3000 ..."
+    @echo "🚀 Iniciando backend-portal :3001, IA :3003 y Vite portal-publico :3000 ..."
     just dev-backend & just dev-ia & just dev-frontend
 
 ## Abre el navegador en http://localhost:3000
@@ -34,37 +34,60 @@ dev-open:
     @echo "🌐 Abriendo navegador en http://localhost:3000"
     open http://localhost:3000
 
-## Solo Vite dev server (:3000, proxea /api → backend-portal :3001)
+## Solo Vite portal-publico (:3000, proxea /api y /ws → backend-portal :3001)
 dev-frontend:
-    @echo "🖥️  Iniciando Vite en http://localhost:3000"
-    cd frontend/portal && npm run dev
+    @echo "🖥️  Iniciando Vite portal-publico en http://localhost:3000"
+    cd frontend/portal-publico && npm run dev
+
+## Solo Vite portal-admin (:3002, proxea /api/admin y /admin → backend-portal :3001)
+dev-admin:
+    @echo "🛠️  Iniciando Vite portal-admin en http://localhost:3002"
+    cd frontend/portal-admin && npm run dev
 
 ## Solo backend portal Node.js con hot reload (:3001)
 dev-backend:
     @echo "⚙️  Iniciando backend-portal en http://localhost:3001"
     cd backend/javascript/portal && PORT=3001 npm run dev
 
-## Solo servicio IA Node.js con hot reload (:3002)
+## Solo servicio IA Node.js con hot reload (:3003)
 dev-ia:
-    @echo "🤖  Iniciando backend-ia en http://localhost:3002"
-    cd backend/javascript/ia && AI_PORT=3002 AI_SERVICE_URL=http://localhost:3002 npm run dev
+    @echo "🤖  Iniciando backend-ia en http://localhost:3003"
+    cd backend/javascript/ia && AI_PORT=3003 CV_SERVICE_URL=http://localhost:3001 MQTT_URL=mqtt://localhost:1883 npm run dev
 
-## Previsualiza el build de producción (:4173)
+## Previsualiza el build de producción del portal-publico (:4173)
 preview: build
-    @echo "👀 Previsualizando build en http://localhost:4173"
-    cd frontend/portal && npm run preview
+    @echo "👀 Previsualizando portal-publico en http://localhost:4173"
+    cd frontend/portal-publico && npm run preview
 
 # ─── Build ───────────────────────────────────────────────
 
-## Compila frontend y backend
-build:
-    @echo "🔨 Compilando frontend y backend..."
-    make build
+## Compila portal-publico, portal-admin y backends
+build: build-frontend-publico build-frontend-admin build-backend-portal build-backend-ia
 
-## Construye la imagen Docker localmente
+## Compila portal-publico
+build-frontend-publico:
+    @echo "🔨 Compilando portal-publico..."
+    cd frontend/portal-publico && npm run build
+
+## Compila portal-admin
+build-frontend-admin:
+    @echo "🔨 Compilando portal-admin..."
+    cd frontend/portal-admin && npm run build
+
+## Compila backend-portal (TypeScript → dist/)
+build-backend-portal:
+    @echo "🔨 Compilando backend-portal..."
+    cd backend/javascript/portal && npm run build
+
+## Compila backend-ia (TypeScript → dist/)
+build-backend-ia:
+    @echo "🔨 Compilando backend-ia..."
+    cd backend/javascript/ia && npm run build
+
+## Construye todas las imágenes Docker localmente
 docker-build:
-    @echo "🐳 Construyendo imagen Docker..."
-    make -C containers build
+    @echo "🐳 Construyendo imágenes Docker..."
+    make -C containers all
 
 # ─── Ejecución local ──────────────────────────────────────
 
@@ -86,16 +109,17 @@ setup:
 clean:
     make clean
 
-## Valida los Helm charts
+## Valida todos los Helm charts
 lint:
     @echo "🔍 Validando Helm charts..."
-    helm lint helm/raulglez-me/portal
+    helm lint helm/raulglez-me/portal-publico
+    helm lint helm/raulglez-me/portal-admin
     helm lint helm/raulglez-me/backend-portal
     helm lint helm/raulglez-me/backend-ia
     helm lint helm/raulglez-me/mosquitto
 
 ## Renderiza templates Helm (dry-run)
-helm-template service='portal':
+helm-template service='portal-publico':
     @echo "📋 Renderizando Helm template: {{service}}"
     helm template raulglez-{{service}} helm/raulglez-me/{{service}}/
 

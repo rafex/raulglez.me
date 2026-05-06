@@ -1,6 +1,6 @@
 apiVersion: v2
-name: portal
-description: Frontend CV portal — nginx + assets estáticos
+name: portal-publico
+description: Frontend CV público (CV + Chat IA WebSocket) — nginx + assets estáticos
 type: application
 version: 0.1.0
 appVersion: "1.0.0"

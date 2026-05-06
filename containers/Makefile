@@ -4,20 +4,28 @@ REGISTRY  ?= ghcr.io
 OWNER     ?= rafex
 TAG       ?= latest
 
-.PHONY: all portal backend-portal backend-ia clean help
+.PHONY: all portal-publico portal-admin backend-portal backend-ia clean help
 
-## all: construye los 3 componentes
-all: portal backend-portal backend-ia
+## all: construye los 4 componentes desplegables
+all: portal-publico portal-admin backend-portal backend-ia
 
-## portal: frontend nginx (~80 MB)
-portal:
-	@echo "🔨 Building raulglez-portal:$(TAG)..."
+## portal-publico: frontend público CV + Chat (~80 MB)
+portal-publico:
+	@echo "🔨 Building raulglez-portal-publico:$(TAG)..."
 	docker build \
-		--file containers/Dockerfile.portal \
-		--tag $(REGISTRY)/$(OWNER)/raulglez-portal:$(TAG) \
+		--file containers/Dockerfile.portal-publico \
+		--tag $(REGISTRY)/$(OWNER)/raulglez-portal-publico:$(TAG) \
 		.
 
-## backend-portal: API Node.js (~180 MB)
+## portal-admin: panel administrativo (~80 MB)
+portal-admin:
+	@echo "🔨 Building raulglez-portal-admin:$(TAG)..."
+	docker build \
+		--file containers/Dockerfile.portal-admin \
+		--tag $(REGISTRY)/$(OWNER)/raulglez-portal-admin:$(TAG) \
+		.
+
+## backend-portal: API Node.js — cv.json, PDF, WebSocket, admin (~180 MB)
 backend-portal:
 	@echo "🔨 Building raulglez-backend-portal:$(TAG)..."
 	docker build \
@@ -25,7 +33,7 @@ backend-portal:
 		--tag $(REGISTRY)/$(OWNER)/raulglez-backend-portal:$(TAG) \
 		.
 
-## backend-ia: Node.js + Python FAISS (~2.5 GB)
+## backend-ia: Node.js + Python FAISS + Groq (~2.5 GB con python-base)
 backend-ia:
 	@echo "🔨 Building raulglez-backend-ia:$(TAG)..."
 	docker build \
@@ -36,7 +44,8 @@ backend-ia:
 ## clean: elimina las imágenes locales
 clean:
 	@echo "🧹 Removing local images..."
-	docker rmi $(REGISTRY)/$(OWNER)/raulglez-portal:$(TAG) 2>/dev/null || true
+	docker rmi $(REGISTRY)/$(OWNER)/raulglez-portal-publico:$(TAG) 2>/dev/null || true
+	docker rmi $(REGISTRY)/$(OWNER)/raulglez-portal-admin:$(TAG) 2>/dev/null || true
 	docker rmi $(REGISTRY)/$(OWNER)/raulglez-backend-portal:$(TAG) 2>/dev/null || true
 	docker rmi $(REGISTRY)/$(OWNER)/raulglez-backend-ia:$(TAG) 2>/dev/null || true
 

@@ -1,0 +1,44 @@
+# ─── raulglez-python-base — Imagen base estática ─────────────────────
+#
+# PROPÓSITO: capa Python inmutable con sentence-transformers + FAISS.
+# Solo se reconstruye cuando cambia backend/python/ia/requirements.txt.
+#
+# El modelo all-MiniLM-L6-v2 (~90 MB) se descarga y embebe aquí,
+# evitando que Dockerfile.backend-ia tarde 15+ min en cada build.
+#
+# USO: FROM ghcr.io/rafex/raulglez-python-base:<tag>
+# ─────────────────────────────────────────────────────────────────────
+
+FROM node:lts-slim
+
+# ── Sistema: Python + compiladores para FAISS ─────────────────────────
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+      python3 \
+      python3-pip \
+      python3-venv \
+      curl \
+      ca-certificates \
+      libgomp1 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ── Dependencias Python (capa más pesada, ~2 GB) ──────────────────────
+COPY backend/python/ia/requirements.txt /tmp/requirements.txt
+RUN pip3 install --break-system-packages --no-cache-dir \
+      -r /tmp/requirements.txt && \
+    rm /tmp/requirements.txt
+
+# ── Pre-descarga del modelo sentence-transformers (~90 MB) ────────────
+# Esto evita que el contenedor descargue el modelo en cada arranque.
+RUN python3 -c "\
+from sentence_transformers import SentenceTransformer; \
+SentenceTransformer('all-MiniLM-L6-v2'); \
+print('Modelo all-MiniLM-L6-v2 descargado y en caché.')"
+
+# ── Usuario sin privilegios ───────────────────────────────────────────
+RUN groupadd -g 1001 appgroup && \
+    useradd -u 1001 -g appgroup -m -s /usr/sbin/nologin appuser
+
+LABEL org.opencontainers.image.title="raulglez-python-base" \
+      org.opencontainers.image.description="Base Python: faiss-cpu + sentence-transformers + modelo embebido" \
+      org.opencontainers.image.source="https://github.com/rafex/raulglez.me"

@@ -1,14 +1,14 @@
-# ─── Values para portal (frontend nginx) ───
+# ─── Values para portal-publico (frontend CV + Chat) ───
 replicaCount: 1
 
 image:
-  repository: ghcr.io/rafex/raulglez-portal
+  repository: ghcr.io/rafex/raulglez-portal-publico
   pullPolicy: IfNotPresent
   tag: "latest"
 
 imagePullSecrets: []
 nameOverride: ""
-fullnameOverride: "raulglez-portal"
+fullnameOverride: "raulglez-portal-publico"
 
 serviceAccount:
   create: true

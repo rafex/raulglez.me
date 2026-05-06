@@ -1,8 +1,18 @@
-# ─── raulglez-backend-ia (~2.5 GB) — IMAGEN ESTÁTICA ────────────────
-# Node.js + Python + sentence-transformers + FAISS.
-# Solo se reconstruye cuando cambia backend/javascript/ia/** o backend/python/ia/**.
-# La capa Python es estática (sentence-transformers preinstalado).
+# ─── raulglez-backend-ia (~300 MB sobre la base) ─────────────────────
+#
+# Hereda de raulglez-python-base que ya contiene:
+#   Python 3 + faiss-cpu + sentence-transformers + modelo all-MiniLM-L6-v2
+#
+# Esta imagen SOLO agrega el código Node.js + Python de la aplicación.
+# Build: segundos (no minutos). La base de ~2.5 GB ya existe en GHCR.
+#
+# Obtiene cv.json en runtime via HTTP desde backend-portal (CV_SERVICE_URL).
+# ─────────────────────────────────────────────────────────────────────
 
+ARG PYTHON_BASE_TAG=latest
+FROM ghcr.io/rafex/raulglez-python-base:${PYTHON_BASE_TAG} AS python-base
+
+# ── Stage 1: Compilar TypeScript ───────────────────────────────────────
 FROM node:lts-slim AS builder
 
 WORKDIR /app
@@ -13,38 +23,20 @@ RUN npm ci
 COPY backend/javascript/ia/ ./
 RUN npm run build
 
-
-FROM node:lts-slim AS runtime
-
-# ── Python + dependencias (STATIC LAYER, nunca cambia) ─────────────
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-      python3 \
-      python3-pip \
-      curl \
-      ca-certificates \
-      libgomp1 && \
-    rm -rf /var/lib/apt/lists/* && \
-    pip3 install --break-system-packages --no-cache-dir \
-      sentence-transformers \
-      faiss-cpu \
-      numpy
-
-RUN groupadd -g 1001 appgroup && \
-    useradd -u 1001 -g appgroup -m -s /usr/sbin/nologin appuser
+# ── Stage 2: Runtime (sobre la imagen base Python) ────────────────────
+FROM ghcr.io/rafex/raulglez-python-base:${PYTHON_BASE_TAG} AS runtime
 
 WORKDIR /app
 
-# ── Código Node.js compilado ───────────────────────────────────────
+# ── Código Node.js compilado ───────────────────────────────────────────
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 
-# ── Scripts Python y datos ─────────────────────────────────────────
+# ── Scripts Python (solo código, NO datos — cv.json viene via HTTP) ────
 COPY --chown=appuser:appgroup backend/python/ia ./python
-COPY --chown=appuser:appgroup backend/javascript/portal/data ./data
 
-RUN mkdir -p /app/data/db /app/python/index && \
-    chown -R appuser:appgroup /app/data /app/python
+RUN mkdir -p /app/python/index && \
+    chown -R appuser:appgroup /app/python
 
 USER appuser
 
@@ -52,5 +44,9 @@ EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=60s --retries=3 \
     CMD curl -fsS http://localhost:3000/health || exit 1
+
+# CV_SERVICE_URL: URL del backend-portal para obtener cv.json en runtime
+ENV CV_SERVICE_URL=http://raulglez-backend-portal:3000
+ENV MQTT_URL=mqtt://mosquitto:1883
 
 CMD ["node", "dist/ai-server.js"]

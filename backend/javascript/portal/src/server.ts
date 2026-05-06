@@ -4,11 +4,13 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import { generateCvPdfBuffer } from './pdf.js';
 import { handleAdminRoute } from './admin-routes.js';
+import { attachWebSocketServer } from './ws-handler.js';
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://localhost:3001';
+// backend-ia vía HTTP (para rutas de admin que no usan MQTT)
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
 
-async function aiFetch(path: string, init?: RequestInit): Promise<any> {
-  const res = await fetch(`${AI_SERVICE_URL}${path}`, init);
+async function aiFetch(urlPath: string, init?: RequestInit): Promise<any> {
+  const res = await fetch(`${AI_SERVICE_URL}${urlPath}`, init);
   const body = await res.json();
   if (!res.ok || !body.ok) throw new Error(body.error ?? `AI service error ${res.status}`);
   return body;
@@ -88,6 +90,8 @@ async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   return JSON.parse(raw);
 }
 
+// POST /api/ai/ask se maneja ahora vía WebSocket (/ws/chat).
+// Esta ruta HTTP se mantiene como fallback para clientes sin WS.
 const server = http.createServer(async (req, res) => {
   try {
   const method = req.method ?? 'GET';
@@ -226,6 +230,10 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+// ── WebSocket server adjunto (upgrade en /ws/chat) ───────────────────
+attachWebSocketServer(server);
+
 server.listen(PORT, () => {
   console.log(`Server running → http://localhost:${PORT}`);
+  console.log(`WebSocket chat → ws://localhost:${PORT}/ws/chat`);
 });

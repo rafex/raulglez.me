@@ -1,0 +1,14 @@
+apiVersion: v2
+name: portal-admin
+description: Panel administrativo IA (interacciones, valoraciones, FAISS) — nginx + assets estáticos
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - admin
+  - panel
+  - frontend
+  - nginx
+maintainers:
+  - name: Raul Gonzalez
+    email: rafex@rafex.dev
