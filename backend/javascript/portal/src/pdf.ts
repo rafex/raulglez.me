@@ -10,7 +10,8 @@ type CVItem = {
 
 type CVCert = { title: string; code: string; year: string; id: string };
 type CVProject = { name: string; url: string; description: string };
-type CVConference = { title: string; event: string; location: string };
+type CVConference = { title: string; event: string; location: string; type?: string };
+type CVArticle = { title: string; publication: string; date: string };
 
 type CVData = {
   header: { nickname?: string; name?: string; fullname?: string; title?: string; role: string; vision: string };
@@ -24,6 +25,7 @@ type CVData = {
   skills: { technical: Array<string | { name: string; experienceYears?: number }>; competencies: string[] };
   certifications: CVCert[];
   conferences: CVConference[];
+  articles?: CVArticle[];
   projects: CVProject[];
 };
 
@@ -118,8 +120,16 @@ export async function generateCvPdfBuffer(data: CVData): Promise<Buffer> {
 
   sectionTitle(doc, 'Conferencias');
   data.conferences.forEach((c) => {
-    bullet(doc, `${c.title} — ${c.event} (${c.location})`, 10);
+    const typeLabel = c.type ? ` [${c.type}]` : '';
+    bullet(doc, `${c.title}${typeLabel} — ${c.event} (${c.location})`, 10);
   });
+
+  if (data.articles?.length) {
+    sectionTitle(doc, 'Artículos');
+    data.articles.forEach((a) => {
+      bullet(doc, `${a.title} — ${a.publication} (${a.date})`, 10);
+    });
+  }
 
   sectionTitle(doc, 'Proyectos');
   data.projects.forEach((p) => {
