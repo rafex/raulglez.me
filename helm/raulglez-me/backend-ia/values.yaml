@@ -41,9 +41,15 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# Volumen para SQLite de interacciones (persistencia entre reinicios)
+# Volumen persistente para SQLite de interacciones + FAISS index
 dataVolume:
   mountPath: /app/data
+  persistentVolumeClaim:
+    enabled: true
+    storageClassName: "local-path"
+    accessModes:
+      - ReadWriteOnce
+    size: 5Gi
   emptyDir: {}
 
 ingress:
