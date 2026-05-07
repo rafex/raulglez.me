@@ -89,8 +89,10 @@ function starsHtml(rating: number | null): string {
 async function checkSession(): Promise<boolean> {
   try {
     const res = await fetch('/api/admin/questions?limit=1');
+    console.log('[admin] checkSession status:', res.status);
     return res.status !== 401;
-  } catch {
+  } catch (e) {
+    console.error('[admin] checkSession error:', e);
     return false;
   }
 }
@@ -117,6 +119,7 @@ async function logout(): Promise<void> {
 // ─── Navegación ───────────────────────────────────────────────────────────────
 
 function showLoginScreen(): void {
+  console.log('[admin] showLoginScreen()');
   hide('admin-panel');
   show('login-screen');
   el<HTMLInputElement>('login-user').value = '';
@@ -125,8 +128,11 @@ function showLoginScreen(): void {
 }
 
 function showAdminPanel(): void {
+  console.log('[admin] showAdminPanel()');
   hide('login-screen');
   show('admin-panel');
+  const panelEl = document.getElementById('admin-panel');
+  console.log('[admin] admin-panel hidden:', panelEl?.hidden, 'display:', panelEl ? getComputedStyle(panelEl).display : 'N/A');
   loadInteractions();
 }
 
@@ -368,6 +374,7 @@ async function init(): Promise<void> {
     hide('login-error');
 
     const result = await login(user, password);
+    console.log('[admin] login result:', result);
 
     if (result.ok) {
       showAdminPanel();
