@@ -114,16 +114,35 @@ docker run --rm -p 3001:3000 \
   raulglez-backend-portal:local
 ```
 
-## CI/CD (release manual)
+## CI/CD
+
+### Publicar cambios de código (sin tag de release)
+
+Los publish workflows ya no se disparan con `push` a `main`. Para desplegar
+un cambio en un servicio específico hay que disparar el workflow manualmente:
 
 ```bash
-# Crear tag con fecha de hoy y disparar todos los pipelines
+# Publicar e imagen Docker de un servicio (workflow_dispatch)
+just publish-frontend-publico
+just publish-portal-admin
+just publish-backend
+just publish-ai
+```
+
+### Release completo (todas las imágenes versionadas)
+
+```bash
+# Crear tag con fecha de hoy y disparar todos los publish + deploy
 just release-tag-today         # → v1.YYYYMMDD-1
-just release-tag-today 1 2     # → v1.YYYYMMDD-2
+just release-tag-today 1 2     # → v1.YYYYMMDD-2 (si ya existe el -1)
 
 # Tag personalizado
 just release-tag v1.20260506-1
 ```
+
+El tag de release dispara todos los publish workflows → construyen imágenes con ese tag
+→ los deploy workflows se disparan automáticamente vía `workflow_run` → k3s actualiza
+los 4 servicios (portal-publico, portal-admin, backend-portal, backend-ia).
 
 ## Secretos locales (sops + age)
 

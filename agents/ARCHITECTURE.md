@@ -35,7 +35,7 @@ backend-ia (arranque)
 ### `frontend/portal-admin/`
 - Panel administrativo protegido por sesión (login/logout).
 - Lista interacciones del chat con filtrado, calificación y edición.
-- Vista del prompt del sistema IA.
+- Editor del prompt del sistema IA (editable en vivo, propagado al chat vía MQTT).
 - Estado y reindexado manual del índice FAISS.
 - Build: Vite + TypeScript → HTML/CSS/JS estáticos servidos por nginx.
 
@@ -52,7 +52,9 @@ Servicio Node.js puro (`node:http`), sin frameworks:
 | `/admin/logout` | POST | Cierre de sesión |
 | `/api/admin/questions` | GET | Lista interacciones (requiere sesión) |
 | `/api/admin/questions/:id` | PATCH | Valorar interacción (requiere sesión) |
-| `/api/admin/prompt` | GET | Prompt del sistema IA (requiere sesión) |
+| `/api/admin/prompt` | GET | Prompt del sistema IA actual (requiere sesión) |
+| `/api/admin/prompt` | PUT | Actualizar prompt en memoria (requiere sesión) |
+| `/api/admin/prompt` | DELETE | Restaurar prompt al texto por defecto (requiere sesión) |
 | `/api/admin/reindex` | GET/POST | Estado y rebuild FAISS vía backend-ia (requiere sesión) |
 
 Fuente de verdad del CV: `backend/javascript/portal/data/cv.json`.
@@ -83,9 +85,12 @@ Orquesta la capa Python via `spawn('python3', ['rag_faiss.py'])` con protocolo J
 1. Usuario abre el chat → portal-publico conecta WebSocket a /ws/chat
 2. Usuario envía pregunta + contacto → WS mensaje { type: 'ask', payload: {...} }
 3. backend-portal genera correlationId y publica en MQTT ai/ask
+   → payload incluye { correlationId, question, contact, systemPrompt }
+   → systemPrompt = getCurrentPrompt() del módulo admin-routes
 4. backend-ia recibe el mensaje MQTT
 5. Llama a Python (FAISS): recupera top-8 chunks del CV
-6. Llama a Groq API con contexto RAG → respuesta genai
+6. Llama a Groq API con contexto RAG + systemPrompt → respuesta genai
+   └─ Si systemPrompt vacío → usa CV_SYSTEM_PROMPT hardcodeado
    └─ Si Groq falla → modo determinista (Python local)
 7. backend-ia publica respuesta en ai/response/{correlationId}
 8. backend-portal recibe la respuesta y la envía al WebSocket correcto
@@ -103,6 +108,12 @@ Timeout de espera: 60 s. Timeout de inactividad WS: 5 min. Ping keepalive: 30 s.
 4. Admin califica respuesta (PATCH /api/admin/questions/:id)
 5. backend-portal actualiza SQLite en backend-ia vía HTTP interno
 6. Las respuestas aprobadas se incorporan al índice FAISS en el siguiente reindexado
+
+7. [Prompt IA] Admin edita el prompt del sistema (PUT /api/admin/prompt)
+8. backend-portal actualiza currentPrompt en memoria (módulo admin-routes.ts)
+9. Los siguientes mensajes de chat incluyen el nuevo systemPrompt en el payload MQTT
+10. backend-ia usa el systemPrompt recibido como instrucción de sistema en la llamada Groq
+11. [Reset] DELETE /api/admin/prompt restaura currentPrompt al texto predeterminado
 ```
 
 ## Persistencia

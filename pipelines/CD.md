@@ -6,34 +6,21 @@ Cómo llega `raulglez.me` a producción (k3s).
 
 | Servicio | Publish workflow | Deploy workflow | Trigger automático |
 |---|---|---|---|
-| `portal-publico` | `publish_frontend.yml` | `deploy_frontend.yml` | push rama `main` o tag `v*` en `frontend/portal-publico/**` |
-| `portal-admin` | `publish_portal_admin.yml` | `deploy_portal_admin.yml` | push rama `main` o tag `v*` en `frontend/portal-admin/**` |
-| `backend-portal` | `publish_backend.yml` | `deploy_backend.yml` | push rama `main` o tag `v*` en `backend/javascript/portal/**` |
-| `backend-ia` | `publish_ai.yml` | `deploy_ai.yml` | push rama `main` o tag `v*` en `backend/javascript/ia/**` o `backend/python/ia/**` |
+| `portal-publico` | `publish_frontend.yml` | `deploy_frontend.yml` | tag `v*` o `workflow_dispatch` |
+| `portal-admin` | `publish_portal_admin.yml` | `deploy_portal_admin.yml` | tag `v*` o `workflow_dispatch` |
+| `backend-portal` | `publish_backend.yml` | `deploy_backend.yml` | tag `v*` o `workflow_dispatch` |
+| `backend-ia` | `publish_ai.yml` | `deploy_ai.yml` | tag `v*` o `workflow_dispatch` |
 | Python base | `publish_python_base.yml` | — (base, no deploy directo) | push `backend/python/ia/requirements.txt` |
 
-Cada workflow de deploy se dispara automáticamente al completarse su publish correspondiente,
+Cada workflow de deploy se dispara automáticamente al completarse su publish correspondiente (`workflow_run`),
 o se puede ejecutar manualmente (`workflow_dispatch`) con un tag específico.
+
+> **Importante**: los publish workflows ya NO se disparan con `push` a `main`. Para desplegar un cambio
+> de código hay que crear un tag de release o disparar el workflow manualmente.
 
 ## Cómo se disparan los deploys
 
-### Opción A — Push a `main` (cambio de código)
-
-```
-push a main (ruta relevante)
-        ↓
-Publish workflow → build + docker build-push
-  → ghcr.io/rafex/raulglez-<servicio>:latest
-        ↓
-Deploy workflow (via workflow_run) → helm upgrade --install ... --set image.tag=latest
-        ↓
-k3s aplica el nuevo Deployment → rollout verificado
-```
-
-Solo se dispara el publish/deploy del servicio cuya ruta cambió.
-Los demás servicios no se tocan.
-
-### Opción B — Tag de release (todas las imágenes versionadas)
+### Opción A — Tag de release (todas las imágenes versionadas)
 
 ```bash
 just release-tag v1.20260506-1   # crea y empuja el tag git
@@ -51,9 +38,30 @@ Deploy workflows se disparan → despliegan la imagen con ese tag
 k3s actualiza los 4 servicios
 ```
 
-**Nota**: Los paths filters se ignoran cuando el trigger es `tags: ['v*']` — todos los publish
-se disparan independientemente de qué archivos cambió el tag. Esto es el comportamiento esperado
+**Nota**: Cuando el trigger es `tags: ['v*']`, todos los publish workflows se disparan
+independientemente de qué archivos cambió el tag. Esto es el comportamiento esperado
 para un release completo de todas las imágenes.
+
+Los deploy workflows tienen grupos de concurrencia con `cancel-in-progress: false`
+para serializar deploys y evitar condiciones de carrera en Helm (`release: already exists`).
+
+### Opción B — Publish manual por servicio (cambio de código sin tag)
+
+Para desplegar código nuevo en un servicio específico sin crear un tag de release:
+
+```bash
+# Desplegar solo un servicio (push + dispatch desde justfile)
+just publish-frontend-publico
+just publish-portal-admin
+just publish-backend
+just publish-ai
+```
+
+Esto dispara el workflow de publish del servicio correspondiente vía `workflow_dispatch`,
+que a su vez desencadena el deploy del mismo servicio vía `workflow_run`.
+
+Cada publish workflow tiene un grupo de concurrencia con `cancel-in-progress: true`
+para evitar ejecuciones duplicadas si se dispara varias veces en rápida sucesión.
 
 ### Opción C — Manual (workflow_dispatch)
 

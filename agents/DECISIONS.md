@@ -228,6 +228,51 @@ Decisiones técnicas persistentes del proyecto `raulglez.me`.
 
 ---
 
+## D013 — Publish workflows: solo tag o dispatch (sin push a main)
+
+**Estado**: accepted
+**Fecha**: 2026-05-06
+
+**Contexto**: Los publish workflows se disparaban tanto en `push` a `main` como en `tags: ['v*']` y `workflow_dispatch`. Esto provocaba ejecuciones dobles: un `git push` de código seguido de `just publish-<servicio>` lanzaba el build dos veces simultaneamente, causando duplicados en los logs y potenciales condiciones de carrera en el registry.
+
+**Decisión**: Eliminar el trigger `push: branches: [main]` de todos los publish workflows (`publish_ai.yml`, `publish_backend.yml`, `publish_frontend.yml`, `publish_portal_admin.yml`). Los publish workflows solo se disparan con `tags: ['v*']` o `workflow_dispatch`.
+
+**Razonamiento**:
+- Un push de código solo **no** debe desplegar: el developer tiene control explícito de cuándo publicar.
+- `just publish-<servicio>` ya es el comando estándar para deploys manuales vía `workflow_dispatch`.
+- Los tags de release (`just release-tag-today`) cubren el caso de "publicar todo" en un momento concreto.
+- Se añadieron grupos de concurrencia (`cancel-in-progress: true` en publish, `cancel-in-progress: false` en deploy) para prevenir duplicados residuales.
+
+**Consecuencias**:
+- Un `git push` a `main` ya no dispara ningún workflow de build/publish.
+- Para desplegar código nuevo sin tag: `just publish-<servicio>` (workflow_dispatch).
+- Para desplegar todo con versión fija: `just release-tag-today`.
+- `publish_python_base.yml` mantiene su trigger `push: paths: [requirements.txt]` — es la excepción válida.
+
+---
+
+## D014 — Prompt del sistema IA editable desde el panel admin (in-memory)
+
+**Estado**: accepted
+**Fecha**: 2026-05-06
+
+**Contexto**: El prompt de sistema que guía las respuestas de Groq estaba hardcodeado en `ai.ts` (`CV_SYSTEM_PROMPT`). Para ajustar el comportamiento de la IA sin redeploy, se necesitaba una forma de editarlo desde el panel admin.
+
+**Decisión**: El prompt editable se almacena en memoria en `backend-portal` (variable `currentPrompt` en `admin-routes.ts`). Se expone vía `GET/PUT/DELETE /api/admin/prompt`. Cada mensaje MQTT `ai/ask` incluye el `systemPrompt` actual, que `backend-ia` usa como instrucción de sistema en la llamada Groq.
+
+**Razonamiento**:
+- Sin persistencia en disco ni base de datos: el prompt se restaura al valor predeterminado en cada reinicio del pod (comportamiento explícito y previsible).
+- La propagación vía MQTT es natural — el payload ya existía; solo se añade un campo opcional.
+- `backend-ia` tiene fallback al `CV_SYSTEM_PROMPT` hardcodeado si el campo no viene en el mensaje.
+- Un editor en el panel admin es suficiente para ajustes durante sesiones de revisión.
+
+**Consecuencias**:
+- El prompt no persiste entre reinicios del pod `backend-portal` — se pierde si el pod se reinicia.
+- Si se necesita persistencia, habría que guardar el prompt en SQLite o en un ConfigMap de Kubernetes.
+- `getCurrentPrompt()` se exporta desde `admin-routes.ts` e importa en `ws-handler.ts`.
+
+---
+
 ## D012 — Dos portales separados (publico y admin) sobre uno combinado
 
 **Estado**: accepted

@@ -24,7 +24,7 @@ Raúl Eduardo González Argote, Arquitecto TI con 14+ años de experiencia, nece
 
 - **CV público**: portal estático, rápido, accesible, con chat IA en tiempo real.
 - **Chat IA**: responde preguntas sobre el CV; registra leads (nombre + teléfono obligatorio).
-- **Panel admin**: gestión de interacciones, calificación de respuestas y reindexado FAISS.
+- **Panel admin**: gestión de interacciones, calificación de respuestas, edición del prompt del sistema IA y reindexado FAISS.
 - **Métricas de calidad**: Lighthouse > 95 en Performance, Accessibility, Best Practices.
 - **CI/CD propio**: deploy independiente por servicio en k3s personal.
 
@@ -39,6 +39,7 @@ Raúl Eduardo González Argote, Arquitecto TI con 14+ años de experiencia, nece
 - **Chat IA contextual**: responde solo con base en el CV real; no inventa ni alucina.
 - **Lead capture integrado**: cada pregunta queda registrada con datos de contacto.
 - **Revisión humana del loop IA**: las respuestas se califican y pueden ajustarse para mejorar el RAG.
+- **Prompt editable sin redeploy**: el comportamiento de la IA se ajusta desde el panel admin en tiempo real.
 - **Control total**: código propio, dominio propio, infraestructura propia (k3s).
 - **Velocidad**: HTML estático + nginx alpine; la IA es asíncrona via WebSocket + MQTT.
 - **Imagen Python estática**: la dependencia pesada (FAISS + sentence-transformers) no bloquea el deploy.
