@@ -25,6 +25,7 @@ html, body {
   padding: 1.5rem;
   background: linear-gradient(135deg, #0f1117 0%, #1a1f2e 100%);
 }
+.login-screen[hidden] { display: none; }
 
 .login-card {
   background: var(--color-surface, #1e2433);
@@ -68,6 +69,7 @@ html, body {
   grid-template-columns: 220px 1fr;
   min-height: 100vh;
 }
+.admin-layout[hidden] { display: none; }
 
 /* ─── Sidebar ───────────────────────────────────────────────────────────────── */
 
