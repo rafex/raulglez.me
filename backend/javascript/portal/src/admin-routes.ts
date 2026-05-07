@@ -126,27 +126,13 @@ export async function handleAdminRoute(
   // Log de diagnóstico para todas las rutas admin
   console.log(`[admin] ${method} ${url} | IP: ${getClientIp(req)} | Cookie: ${req.headers.cookie ? 'presente' : 'ausente'}`);
 
-  // ── GET /admin ──────────────────────────────────────────────────────────────
-  if (method === 'GET' && (url === '/admin' || url === '/admin/')) {
-    const cookieHeader = req.headers.cookie ?? '';
-    const cookies = parseCookies(cookieHeader);
-    const signedId = cookies[SESSION_COOKIE_NAME];
-    const session = signedId ? getSession(signedId) : null;
-
-    if (!session) {
-      // No autenticado: redirigir a login
-      setSecurityHeaders(res);
-      res.writeHead(302, { Location: '/admin/login' });
-      res.end();
-      return true;
-    }
-    serveAdminHtml(res);
-    return true;
-  }
-
-  // ── GET /admin/login ────────────────────────────────────────────────────────
-  if (method === 'GET' && (url === '/admin/login' || url === '/admin/login/')) {
-    serveAdminHtml(res);
+  // ── GET /admin y /admin/login: redirigir al SPA ────────────────────────────
+  // El SPA (servido por nginx) maneja login y panel client-side.
+  // El backend no tiene el HTML — redirige para que nginx lo sirva.
+  if (method === 'GET' && (url === '/admin' || url === '/admin/' || url === '/admin/login' || url === '/admin/login/')) {
+    setSecurityHeaders(res);
+    res.writeHead(302, { Location: '/admin/' });
+    res.end();
     return true;
   }
 
