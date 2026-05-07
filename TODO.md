@@ -13,7 +13,9 @@ _Actualizado: 2026-05-07 | Plan: tasks/seo-contact-prompts/TASKS.md | Agente: @b
 - [x] Frontend: Panel admin contactos con filtros, notas y export CSV
 - [x] Build: tsc ✅, Vite portal-publico ✅, Vite portal-admin ✅
 - [x] PR #40 (frontend) + PR #41 (backend) creados
-- [ ] Merge de PRs (pendiente revisión)
+- [x] Merge de PRs (revisado y mergeado ✅)
+- [x] Worktrees limpiados
+- [x] Documentación commiteada (DIAGNOSE.md, TASKS.md)
 </ToDo>
 
 ## Context
@@ -24,5 +26,6 @@ Agregar SEO con anclas HTML, efectos AOS, formulario de contacto para reclutador
 
 | Date | Plan | Status |
 |------|------|--------|
+| 2026-05-07 | tasks/seo-contact-prompts/TASKS.md | completed ✅ |
 | 2026-05-06 | tasks/seo-contact-prompts/TASKS.md | active |
 | 2026-05-06 | tasks/integracion-cv-articles/TASKS.md | completed |
