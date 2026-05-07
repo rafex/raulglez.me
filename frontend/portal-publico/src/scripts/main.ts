@@ -6,6 +6,7 @@ import {
   renderSkills,
   renderEducation,
   renderConferences,
+  renderArticles,
   renderProjects,
   renderContact,
 } from './modules/renderers';
@@ -43,6 +44,9 @@ async function loadCV(): Promise<void> {
     fill('.cv-skills', renderSkills(data.skills));
     fill('.cv-education', renderEducation(data.certifications));
     fill('.cv-conferences', renderConferences(data.conferences));
+    if (data.articles?.length) {
+      fill('.cv-articles', renderArticles(data.articles));
+    }
     fill('.cv-projects', renderProjects(data.projects));
     fill('.cv-contact', renderContact(data.contact));
 

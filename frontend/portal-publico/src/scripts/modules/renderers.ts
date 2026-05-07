@@ -6,6 +6,7 @@ import type {
   Skills,
   Certification,
   Conference,
+  Article,
   Project,
 } from '../../types/cv.types';
 import { esc, highlightSemantic } from './text-utils';
@@ -141,16 +142,40 @@ export function renderEducation(certs: Certification[]): string {
 }
 
 export function renderConferences(confs: Conference[]): string {
-  const items = confs.map((c) => `
+  const typeLabels: Record<string, string> = {
+    talk: 'Charla',
+    course: 'Curso',
+    workshop: 'Taller',
+    publication: 'Publicación',
+  };
+  const items = confs.map((c) => {
+    const typeBadge = c.type
+      ? `<span class="conference__type conference__type--${esc(c.type)}">${esc(typeLabels[c.type] ?? c.type)}</span>`
+      : '';
+    return `
     <article class="card">
       <p class="card-title">${esc(c.title)}</p>
-      <p class="small-desc">${esc(c.event)} · ${esc(c.location)}</p>
+      <p class="small-desc">${typeBadge} ${esc(c.event)} · ${esc(c.location)}</p>
       <div class="go-corner"><div class="go-arrow">→</div></div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 
   return `
     <h2 class="section__title">Conferencias</h2>
     <div class="conferences__list">${items}</div>`;
+}
+
+export function renderArticles(articles: Article[]): string {
+  const cards = articles.map((a) => `
+    <article class="card">
+      <p class="card-title">${esc(a.title)}</p>
+      <p class="small-desc">${esc(a.publication)} · ${esc(a.date)}</p>
+      <div class="go-corner"><div class="go-arrow">→</div></div>
+    </article>`).join('');
+
+  return `
+    <h2 class="section__title">Artículos</h2>
+    <div class="articles__list">${cards}</div>`;
 }
 
 export function renderProjects(projects: Project[]): string {
