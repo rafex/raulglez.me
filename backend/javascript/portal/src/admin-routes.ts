@@ -1,7 +1,4 @@
 import http from 'node:http';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_MS,
@@ -17,7 +14,7 @@ import {
   clearFailedAttempts,
 } from './auth.js';
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://localhost:3001';
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
 
 async function aiFetch(path: string, init?: RequestInit): Promise<any> {
   const res = await fetch(`${AI_SERVICE_URL}${path}`, init);
@@ -25,9 +22,6 @@ async function aiFetch(path: string, init?: RequestInit): Promise<any> {
   if (!res.ok || !body.ok) throw new Error(body.error ?? `AI service error ${res.status}`);
   return body;
 }
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PUBLIC_DIR = process.env.PUBLIC_DIR ?? path.join(__dirname, '..', 'public');
 
 // ─── Headers de seguridad ────────────────────────────────────────────────────
 
@@ -94,26 +88,6 @@ function requireAuth(req: http.IncomingMessage, res: http.ServerResponse): boole
   return true;
 }
 
-// ─── Servir el HTML del admin ─────────────────────────────────────────────────
-
-function serveAdminHtml(res: http.ServerResponse): void {
-  setSecurityHeaders(res);
-  const adminFile = path.join(PUBLIC_DIR, 'admin.html');
-  if (fs.existsSync(adminFile)) {
-    const content = fs.readFileSync(adminFile);
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-    res.end(content);
-  } else {
-    // Fallback mínimo si el frontend no está compilado
-    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' });
-    res.end(`<!doctype html><html lang="es"><head><meta charset="UTF-8">
-<title>Admin — raulglez.me</title></head><body>
-<p style="font-family:sans-serif;padding:2rem">
-Panel en construcción. Ejecuta <code>npm run build</code> en el frontend.
-</p></body></html>`);
-  }
-}
-
 // ─── Router principal ─────────────────────────────────────────────────────────
 
 export async function handleAdminRoute(
@@ -169,10 +143,15 @@ export async function handleAdminRoute(
 
     console.log(`[admin] Login exitoso para "${user}"`);
     clearFailedAttempts(ip);
-    const signedId = createSession(user);
-    const maxAgeSec = Math.floor(SESSION_MAX_AGE_MS / 1000);
-    res.setHeader('Set-Cookie', buildSetCookieHeader(SESSION_COOKIE_NAME, signedId, maxAgeSec));
-    jsonOk(res, { ok: true });
+    try {
+      const signedId = createSession(user);
+      const maxAgeSec = Math.floor(SESSION_MAX_AGE_MS / 1000);
+      res.setHeader('Set-Cookie', buildSetCookieHeader(SESSION_COOKIE_NAME, signedId, maxAgeSec));
+      jsonOk(res, { ok: true });
+    } catch (err) {
+      console.error('[admin] Error al crear sesión:', err);
+      jsonError(res, 500, 'Error interno al crear la sesión. Verifica SESSION_SECRET.');
+    }
     return true;
   }
 

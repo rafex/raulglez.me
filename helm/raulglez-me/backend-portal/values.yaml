@@ -76,15 +76,15 @@ startupProbe:
   failureThreshold: 30
   periodSeconds: 5
 
+# IMPORTANTE: sesiones en memoria → no escalar horizontalmente hasta migrar a SQLite/Redis
 autoscaling:
-  enabled: true
+  enabled: false
   minReplicas: 1
-  maxReplicas: 3
+  maxReplicas: 1
   targetCPUUtilizationPercentage: 80
 
 pdb:
-  enabled: true
-  minAvailable: 1
+  enabled: false
 
 nodeSelector: {}
 tolerations: []
