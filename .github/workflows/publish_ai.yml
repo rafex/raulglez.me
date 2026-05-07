@@ -11,6 +11,10 @@ on:
       # cv.json ya NO está en la imagen — se obtiene vía HTTP al arrancar
   workflow_dispatch:
 
+concurrency:
+  group: publish-ai-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

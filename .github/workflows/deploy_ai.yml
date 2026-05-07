@@ -12,6 +12,10 @@ on:
         type: string
         default: 'latest'
 
+concurrency:
+  group: deploy-ai
+  cancel-in-progress: false
+
 env:
   K3S_NAMESPACE: mvps
   APP_ENV_SECRET: raulglez-me-env

@@ -11,6 +11,10 @@ on:
       - containers/nginx-main.conf
   workflow_dispatch:
 
+concurrency:
+  group: publish-portal-publico-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

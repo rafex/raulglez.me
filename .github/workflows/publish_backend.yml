@@ -9,6 +9,10 @@ on:
       - containers/Dockerfile.backend-portal
   workflow_dispatch:
 
+concurrency:
+  group: publish-backend-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest

@@ -12,6 +12,10 @@ on:
         type: string
         default: 'latest'
 
+concurrency:
+  group: deploy-portal-admin
+  cancel-in-progress: false
+
 env:
   K3S_NAMESPACE: mvps
 
