@@ -1,42 +1,28 @@
 # TODO
 
-Estado: `done` ✅ — v1.20260504-11 en producción
+_Actualizado: 2026-05-07 | Plan: tasks/seo-contact-prompts/TASKS.md | Agente: @build_
 
-## Pendiente inmediato
+## Active
 
-- [x] Ajustar `containers/Dockerfile` para runtime de fallback determinista:
-  - incluir `python3` en imagen final,
-  - copiar `backend/ai/`,
-  - instalar dependencias de `backend/ai/requirements.txt`.
-- [x] Crear `Secret` de Kubernetes para variables de app (`raulglez-me-env`) y documentar comando:
-  - `GROQ_API_KEY` (obligatoria),
-  - `GROQ_MODEL` (opcional).
-- [x] Endurecer `.github/workflows/deploy.yml`:
-  - usar `GHCR_USERNAME` + `GHCR_TOKEN` para `ghcr-pull-secret`,
-  - validar namespace/release antes de deploy,
-  - agregar bloque de diagnóstico en fallo (describe/logs/events).
-- [x] Verificar despliegue real en k3s con:
-  - `helm lint`,
-  - `helm template`,
-  - `helm upgrade --install`,
-  - prueba funcional de `/api/ai/ask` en modo GenAI ✅ y fallback determinista.
-  - **Desplegado**: `v1.20260504-11`. Bugs corregidos: nombre imagen GHCR (raulglez-me→raulglez.me), node_modules faltante, emptyDir borraba cv.json, rutas ai.ts, Ingress haproxy, RAM 1Gi para FAISS/OOM. Panel IA removido del header público.
+<ToDo>
+- [x] Crear worktrees (2 en lugar de 4: backend + frontend)
+- [x] Backend: Schema SQL (init.sql), CRUD prompts y contacts en SQLite
+- [x] Backend: POST /api/contact, POST /api/cv.pdf/request (JWT), GET /api/cv.pdf?token=
+- [x] Backend: Metadatos PDF, rate limiting, prompt desde BD en /api/ai/ask
+- [x] Frontend: IDs HTML, AOS, JSON-LD, OG/Twitter meta, formulario contacto, modal PDF
+- [x] Frontend: Panel admin contactos con filtros, notas y export CSV
+- [x] Build: tsc ✅, Vite portal-publico ✅, Vite portal-admin ✅
+- [x] PR #40 (frontend) + PR #41 (backend) creados
+- [ ] Merge de PRs (pendiente revisión)
+</ToDo>
 
-## Pendiente funcional (producto)
+## Context
 
-- [x] Panel de revisión de preguntas IA:
-  - listar preguntas/respuestas guardadas,
-  - calificar (`rating`) y aprobar/rechazar (`status`),
-  - editar `adjusted_answer`.
-- [x] Reindexado controlado FAISS:
-  - endpoint/script para reconstruir índice al cambiar `cv.json`,
-  - estrategia de invalidación de índice.
+Agregar SEO con anclas HTML, efectos AOS, formulario de contacto para reclutadores/ponencias, migrar prompts a SQLite, y requerir datos de contacto para descargar PDF con metadatos.
 
-## Pendiente de documentación
+## History
 
-- [x] Actualizar `agents/ARCHITECTURE.md` con:
-  - flujo de chat IA (GenAI + fallback),
-  - uso de SQLite + FAISS.
-- [x] Actualizar `pipelines/CD.md` con:
-  - secrets requeridos en GitHub Actions y Kubernetes,
-  - procedimiento de rotación de `GROQ_API_KEY`.
+| Date | Plan | Status |
+|------|------|--------|
+| 2026-05-06 | tasks/seo-contact-prompts/TASKS.md | active |
+| 2026-05-06 | tasks/integracion-cv-articles/TASKS.md | completed |
