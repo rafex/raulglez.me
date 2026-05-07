@@ -25,6 +25,7 @@ export type LeadContact = {
 export type AskPayload = {
   question: string;
   contact: LeadContact;
+  systemPrompt?: string;
 };
 
 type RagChunk = { text: string; source: string; score: number };
@@ -200,13 +201,14 @@ export const CV_SYSTEM_PROMPT: string[] = [
   'Cita brevemente la evidencia usada con referencias (1), (2), etc.',
 ];
 
-async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
+async function askGroq(question: string, chunks: RagChunk[], systemPrompt?: string): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY no está configurada');
 
   const model = process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile';
   console.log(`[ai] askGroq | model: ${model} | chunks: ${chunks.length} | question: "${question.substring(0, 80)}..."`);
 
+  const sysContent = systemPrompt?.trim() || CV_SYSTEM_PROMPT.join(' ');
   const context = chunks.map((c, i) => `(${i + 1}) [${c.source}] ${c.text}`).join('\n');
   const user = `CONTEXTO:\n${context}\n\nPREGUNTA:\n${question}`;
 
@@ -221,7 +223,7 @@ async function askGroq(question: string, chunks: RagChunk[]): Promise<string> {
       temperature: 0,
       max_tokens: 700,
       messages: [
-        { role: 'system', content: CV_SYSTEM_PROMPT.join(' ') },
+        { role: 'system', content: sysContent },
         { role: 'user', content: user },
       ],
     }),
@@ -257,7 +259,7 @@ export async function askCvWithTracking(
   let mode: 'genai' | 'deterministic' = 'genai';
 
   try {
-    answer = await askGroq(payload.question.trim(), rag.chunks);
+    answer = await askGroq(payload.question.trim(), rag.chunks, payload.systemPrompt);
   } catch {
     mode = 'deterministic';
     try {

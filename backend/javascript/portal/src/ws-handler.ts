@@ -15,6 +15,7 @@ import type { IncomingMessage } from 'http';
 import type { Server } from 'http';
 import { randomUUID } from 'node:crypto';
 import mqtt from 'mqtt';
+import { getCurrentPrompt } from './admin-routes.js';
 
 const MQTT_URL = process.env.MQTT_URL ?? 'mqtt://mosquitto:1883';
 const MQTT_TOPIC_ASK = 'ai/ask';
@@ -196,6 +197,7 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
           correlationId,
           question: question.trim(),
           contact,
+          systemPrompt: getCurrentPrompt(),
         });
 
         mq.publish(MQTT_TOPIC_ASK, mqPayload, { qos: 1 }, (err) => {

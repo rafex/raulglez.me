@@ -58,7 +58,7 @@ function startMqttSubscriber(): void {
   client.on('message', async (topic: string, message: Buffer) => {
     if (topic !== MQTT_TOPIC_ASK) return;
 
-    let parsed: { correlationId: string; question: string; contact: Record<string, string> };
+    let parsed: { correlationId: string; question: string; contact: Record<string, string>; systemPrompt?: string };
     try {
       parsed = JSON.parse(message.toString());
     } catch (e) {
@@ -66,7 +66,7 @@ function startMqttSubscriber(): void {
       return;
     }
 
-    const { correlationId, question, contact } = parsed;
+    const { correlationId, question, contact, systemPrompt } = parsed;
     if (!correlationId) {
       console.error('[ai-server] Mensaje sin correlationId, ignorando');
       return;
@@ -78,7 +78,7 @@ function startMqttSubscriber(): void {
     try {
       if (!isCvReady()) await loadCvFromPortal();
 
-      const result = await askCvWithTracking({ question, contact: contact as any });
+      const result = await askCvWithTracking({ question, contact: contact as any, systemPrompt });
 
       client.publish(responseTopic, JSON.stringify({
         ok: true,

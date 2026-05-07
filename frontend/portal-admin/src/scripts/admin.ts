@@ -285,6 +285,8 @@ async function saveDetail(): Promise<void> {
 
 // ─── Prompt ───────────────────────────────────────────────────────────────────
 
+let lastPromptText = '';
+
 async function loadPrompt(): Promise<void> {
   show('prompt-loading');
   hide('prompt-content');
@@ -296,14 +298,71 @@ async function loadPrompt(): Promise<void> {
     hide('prompt-loading');
 
     setText('prompt-model', data.model ?? '—');
+    const raw: string = typeof data.prompt === 'string' ? data.prompt : (data.prompt ?? []).join('\n');
+    lastPromptText = raw;
+
     const list = el<HTMLOListElement>('prompt-list');
-    const lines: string[] = data.prompt ?? [];
-    list.innerHTML = lines.map(l => `<li>${escapeHtml(l)}</li>`).join('');
+    const lines = raw.split('\n').filter((l: string) => l.trim());
+    list.innerHTML = lines.map((l: string) => `<li>${escapeHtml(l)}</li>`).join('');
 
     show('prompt-content');
+    hide('prompt-msg');
   } catch {
     setText('prompt-loading', 'Error al cargar el prompt.');
   }
+}
+
+function enterPromptEdit(): void {
+  (el<HTMLTextAreaElement>('prompt-textarea')).value = lastPromptText;
+  hide('prompt-view');
+  show('prompt-edit-area');
+  hide('prompt-edit-btn');
+  show('prompt-save-btn');
+  show('prompt-reset-btn');
+}
+
+async function savePrompt(): Promise<void> {
+  const newText = (el<HTMLTextAreaElement>('prompt-textarea')).value.trim();
+  if (!newText) return;
+  try {
+    const res = await fetch('/api/admin/prompt', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt: newText }),
+    });
+    if (res.status === 401) { showLoginScreen(); return; }
+    const data = await res.json() as any;
+    if (!data.ok) throw new Error(data.error);
+    lastPromptText = newText;
+    exitPromptEdit();
+    await loadPrompt();
+  } catch (err) {
+    const msg = el('prompt-msg');
+    msg.textContent = `Error: ${err}`;
+    msg.hidden = false;
+  }
+}
+
+async function resetPrompt(): Promise<void> {
+  if (!confirm('¿Restaurar el prompt al texto predeterminado?')) return;
+  try {
+    const res = await fetch('/api/admin/prompt', { method: 'DELETE' });
+    if (res.status === 401) { showLoginScreen(); return; }
+    exitPromptEdit();
+    await loadPrompt();
+  } catch (err) {
+    const msg = el('prompt-msg');
+    msg.textContent = `Error: ${err}`;
+    msg.hidden = false;
+  }
+}
+
+function exitPromptEdit(): void {
+  show('prompt-view');
+  hide('prompt-edit-area');
+  show('prompt-edit-btn');
+  hide('prompt-save-btn');
+  hide('prompt-reset-btn');
 }
 
 // ─── FAISS ────────────────────────────────────────────────────────────────────
@@ -421,6 +480,11 @@ async function init(): Promise<void> {
 
   // FAISS
   el('reindex-btn').addEventListener('click', triggerReindex);
+
+  // Prompt editor
+  el('prompt-edit-btn').addEventListener('click', enterPromptEdit);
+  el('prompt-save-btn').addEventListener('click', savePrompt);
+  el('prompt-reset-btn').addEventListener('click', resetPrompt);
 }
 
 init();

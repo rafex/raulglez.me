@@ -16,6 +16,17 @@ import {
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
 
+// ─── Prompt editable en memoria ──────────────────────────────────────────────
+
+const DEFAULT_PROMPT = `Eres un asistente que responde preguntas sobre el CV de Raúl González.
+Usa exclusivamente los chunks del CV proporcionados. Si no hay evidencia suficiente, di "No tengo información suficiente en el CV para responder". Responde en español, en formato Markdown.`;
+
+let currentPrompt = DEFAULT_PROMPT;
+
+export function getCurrentPrompt(): string {
+  return currentPrompt;
+}
+
 async function aiFetch(path: string, init?: RequestInit): Promise<any> {
   const res = await fetch(`${AI_SERVICE_URL}${path}`, init);
   const body = await res.json();
@@ -204,10 +215,37 @@ export async function handleAdminRoute(
     if (!requireAuth(req, res)) return true;
     jsonOk(res, {
       ok: true,
-      prompt: `Eres un asistente que responde preguntas sobre el CV de Raúl González.
-Usa exclusivamente los chunks del CV proporcionados. Si no hay evidencia suficiente, di \"No tengo información suficiente en el CV para responder\". Responde en español, en formato Markdown.`,
+      prompt: currentPrompt,
       model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
     });
+    return true;
+  }
+
+  // ── PUT /api/admin/prompt ───────────────────────────────────────────────────
+  if (method === 'PUT' && url === '/api/admin/prompt') {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const body = await readJsonBody(req);
+      const newPrompt = body.prompt?.trim();
+      if (!newPrompt) {
+        jsonError(res, 400, 'El prompt no puede estar vacío');
+        return true;
+      }
+      currentPrompt = newPrompt;
+      console.log('[admin] Prompt actualizado, longitud:', currentPrompt.length);
+      jsonOk(res, { ok: true });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
+    return true;
+  }
+
+  // ── DELETE /api/admin/prompt ── reset al default ────────────────────────────
+  if (method === 'DELETE' && url === '/api/admin/prompt') {
+    if (!requireAuth(req, res)) return true;
+    currentPrompt = DEFAULT_PROMPT;
+    console.log('[admin] Prompt reseteado al default');
+    jsonOk(res, { ok: true, prompt: currentPrompt });
     return true;
   }
 

@@ -168,13 +168,21 @@ html(lang="es")
         section#section-prompt.admin-section(hidden)
           .section-header
             h2.section-title Prompt del Sistema (IA)
+            .section-actions
+              button#prompt-edit-btn.btn.btn-secondary ✏️ Editar
+              button#prompt-save-btn.btn.btn-primary(hidden) 💾 Guardar
+              button#prompt-reset-btn.btn.btn-danger(hidden) ↩ Restaurar default
           #prompt-loading.loading-msg Cargando prompt…
           #prompt-content.prompt-card(hidden)
             .prompt-meta
               span
-                | Modelo: 
+                | Modelo:
                 strong#prompt-model
-            ol#prompt-list.prompt-list
+            #prompt-view
+              ol#prompt-list.prompt-list
+            #prompt-edit-area(hidden)
+              textarea#prompt-textarea.admin-textarea(rows="10" placeholder="Escribe el prompt del sistema…")
+            p#prompt-msg.login-error(hidden)
 
         // Sección: FAISS
         section#section-faiss.admin-section(hidden)
