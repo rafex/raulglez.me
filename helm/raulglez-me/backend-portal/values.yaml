@@ -41,9 +41,9 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# backend-portal usa SQLite para prompts y contacts — volumen persistente
+# El PVC monta en /app/data/db (solo SQLite), no en /app/data (cv.json viene de la imagen)
 dataVolume:
-  mountPath: /app/data
+  mountPath: /app/data/db
   persistentVolumeClaim:
     enabled: true
     storageClassName: "local-path"
