@@ -16,6 +16,10 @@ import { initAccessibility } from './modules/accessibility';
 import { configureSemanticHighlights } from './modules/text-utils';
 import { initChat } from './modules/chat';
 import { initAiReviewPanel } from './modules/ai-review';
+import { initContactForm, initPdfModal } from './modules/contact-form';
+
+// AOS cargado vía CDN en index.pug — se expone como window.AOS
+declare const AOS: any;
 
 function fill(selector: string, html: string): void {
   const el = document.querySelector(selector);
@@ -55,6 +59,14 @@ async function loadCV(): Promise<void> {
     initAccessibility();
     initChat();
     initAiReviewPanel();
+    initContactForm();
+    initPdfModal();
+
+    // Inicializar AOS (Animate On Scroll)
+    if (typeof AOS !== 'undefined') {
+      AOS.init({ duration: 800, once: true, offset: 60 });
+    }
+
     hideLoader();
   } catch (err) {
     const app = document.querySelector('#app');

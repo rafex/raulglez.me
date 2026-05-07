@@ -64,8 +64,8 @@ export function renderExperience(items: ExperienceItem[]): string {
     return esc(`${skill.name}${skill.experienceYears ? ` (${skill.experienceYears} años)` : ''}`);
   };
 
-  const cards = items.map((item) => `
-    <article class="experience__item">
+  const cards = items.map((item, i) => `
+    <article class="experience__item" data-aos="fade-up" data-aos-delay="${i * 50}">
       <div class="experience__dot"></div>
       <div class="experience__card">
         <h3 class="experience__role">${esc(item.role)}</h3>
