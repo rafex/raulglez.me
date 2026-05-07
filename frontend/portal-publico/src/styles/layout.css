@@ -1401,6 +1401,93 @@ a.contact__value {
 
 a.contact__value:hover { text-decoration: underline; }
 
+/* === Toast de instrucciones del lector nativo === */
+
+.reader-toast {
+  position: fixed;
+  top: 68px; /* debajo del toolbar sticky */
+  left: 50%;
+  transform: translateX(-50%) translateY(-12px);
+  background: rgba(10, 20, 40, 0.96);
+  color: #d1dce8;
+  border: 1px solid rgba(70, 150, 229, 0.45);
+  border-radius: 12px;
+  padding: 0.9rem 2.5rem 0.9rem 1.1rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  z-index: 2000;
+  max-width: min(440px, 92vw);
+  text-align: left;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(10px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.reader-toast--visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.reader-toast strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.reader-toast small {
+  display: block;
+  margin-top: 0.25rem;
+  color: #8aaccc;
+  font-size: 0.8rem;
+}
+
+.reader-toast kbd {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  padding: 0.1rem 0.45rem;
+  font-family: 'Fira Code', 'Cascadia Code', monospace;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.reader-toast__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.6rem;
+  background: none;
+  border: none;
+  color: #8aaccc;
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 0.2rem 0.35rem;
+  border-radius: 4px;
+  line-height: 1;
+  transition: color 0.15s, background 0.15s;
+}
+
+.reader-toast__close:hover {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+@media (max-width: 600px) {
+  .reader-toast {
+    top: auto;
+    bottom: 5rem;
+    left: 1rem;
+    right: 1rem;
+    transform: translateY(12px);
+    max-width: none;
+  }
+  .reader-toast--visible {
+    transform: translateY(0);
+  }
+}
+
 /* === Botones sociales flotantes (From Uiverse.io by adarshpatel111, adapted) === */
 
 .social-float {
