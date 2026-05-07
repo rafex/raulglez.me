@@ -7,6 +7,7 @@ html(lang="es")
     title Panel Admin — raulglez.me
     link(rel="stylesheet" href="/src/styles/variables.css")
     link(rel="stylesheet" href="/src/styles/admin.css")
+    link(rel="stylesheet" href="/src/styles/contact-list.css")
   body
     // PANTALLA DE LOGIN
     #login-screen.login-screen(hidden)
@@ -52,6 +53,9 @@ html(lang="es")
           button.nav-item(data-section="faiss")
             span.nav-icon 🗂️
             |  Índice FAISS
+          button.nav-item(data-section="contacts")
+            span.nav-icon 📋
+            |  Contactos
         button#logout-btn.btn-logout
           span 🚪
           |  Cerrar sesión
@@ -194,5 +198,9 @@ html(lang="es")
           #faiss-content.faiss-card(hidden)
             pre#faiss-status.faiss-pre
           p#reindex-msg.reindex-msg(hidden)
+
+        // Sección: Contactos
+        section#section-contacts.admin-section(hidden)
+          #contacts-container
 
     script(type="module" src="/src/scripts/admin.ts")

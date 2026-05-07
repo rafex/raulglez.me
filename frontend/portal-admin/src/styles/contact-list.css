@@ -1,0 +1,157 @@
+/* ==========================================================================
+   contact-list.css — Panel de administración de contactos
+   ========================================================================== */
+
+.contact-list {
+  padding: 1.5rem;
+}
+
+.contact-list__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.contact-list__header h2 {
+  margin: 0;
+  font-size: 1.25rem;
+  color: #0f2742;
+}
+
+.contact-list__filters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.contact-list__filter {
+  padding: 0.45rem 0.75rem;
+  border: 1.5px solid #d5e0ea;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  background: #fff;
+  color: #0f2742;
+}
+
+.contact-list__export {
+  padding: 0.45rem 1rem;
+  background: #2f74b5;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.contact-list__export:hover {
+  background: #1a5a8e;
+}
+
+.contact-list__body {
+  overflow-x: auto;
+}
+
+.contact-list__loading,
+.contact-list__empty,
+.contact-list__error {
+  text-align: center;
+  padding: 2rem;
+  color: #4a5f73;
+  font-size: 0.95rem;
+}
+
+.contact-list__error {
+  color: #c62828;
+}
+
+/* Table */
+.contact-list__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.contact-list__table th {
+  background: #f0f4f8;
+  color: #0f2742;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.6rem 0.75rem;
+  border-bottom: 2px solid #d5e0ea;
+  white-space: nowrap;
+}
+
+.contact-list__table td {
+  padding: 0.55rem 0.75rem;
+  border-bottom: 1px solid #e9eef3;
+  vertical-align: top;
+}
+
+.contact-list__table tbody tr:hover {
+  background: #f8faff;
+}
+
+.contact-list__date {
+  white-space: nowrap;
+  color: #4a5f73;
+  font-size: 0.8rem;
+}
+
+.contact-list__message-row td {
+  color: #4a5f73;
+  font-style: italic;
+  font-size: 0.82rem;
+  padding-top: 0;
+  border-bottom: 2px solid #d5e0ea;
+}
+
+.contact-list__notes-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.contact-list__notes-text {
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.8rem;
+  color: #4a5f73;
+}
+
+.contact-list__notes-edit {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0.15rem;
+}
+
+.contact-list__footer {
+  margin-top: 0.75rem;
+  text-align: right;
+  font-size: 0.8rem;
+  color: #4a5f73;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .contact-list__header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .contact-list__table {
+    font-size: 0.78rem;
+  }
+
+  .contact-list__table th,
+  .contact-list__table td {
+    padding: 0.4rem 0.5rem;
+  }
+}

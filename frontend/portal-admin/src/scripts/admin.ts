@@ -1,3 +1,7 @@
+// ─── Módulos ──────────────────────────────────────────────────────────────────
+
+import { initContactList } from './modules/contact-list.js';
+
 // ─── Tipos ────────────────────────────────────────────────────────────────────
 
 type QuestionRow = {
@@ -137,7 +141,7 @@ function showAdminPanel(): void {
 }
 
 function activateSection(name: string): void {
-  const sections = ['interactions', 'prompt', 'faiss'];
+  const sections = ['interactions', 'prompt', 'faiss', 'contacts'];
   for (const s of sections) {
     const section = document.getElementById(`section-${s}`);
     if (section) section.hidden = s !== name;
@@ -146,6 +150,7 @@ function activateSection(name: string): void {
   }
   if (name === 'prompt') loadPrompt();
   if (name === 'faiss') loadFaissStatus();
+  if (name === 'contacts') loadContacts();
 }
 
 // ─── Interacciones ────────────────────────────────────────────────────────────
@@ -485,6 +490,13 @@ async function init(): Promise<void> {
   el('prompt-edit-btn').addEventListener('click', enterPromptEdit);
   el('prompt-save-btn').addEventListener('click', savePrompt);
   el('prompt-reset-btn').addEventListener('click', resetPrompt);
+}
+
+// ─── Contactos ───────────────────────────────────────────────────────────────
+
+async function loadContacts(): Promise<void> {
+  const container = document.getElementById('contacts-container');
+  if (container) await initContactList(container);
 }
 
 init();

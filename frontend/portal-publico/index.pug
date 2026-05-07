@@ -3,13 +3,37 @@ html(lang="es")
   head
     meta(charset="UTF-8")
     meta(name="viewport" content="width=device-width, initial-scale=1.0")
-    meta(name="description" content="CV Profesional — Raúl Eduardo González Argote")
+    meta(name="description" content="CV Profesional — Raúl Eduardo González Argote | Arquitecto TI con 14+ años de experiencia en desarrollo de software empresarial, Java, Spring Boot, Kubernetes, Cloud")
     meta(name="author" content="Raúl González")
-    meta(property="og:title" content="Raúl González — CV Profesional")
-    meta(property="og:description" content="Arquitecto TI con 14+ años de experiencia en desarrollo de software empresarial")
+    meta(name="keywords" content="CV, Raúl González, Arquitecto TI, Java, Spring Boot, Kubernetes, Cloud, Backend, Software Engineer")
+    //- Open Graph
+    meta(property="og:title" content="Raúl González — CV Profesional | Arquitecto TI")
+    meta(property="og:description" content="Arquitecto TI con 14+ años de experiencia en desarrollo de software empresarial. Disponible para consultoría, ponencias y talleres.")
     meta(property="og:type" content="website")
-    title Raúl González — CV Profesional
+    meta(property="og:url" content="https://raulglez.me")
+    meta(property="og:image" content="https://raulglez.me/images/profile_raul_glez.jpg")
+    //- Twitter Card
+    meta(name="twitter:card" content="summary_large_image")
+    meta(name="twitter:title" content="Raúl González — CV Profesional")
+    meta(name="twitter:description" content="Arquitecto TI con 14+ años de experiencia. Disponible para consultoría.")
+    //- Canonical
+    link(rel="canonical" href="https://raulglez.me")
+    title Raúl González — CV Profesional | Arquitecto TI
     link(rel="stylesheet" href="/src/styles/main.css")
+    //- AOS (Animate On Scroll)
+    link(rel="stylesheet" href="https://unpkg.com/aos@2.3.4/dist/aos.css")
+    //- Structured data (JSON-LD)
+    script(type="application/ld+json").
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Raúl Eduardo González Argote",
+        "jobTitle": "Arquitecto de TI",
+        "description": "Arquitecto TI con 14+ años de experiencia en desarrollo de software empresarial",
+        "url": "https://raulglez.me",
+        "sameAs": ["https://github.com/rafex", "https://linkedin.com/in/raulglez"],
+        "knowsAbout": ["Java", "Spring Boot", "Kubernetes", "Cloud Computing", "Software Architecture"]
+      }
   body
     #page-loader.page-loader(role="status" aria-live="polite" aria-label="Cargando sitio")
       .loader
@@ -60,7 +84,7 @@ html(lang="es")
         .site-toolbar__group
           button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
         .site-toolbar__group
-          a.download-button(href="/api/cv.pdf" title="Descargar CV en PDF")
+          button#download-trigger.download-button(type="button" title="Descargar CV en PDF")
             span.download-button__text Descargar PDF
             span.download-button__icon
               svg.download-button__svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 35 35")
@@ -93,15 +117,71 @@ html(lang="es")
       .a11y-group
         p Usa el switch flotante "Modo lectura" para simplificar la vista.
     main#app
-      div.cv-header
-      section.section.cv-about
-      section.section.cv-experience
-      section.section.cv-skills
-      section.section.cv-education
-      section.section.cv-conferences
-      section.section.cv-articles
-      section.section.cv-projects
-      footer.section.cv-contact
+      div#cv-header.cv-header(data-aos="fade-down")
+      section#about.section.cv-about(data-aos="fade-up")
+      section#experience.section.cv-experience(data-aos="fade-up")
+      section#skills.section.cv-skills(data-aos="fade-up")
+      section#education.section.cv-education(data-aos="fade-up")
+      section#conferences.section.cv-conferences(data-aos="fade-up")
+      section#articles.section.cv-articles(data-aos="fade-up")
+      section#projects.section.cv-projects(data-aos="fade-up")
+      //- Formulario de contacto
+      section#contact-form.section.contact-section(data-aos="fade-up")
+        .section__header
+          h2 Contáctame
+          p.section__subtitle ¿Interesado en colaborar? Déjame tus datos y me pondré en contacto.
+        form#contact-me-form.contact-form(novalidate)
+          .contact-form__row
+            .contact-form__field
+              label(for="contact-name") Nombre *
+              input#contact-name(type="text" name="name" required placeholder="Tu nombre completo")
+            .contact-form__field
+              label(for="contact-email") Correo electrónico *
+              input#contact-email(type="email" name="email" required placeholder="tu@email.com")
+          .contact-form__row
+            .contact-form__field
+              label(for="contact-phone") Teléfono / WhatsApp *
+              input#contact-phone(type="tel" name="phone" required placeholder="+52 55 1234 5678")
+            .contact-form__field
+              label(for="contact-company") Empresa
+              input#contact-company(type="text" name="company" placeholder="Nombre de tu empresa")
+          .contact-form__field
+            label(for="contact-purpose") ¿En qué te puedo ayudar?
+            select#contact-purpose(name="purpose")
+              option(value="") Selecciona una opción...
+              option(value="recruiting") Oportunidad laboral / Reclutamiento
+              option(value="speaking") Ponencia / Conferencia
+              option(value="workshop") Taller en universidad / empresa
+              option(value="help") Ayuda técnica / Mentoría
+              option(value="quote") Cotización de proyecto
+          .contact-form__field
+            label(for="contact-message") Mensaje
+            textarea#contact-message(name="message" rows="4" placeholder="Cuéntame más sobre tu interés...")
+          .contact-form__consent
+            input#contact-consent(type="checkbox" name="consent" required)
+            label(for="contact-consent") Acepto que mis datos sean utilizados para contactarme sobre esta solicitud. No compartiré tu información con terceros.
+          button.contact-form__submit(type="submit") Enviar mensaje
+        #contact-form-feedback.contact-form__feedback(aria-live="polite")
+      footer#contact.section.cv-contact(data-aos="fade-up")
+    //- Modal para descarga de PDF
+    #pdf-modal.pdf-modal(hidden role="dialog" aria-labelledby="pdf-modal-title")
+      .pdf-modal__overlay
+      .pdf-modal__content
+        button#pdf-modal-close.pdf-modal__close(type="button" aria-label="Cerrar") ✕
+        h2#pdf-modal-title Descarga tu CV en PDF
+        p.pdf-modal__desc Para descargar el CV, comparte tu correo y teléfono. Te enviaré el PDF con mis datos de contacto completos.
+        form#pdf-download-form.pdf-download-form(novalidate)
+          .pdf-download-form__field
+            label(for="pdf-email") Correo electrónico *
+            input#pdf-email(type="email" name="email" required placeholder="tu@email.com")
+          .pdf-download-form__field
+            label(for="pdf-phone") Teléfono / WhatsApp *
+            input#pdf-phone(type="tel" name="phone" required placeholder="+52 55 1234 5678")
+          .pdf-download-form__consent
+            input#pdf-consent(type="checkbox" name="consent" required)
+            label(for="pdf-consent") Acepto compartir mis datos para descargar el CV y recibir información de contacto.
+          button.pdf-download-form__submit(type="submit") Descargar CV (PDF)
+        #pdf-download-feedback.pdf-download-form__feedback(aria-live="polite")
     button#chat-toggle.chatBtn(type="button" aria-label="Abrir chat del CV" aria-controls="cv-chat-window" aria-expanded="false")
       svg(height="1.6em" fill="white" xml:space="preserve" viewBox="0 0 1000 1000" y="0px" x="0px" version="1.1" aria-hidden="true")
         path(d="M881.1,720.5H434.7L173.3,941V720.5h-54.4C58.8,720.5,10,671.1,10,610.2v-441C10,108.4,58.8,59,118.9,59h762.2C941.2,59,990,108.4,990,169.3v441C990,671.1,941.2,720.5,881.1,720.5L881.1,720.5z M935.6,169.3c0-30.4-24.4-55.2-54.5-55.2H118.9c-30.1,0-54.5,24.7-54.5,55.2v441c0,30.4,24.4,55.1,54.5,55.1h54.4h54.4v110.3l163.3-110.2H500h381.1c30.1,0,54.5-24.7,54.5-55.1V169.3L935.6,169.3z M717.8,444.8c-30.1,0-54.4-24.7-54.4-55.1c0-30.4,24.3-55.2,54.4-55.2c30.1,0,54.5,24.7,54.5,55.2C772.2,420.2,747.8,444.8,717.8,444.8L717.8,444.8z M500,444.8c-30.1,0-54.4-24.7-54.4-55.1c0-30.4,24.3-55.2,54.4-55.2c30.1,0,54.4,24.7,54.4,55.2C554.4,420.2,530.1,444.8,500,444.8L500,444.8z M282.2,444.8c-30.1,0-54.5-24.7-54.5-55.1c0-30.4,24.4-55.2,54.5-55.2c30.1,0,54.4,24.7,54.4,55.2C336.7,420.2,312.3,444.8,282.2,444.8L282.2,444.8z")
@@ -121,4 +201,6 @@ html(lang="es")
       form#chat-form.cv-chat__composer
         input#chat-question(type="text" placeholder="Escribe tu pregunta sobre el CV" minlength="8" required)
         button(type="submit") Enviar
+    //- AOS JS
+    script(src="https://unpkg.com/aos@2.3.4/dist/aos.js")
     script(type="module" src="/src/scripts/main.ts")
