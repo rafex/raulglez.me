@@ -8,10 +8,8 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const APP_ROOT = process.cwd();
 
 export type PromptRow = {
   id: number;
@@ -22,7 +20,7 @@ export type PromptRow = {
   updated_at: string;
 };
 
-const DB_DIR = path.join(__dirname, '..', 'data', 'db');
+const DB_DIR = path.join(APP_ROOT, 'data', 'db');
 const DB_PATH = path.join(DB_DIR, 'app.sqlite');
 
 let db: DatabaseSync | null = null;
@@ -33,7 +31,7 @@ function getDb(): DatabaseSync {
     db = new DatabaseSync(DB_PATH);
 
     // Ejecutar schema de inicialización desde init.sql
-    const initSqlPath = path.join(__dirname, '..', 'schema', 'init.sql');
+    const initSqlPath = path.join(APP_ROOT, 'src', 'schema', 'init.sql');
     if (existsSync(initSqlPath)) {
       const initSql = readFileSync(initSqlPath, 'utf-8');
       db.exec(initSql);

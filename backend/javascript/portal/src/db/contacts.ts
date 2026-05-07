@@ -7,10 +7,8 @@
 import { DatabaseSync } from 'node:sqlite';
 import { mkdirSync, readFileSync, existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const APP_ROOT = process.cwd();
 
 export type ContactPurpose = 'recruiting' | 'speaking' | 'workshop' | 'help' | 'quote';
 
@@ -30,7 +28,7 @@ export type ContactRow = ContactInput & {
   created_at: string;
 };
 
-const DB_DIR = path.join(__dirname, '..', 'data', 'db');
+const DB_DIR = path.join(APP_ROOT, 'data', 'db');
 const DB_PATH = path.join(DB_DIR, 'app.sqlite');
 
 let db: DatabaseSync | null = null;
@@ -39,9 +37,28 @@ function getDb(): DatabaseSync {
   if (!db) {
     mkdirSync(DB_DIR, { recursive: true });
     db = new DatabaseSync(DB_PATH);
-    const initSqlPath = path.join(__dirname, '..', 'schema', 'init.sql');
+    const initSqlPath = path.join(APP_ROOT, 'src', 'schema', 'init.sql');
     if (existsSync(initSqlPath)) {
       db.exec(readFileSync(initSqlPath, 'utf-8'));
+    } else {
+      // Fallback: crear tabla inline si init.sql no está disponible
+      db.exec(`
+        CREATE TABLE IF NOT EXISTS contacts (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          company TEXT,
+          purpose TEXT CHECK(purpose IN ('recruiting','speaking','workshop','help','quote')),
+          message TEXT,
+          cv_downloaded BOOLEAN DEFAULT FALSE,
+          admin_notes TEXT,
+          created_at TEXT DEFAULT (datetime('now'))
+        );
+        CREATE INDEX IF NOT EXISTS idx_contacts_email ON contacts(email);
+        CREATE INDEX IF NOT EXISTS idx_contacts_purpose ON contacts(purpose);
+        CREATE INDEX IF NOT EXISTS idx_contacts_created ON contacts(created_at);
+      `);
     }
   }
   return db;
