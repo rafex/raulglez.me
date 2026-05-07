@@ -73,9 +73,15 @@ spec:
       {{- if or .Values.dataVolume.mountPath .Values.extraVolumes }}
       volumes:
         {{- if .Values.dataVolume.mountPath }}
+        {{- if .Values.dataVolume.persistentVolumeClaim.enabled }}
+        - name: app-data
+          persistentVolumeClaim:
+            claimName: {{ include "backend-portal.fullname" . }}-data
+        {{- else }}
         - name: app-data
           emptyDir:
             {{- toYaml .Values.dataVolume.emptyDir | nindent 12 }}
+        {{- end }}
         {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}

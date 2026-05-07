@@ -41,9 +41,15 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# backend-portal no usa SQLite — sin volumen de datos
+# backend-portal usa SQLite para prompts y contacts — volumen persistente
 dataVolume:
-  mountPath: ""
+  mountPath: /app/data
+  persistentVolumeClaim:
+    enabled: true
+    storageClassName: "local-path"
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
   emptyDir: {}
 
 ingress:
