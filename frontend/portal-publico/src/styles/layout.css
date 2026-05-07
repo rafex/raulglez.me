@@ -108,6 +108,18 @@
   background: #164a7d;
   color: #fff;
   cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.a11y-toggle .btn-icon {
+  display: none;
+  align-items: center;
+}
+
+.a11y-toggle .btn-text {
+  display: inline;
 }
 
 .reading-fab__label {
@@ -748,10 +760,32 @@ html[data-reading='on'] .contact-card .bg {
 
 @media (max-width: 736px) {
   .site-toolbar__inner { padding: 0.55rem 0.7rem; }
-  .reading-fab__label { font-size: 0.75rem; }
-  .download-button { width: 154px; }
-  .download-button .download-button__icon { transform: translateX(112px); }
-  .download-button:hover .download-button__icon { width: 152px; }
+}
+
+@media (max-width: 768px) {
+  /* Accesibilidad: solo icono */
+  .a11y-toggle .btn-text { display: none; }
+  .a11y-toggle .btn-icon { display: flex; }
+  .a11y-toggle { padding: 0.5rem 0.65rem; }
+
+  /* Modo lectura: ocultar etiqueta de texto */
+  .reading-fab__label { display: none; }
+
+  /* Descargar PDF: solo icono centrado */
+  .download-button {
+    width: 40px;
+  }
+  .download-button .download-button__text { display: none; }
+  .download-button .download-button__icon {
+    position: relative;
+    transform: none;
+    width: 40px;
+    height: 100%;
+  }
+  .download-button:hover .download-button__icon {
+    width: 40px;
+    transform: none;
+  }
 }
 
 .chatBtn {

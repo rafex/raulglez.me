@@ -80,7 +80,11 @@ html(lang="es")
             .toggle-switch-background
               .toggle-switch-handle
         .site-toolbar__group
-          button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
+          button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad")
+            span.btn-icon(aria-hidden="true")
+              svg(xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="18" height="18" fill="currentColor")
+                path(d="M12 2c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 7h-6v13h-2v-6h-2v6H9V9H3V7h18v2z")
+            span.btn-text Accesibilidad
         .site-toolbar__group
           button#download-trigger.download-button(type="button" title="Descargar CV en PDF")
             span.download-button__text Descargar PDF
