@@ -175,6 +175,7 @@ export async function handleAdminRoute(
       const data = await aiFetch(`/questions?limit=${limit}`);
       jsonOk(res, { ok: true, rows: data.rows });
     } catch (err) {
+      console.error('[admin] GET /api/admin/questions error:', err);
       jsonError(res, 500, String(err));
     }
     return true;

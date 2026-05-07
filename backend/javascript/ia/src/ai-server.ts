@@ -124,24 +124,27 @@ async function handleRequest(
   req: http.IncomingMessage,
   res: http.ServerResponse
 ): Promise<void> {
-  const url = req.url ?? '/';
+  const rawUrl = req.url ?? '/';
   const method = req.method ?? 'GET';
+  const urlObj = new URL(rawUrl, 'http://localhost');
+  const pathname = urlObj.pathname;
 
-  if (method === 'GET' && url === '/health') {
+  if (method === 'GET' && pathname === '/health') {
     json(res, 200, { ok: true, service: 'backend-ia', cvReady: isCvReady() });
     return;
   }
 
-  if (method === 'GET' && url === '/questions') {
+  if (method === 'GET' && pathname === '/questions') {
     try {
-      json(res, 200, { ok: true, rows: listTrackedQuestions(200) });
+      const limit = Math.min(Number(urlObj.searchParams.get('limit') ?? 200), 500);
+      json(res, 200, { ok: true, rows: listTrackedQuestions(limit) });
     } catch (err: any) {
       json(res, 500, { ok: false, error: String(err) });
     }
     return;
   }
 
-  if (method === 'GET' && url === '/reindex') {
+  if (method === 'GET' && pathname === '/reindex') {
     try {
       json(res, 200, { ok: true, status: await getRagIndexStatus() });
     } catch (err: any) {
@@ -150,7 +153,7 @@ async function handleRequest(
     return;
   }
 
-  if (method === 'POST' && url === '/reindex') {
+  if (method === 'POST' && pathname === '/reindex') {
     try {
       json(res, 200, { ok: true, result: await rebuildRagIndex() });
     } catch (err: any) {
@@ -159,7 +162,7 @@ async function handleRequest(
     return;
   }
 
-  const rateMatch = url.match(/^\/questions\/(\d+)$/);
+  const rateMatch = pathname.match(/^\/questions\/(\d+)$/);
   if (method === 'PATCH' && rateMatch) {
     try {
       const payload = await readJsonBody(req);
