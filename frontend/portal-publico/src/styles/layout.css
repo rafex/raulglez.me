@@ -1182,8 +1182,9 @@ html[data-reading='on'] .contact-card .bg {
   gap: var(--spacing-lg);
 }
 
-/* === Conferences === */
-.conferences__list {
+/* === Conferences & Articles === */
+.conferences__list,
+.articles__list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
   gap: var(--spacing-lg);
