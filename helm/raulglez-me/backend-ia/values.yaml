@@ -41,9 +41,9 @@ deployment:
 env:
   secretName: raulglez-me-env
 
-# Volumen persistente para SQLite de interacciones + FAISS index
+# El PVC monta en /app/data/db (solo SQLite), no en /app/data (cv.json y FAISS en imagen)
 dataVolume:
-  mountPath: /app/data
+  mountPath: /app/data/db
   persistentVolumeClaim:
     enabled: true
     storageClassName: "local-path"

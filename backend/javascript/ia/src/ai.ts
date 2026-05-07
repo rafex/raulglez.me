@@ -55,7 +55,7 @@ export type QuestionRow = {
 
 const ROOT = process.cwd();
 const AI_DIR = path.join(ROOT, 'python');
-const INDEX_DIR = path.join(ROOT, 'python', 'index');
+const INDEX_DIR = path.join(ROOT, 'data', 'db', 'index');  // bajo PVC para persistencia
 const PY_RAG_SCRIPT = path.join(ROOT, 'python', 'rag_faiss.py');
 
 // cv.json se guarda en /tmp al arrancar (obtenido vía HTTP)
