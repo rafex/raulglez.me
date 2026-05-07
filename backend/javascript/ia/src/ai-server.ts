@@ -179,6 +179,8 @@ async function handleRequest(
 
 // ─── Arranque ─────────────────────────────────────────────────────────
 
+let serverStarted = false;
+
 async function main(): Promise<void> {
   console.log('[ai-server] Iniciando...');
   await loadCvFromPortal();
@@ -186,8 +188,14 @@ async function main(): Promise<void> {
 
   const server = http.createServer(handleRequest);
   server.listen(PORT, () => {
+    serverStarted = true;
     console.log(`[ai-server] HTTP interno → http://localhost:${PORT}`);
     console.log(`[ai-server] MQTT suscrito → ${MQTT_URL} topic="${MQTT_TOPIC_ASK}"`);
+
+    // Reindex FAISS en background — no bloquea el arranque
+    rebuildRagIndex()
+      .then((status) => console.log('[ai-server] FAISS reindex background completado:', status))
+      .catch((err) => console.warn('[ai-server] FAISS reindex background falló (se intentará en primera query):', err.message));
   });
 }
 
