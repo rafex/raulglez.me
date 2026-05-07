@@ -13,18 +13,27 @@ import {
   recordFailedAttempt,
   clearFailedAttempts,
 } from './auth.js';
+import {
+  getActivePrompt,
+  listPrompts,
+  getPromptById,
+  createPrompt,
+  updatePrompt,
+  setActivePrompt,
+  deletePrompt,
+} from './db/prompts.js';
+import {
+  listContacts,
+  getContactById,
+  countContacts,
+  markCvDownloaded,
+  addAdminNote,
+} from './db/contacts.js';
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
 
-// ─── Prompt editable en memoria ──────────────────────────────────────────────
-
-const DEFAULT_PROMPT = `Eres un asistente que responde preguntas sobre el CV de Raúl González.
-Usa exclusivamente los chunks del CV proporcionados. Si no hay evidencia suficiente, di "No tengo información suficiente en el CV para responder". Responde en español, en formato Markdown.`;
-
-let currentPrompt = DEFAULT_PROMPT;
-
 export function getCurrentPrompt(): string {
-  return currentPrompt;
+  return getActivePrompt();
 }
 
 async function aiFetch(path: string, init?: RequestInit): Promise<any> {
@@ -91,7 +100,6 @@ function requireAuth(req: http.IncomingMessage, res: http.ServerResponse): boole
   }
   const session = getSession(signedId);
   if (!session) {
-    // Limpiar cookie inválida
     res.setHeader('Set-Cookie', buildClearCookieHeader(SESSION_COOKIE_NAME));
     jsonError(res, 401, 'Sesión expirada o inválida');
     return false;
@@ -108,12 +116,9 @@ export async function handleAdminRoute(
   url: string
 ): Promise<boolean> {
 
-  // Log de diagnóstico para todas las rutas admin
   console.log(`[admin] ${method} ${url} | IP: ${getClientIp(req)} | Cookie: ${req.headers.cookie ? 'presente' : 'ausente'}`);
 
   // ── GET /admin y /admin/login: redirigir al SPA ────────────────────────────
-  // El SPA (servido por nginx) maneja login y panel client-side.
-  // El backend no tiene el HTML — redirige para que nginx lo sirva.
   if (method === 'GET' && (url === '/admin' || url === '/admin/' || url === '/admin/login' || url === '/admin/login/')) {
     setSecurityHeaders(res);
     res.writeHead(302, { Location: '/admin/' });
@@ -126,7 +131,6 @@ export async function handleAdminRoute(
     const ip = getClientIp(req);
     console.log(`[admin] POST /admin/login | IP: ${ip}`);
 
-    // Leer body primero para loguear
     const body = await readJsonBody(req);
     console.log(`[admin] Login attempt | user: "${body.user}" | body keys: ${Object.keys(body).join(', ')}`);
 
@@ -193,12 +197,12 @@ export async function handleAdminRoute(
   }
 
   // ── PATCH /api/admin/questions/:id ──────────────────────────────────────────
-  const rateMatch = url.match(/^\/api\/admin\/questions\/(\d+)$/);
-  if (method === 'PATCH' && rateMatch) {
+  const questionsMatch = url.match(/^\/api\/admin\/questions\/(\d+)$/);
+  if (method === 'PATCH' && questionsMatch) {
     if (!requireAuth(req, res)) return true;
     try {
       const payload = await readJsonBody(req);
-      await aiFetch(`/questions/${rateMatch[1]}`, {
+      await aiFetch(`/questions/${questionsMatch[1]}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload ?? {}),
@@ -210,29 +214,84 @@ export async function handleAdminRoute(
     return true;
   }
 
-  // ── GET /api/admin/prompt ───────────────────────────────────────────────────
-  if (method === 'GET' && url === '/api/admin/prompt') {
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Prompts v2 — múltiples prompts en SQLite
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── GET /api/admin/prompts — listar todos ───────────────────────────────────
+  if (method === 'GET' && url === '/api/admin/prompts') {
     if (!requireAuth(req, res)) return true;
-    jsonOk(res, {
-      ok: true,
-      prompt: currentPrompt,
-      model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile',
-    });
+    try {
+      const prompts = listPrompts();
+      jsonOk(res, { ok: true, prompts, model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile' });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
     return true;
   }
 
-  // ── PUT /api/admin/prompt ───────────────────────────────────────────────────
-  if (method === 'PUT' && url === '/api/admin/prompt') {
+  // ── GET /api/admin/prompt — prompt activo (compatibilidad v1) ───────────────
+  if (method === 'GET' && url === '/api/admin/prompt') {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const prompt = getActivePrompt();
+      jsonOk(res, { ok: true, prompt, model: process.env.GROQ_MODEL ?? 'llama-3.3-70b-versatile' });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
+    return true;
+  }
+
+  // ── POST /api/admin/prompts — crear nuevo ───────────────────────────────────
+  if (method === 'POST' && url === '/api/admin/prompts') {
     if (!requireAuth(req, res)) return true;
     try {
       const body = await readJsonBody(req);
-      const newPrompt = body.prompt?.trim();
-      if (!newPrompt) {
-        jsonError(res, 400, 'El prompt no puede estar vacío');
+      const name = body.name?.trim();
+      const content = body.content?.trim();
+      if (!name) { jsonError(res, 400, 'El nombre del prompt es obligatorio'); return true; }
+      if (!content) { jsonError(res, 400, 'El contenido del prompt no puede estar vacío'); return true; }
+      const row = createPrompt(name, content);
+      jsonOk(res, { ok: true, prompt: row });
+    } catch (err: any) {
+      if (String(err).includes('UNIQUE')) {
+        jsonError(res, 409, 'Ya existe un prompt con ese nombre');
+      } else {
+        jsonError(res, 500, String(err));
+      }
+    }
+    return true;
+  }
+
+  // ── PATCH /api/admin/prompts/:id — actualizar contenido ─────────────────────
+  const promptUpdateMatch = url.match(/^\/api\/admin\/prompts\/(\d+)$/);
+  if (method === 'PATCH' && promptUpdateMatch) {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const id = Number(promptUpdateMatch[1]);
+      const body = await readJsonBody(req);
+
+      // Si viene action=activate, activar este prompt
+      if (body.action === 'activate') {
+        const ok = setActivePrompt(id);
+        if (!ok) { jsonError(res, 404, 'Prompt no encontrado'); return true; }
+        jsonOk(res, { ok: true });
         return true;
       }
-      currentPrompt = newPrompt;
-      console.log('[admin] Prompt actualizado, longitud:', currentPrompt.length);
+
+      // Si viene action=delete, eliminar
+      if (body.action === 'delete') {
+        const result = deletePrompt(id);
+        if (!result.ok) { jsonError(res, 400, result.error ?? 'Error al eliminar'); return true; }
+        jsonOk(res, { ok: true });
+        return true;
+      }
+
+      // Por defecto, actualizar contenido
+      const content = body.content?.trim();
+      if (!content) { jsonError(res, 400, 'El contenido no puede estar vacío'); return true; }
+      const ok = updatePrompt(id, content);
+      if (!ok) { jsonError(res, 404, 'Prompt no encontrado'); return true; }
       jsonOk(res, { ok: true });
     } catch (err) {
       jsonError(res, 500, String(err));
@@ -240,12 +299,90 @@ export async function handleAdminRoute(
     return true;
   }
 
-  // ── DELETE /api/admin/prompt ── reset al default ────────────────────────────
-  if (method === 'DELETE' && url === '/api/admin/prompt') {
+  // ── PUT /api/admin/prompt — actualizar prompt activo (compatibilidad v1) ────
+  if (method === 'PUT' && url === '/api/admin/prompt') {
     if (!requireAuth(req, res)) return true;
-    currentPrompt = DEFAULT_PROMPT;
-    console.log('[admin] Prompt reseteado al default');
-    jsonOk(res, { ok: true, prompt: currentPrompt });
+    try {
+      const body = await readJsonBody(req);
+      const newContent = body.prompt?.trim();
+      if (!newContent) {
+        jsonError(res, 400, 'El prompt no puede estar vacío');
+        return true;
+      }
+      // Actualizar el prompt activo (si hay uno) o crear uno
+      const prompts = listPrompts();
+      const active = prompts.find(p => p.is_active);
+      if (active) {
+        updatePrompt(active.id, newContent);
+      } else if (prompts.length > 0) {
+        updatePrompt(prompts[0].id, newContent);
+        setActivePrompt(prompts[0].id);
+      } else {
+        createPrompt('default', newContent).id && setActivePrompt(createPrompt('default', newContent).id);
+      }
+      console.log('[admin] Prompt actualizado vía PUT (compatibilidad v1)');
+      jsonOk(res, { ok: true });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
+    return true;
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // Contactos — panel de administración
+  // ═══════════════════════════════════════════════════════════════════════════
+
+  // ── GET /api/admin/contacts — listar con filtros ────────────────────────────
+  if (method === 'GET' && url.startsWith('/api/admin/contacts') && !url.match(/^\/api\/admin\/contacts\/(\d+)$/)) {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const urlObj = new URL(url, 'http://localhost');
+      const purpose = urlObj.searchParams.get('purpose') || undefined;
+      const limit = Math.min(Number(urlObj.searchParams.get('limit') ?? 50), 200);
+      const offset = Number(urlObj.searchParams.get('offset') ?? 0);
+      const contacts = listContacts({ purpose: purpose as any, limit, offset });
+      const total = countContacts(purpose as any);
+      jsonOk(res, { ok: true, contacts, total, limit, offset });
+    } catch (err) {
+      console.error('[admin] GET /api/admin/contacts error:', err);
+      jsonError(res, 500, String(err));
+    }
+    return true;
+  }
+
+  // ── GET /api/admin/contacts/:id — detalle de contacto ───────────────────────
+  const contactDetailMatch = url.match(/^\/api\/admin\/contacts\/(\d+)$/);
+  if (method === 'GET' && contactDetailMatch) {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const contact = getContactById(Number(contactDetailMatch[1]));
+      if (!contact) { jsonError(res, 404, 'Contacto no encontrado'); return true; }
+      jsonOk(res, { ok: true, contact });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
+    return true;
+  }
+
+  // ── PATCH /api/admin/contacts/:id — agregar notas internas ──────────────────
+  if (method === 'PATCH' && contactDetailMatch) {
+    if (!requireAuth(req, res)) return true;
+    try {
+      const body = await readJsonBody(req);
+      const id = Number(contactDetailMatch[1]);
+
+      if (body.cv_downloaded === true) {
+        markCvDownloaded(id);
+      }
+      if (body.admin_notes !== undefined) {
+        addAdminNote(id, String(body.admin_notes).trim());
+      }
+      const contact = getContactById(id);
+      if (!contact) { jsonError(res, 404, 'Contacto no encontrado'); return true; }
+      jsonOk(res, { ok: true, contact });
+    } catch (err) {
+      jsonError(res, 500, String(err));
+    }
     return true;
   }
 
