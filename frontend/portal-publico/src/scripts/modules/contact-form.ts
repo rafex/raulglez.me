@@ -177,7 +177,7 @@ export function initPdfModal(): void {
       const tokenRes = await fetch('/api/cv.pdf/request', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: '', email, phone }),
+        body: JSON.stringify({ name: 'CV Download', email, phone }),
       });
       const tokenData = await tokenRes.json();
 
