@@ -10,7 +10,6 @@ export function initAccessibility(): void {
   const fontFamily = document.querySelector('#a11y-font-family') as HTMLSelectElement | null;
   const colorTheme = document.querySelector('#a11y-color-theme') as HTMLSelectElement | null;
   const readingSwitch = document.querySelector('#reading-switch') as HTMLInputElement | null;
-  const readingOuter = document.querySelector('.switch-button .switch-outer') as HTMLElement | null;
 
   if (!toggle || !panel || !fontSize || !fontSizeValue || !fontFamily || !colorTheme || !readingSwitch) return;
 
@@ -82,10 +81,4 @@ export function initAccessibility(): void {
 
   readingSwitch.addEventListener('change', syncReadingFromSwitch);
   readingSwitch.addEventListener('input', syncReadingFromSwitch);
-
-  readingOuter?.addEventListener('click', (event) => {
-    if (event.target === readingSwitch) return;
-    readingSwitch.checked = !readingSwitch.checked;
-    syncReadingFromSwitch();
-  });
 }

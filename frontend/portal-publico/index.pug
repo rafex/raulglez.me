@@ -75,12 +75,10 @@ html(lang="es")
       .site-toolbar__inner
         .site-toolbar__group
           span.reading-fab__label Modo lectura
-          label.switch-button(for="reading-switch")
-            .switch-outer
-              input#reading-switch(type="checkbox" aria-label="Activar modo lectura")
-              .button
-                span.button-toggle
-                span.button-indicator
+          label.toggle-switch
+            input#reading-switch(type="checkbox" aria-label="Activar modo lectura")
+            .toggle-switch-background
+              .toggle-switch-handle
         .site-toolbar__group
           button#a11y-toggle.a11y-toggle(type="button" aria-expanded="false" aria-controls="a11y-panel" title="Opciones de accesibilidad") Accesibilidad
         .site-toolbar__group
