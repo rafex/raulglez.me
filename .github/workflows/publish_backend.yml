@@ -2,11 +2,7 @@ name: Publish Backend
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - backend/javascript/portal/**
-      - containers/Dockerfile.backend-portal
   workflow_dispatch:
 
 concurrency:

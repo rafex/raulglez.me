@@ -2,13 +2,7 @@ name: Publish Portal Publico
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - frontend/portal-publico/**
-      - containers/Dockerfile.portal-publico
-      - containers/nginx-portal-publico.conf
-      - containers/nginx-main.conf
   workflow_dispatch:
 
 concurrency:

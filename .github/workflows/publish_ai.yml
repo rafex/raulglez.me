@@ -2,13 +2,7 @@ name: Publish AI
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - backend/javascript/ia/**
-      - backend/python/ia/**
-      - containers/Dockerfile.backend-ia
-      # cv.json ya NO está en la imagen — se obtiene vía HTTP al arrancar
   workflow_dispatch:
 
 concurrency:

@@ -2,13 +2,7 @@ name: Publish Portal Admin
 
 on:
   push:
-    branches: [main]
     tags: ['v*']
-    paths:
-      - frontend/portal-admin/**
-      - containers/Dockerfile.portal-admin
-      - containers/nginx-portal-admin.conf
-      - containers/nginx-main.conf
   workflow_dispatch:
 
 concurrency:
