@@ -44,16 +44,28 @@ function bullet(doc: PDFKit.PDFDocument, text: string, indent = 14): void {
   });
 }
 
-export async function generateCvPdfBuffer(data: CVData): Promise<Buffer> {
+export async function generateCvPdfBuffer(
+  data: CVData,
+  requester?: { email: string; phone: string }
+): Promise<Buffer> {
+  const infoAuthor = data.header.fullname ?? data.header.name ?? 'Raul Gonzalez';
+  const info: Record<string, string> = {
+    Title: `CV ${infoAuthor}`,
+    Author: infoAuthor,
+    Subject: 'Curriculum Vitae',
+    Keywords: 'CV, Resume, Raul Gonzalez',
+  };
+
+  if (requester) {
+    info.RequesterEmail = requester.email;
+    info.RequesterPhone = requester.phone;
+    info.GeneratedAt = new Date().toISOString();
+  }
+
   const doc = new PDFDocument({
     size: 'A4',
     margin: 50,
-    info: {
-      Title: `CV ${data.header.name}`,
-      Author: data.header.name,
-      Subject: 'Curriculum Vitae',
-      Keywords: 'CV, Resume, Raul Gonzalez',
-    },
+    info,
   });
 
   const chunks: Buffer[] = [];

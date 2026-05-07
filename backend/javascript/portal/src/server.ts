@@ -2,9 +2,12 @@ import http from 'http';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { createHmac, timingSafeEqual } from 'crypto';
 import { generateCvPdfBuffer } from './pdf.js';
 import { handleAdminRoute } from './admin-routes.js';
 import { attachWebSocketServer } from './ws-handler.js';
+import { validateContact, createContact, markCvDownloaded, getContactById } from './db/contacts.js';
+import { getCurrentPrompt } from './admin-routes.js';
 
 // backend-ia vía HTTP (para rutas de admin que no usan MQTT)
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
@@ -90,6 +93,66 @@ async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   return JSON.parse(raw);
 }
 
+// ─── JWT para descarga de PDF ────────────────────────────────────────────────
+
+const PDF_TOKEN_TTL_MS = 15 * 60 * 1000; // 15 minutos
+const SECRET = process.env.SESSION_SECRET ?? 'dev-secret-change-me';
+
+function signPdfToken(payload: { email: string; phone: string }): string {
+  const header = Buffer.from(JSON.stringify({ alg: 'HS256', typ: 'JWT' })).toString('base64url');
+  const body = Buffer.from(JSON.stringify({
+    ...payload,
+    exp: Date.now() + PDF_TOKEN_TTL_MS,
+  })).toString('base64url');
+  const signature = createHmac('sha256', SECRET)
+    .update(`${header}.${body}`)
+    .digest('base64url');
+  return `${header}.${body}.${signature}`;
+}
+
+function verifyPdfToken(token: string): { email: string; phone: string } | null {
+  try {
+    const parts = token.split('.');
+    if (parts.length !== 3) return null;
+    const [headerB64, bodyB64, sigB64] = parts;
+
+    const expectedSig = createHmac('sha256', SECRET)
+      .update(`${headerB64}.${bodyB64}`)
+      .digest('base64url');
+
+    const sigBuf = Buffer.from(sigB64, 'base64url');
+    const expectedBuf = Buffer.from(expectedSig, 'base64url');
+    if (sigBuf.length !== expectedBuf.length || !timingSafeEqual(sigBuf, expectedBuf)) {
+      return null;
+    }
+
+    const payload = JSON.parse(Buffer.from(bodyB64, 'base64url').toString('utf-8'));
+    if (Date.now() > payload.exp) return null;
+
+    return { email: payload.email, phone: payload.phone };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Rate limiting para formulario de contacto ───────────────────────────────
+
+const contactRateMap = new Map<string, { count: number; resetAt: number }>();
+const MAX_CONTACTS_PER_WINDOW = 5;
+const CONTACT_WINDOW_MS = 15 * 60 * 1000; // 15 minutos
+
+function checkContactRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = contactRateMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    contactRateMap.set(ip, { count: 1, resetAt: now + CONTACT_WINDOW_MS });
+    return true;
+  }
+  if (entry.count >= MAX_CONTACTS_PER_WINDOW) return false;
+  entry.count++;
+  return true;
+}
+
 // POST /api/ai/ask se maneja ahora vía WebSocket (/ws/chat).
 // Esta ruta HTTP se mantiene como fallback para clientes sin WS.
 const server = http.createServer(async (req, res) => {
@@ -114,14 +177,70 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── POST /api/cv.pdf/request — genera token para descargar PDF ─────────
+  if (method === 'POST' && url === '/api/cv.pdf/request') {
+    try {
+      const body = await readJsonBody(req);
+      const validation = validateContact(body);
+      if (!validation.ok) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: validation.error }));
+        return;
+      }
+
+      const ip = req.socket.remoteAddress ?? 'unknown';
+      if (!checkContactRateLimit(ip)) {
+        res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Demasiadas solicitudes. Intenta en 15 minutos.' }));
+        return;
+      }
+
+      // Guardar contacto en BD
+      createContact(body);
+
+      // Generar token JWT
+      const token = signPdfToken({ email: body.email.trim(), phone: body.phone.trim() });
+      console.log(`[pdf-token] Token generado para ${body.email}`);
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ ok: true, token }));
+    } catch (err) {
+      console.error('[cv.pdf/request] Error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Error interno' }));
+    }
+    return;
+  }
+
+  // ── GET /api/cv.pdf (con token opcional) ───────────────────────────────
   if (url === '/api/cv.pdf') {
     try {
+      // Verificar si viene token como query param
+      const rawUrl = req.url ?? '/';
+      const queryString = rawUrl.includes('?') ? rawUrl.split('?')[1] : '';
+      const params = new URLSearchParams(queryString);
+      const token = params.get('token');
+
+      let requester: { email: string; phone: string } | undefined;
+
+      if (token) {
+        const decoded = verifyPdfToken(token);
+        if (!decoded) {
+          res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+          res.end(JSON.stringify({ ok: false, error: 'Token inválido o expirado. Solicita uno nuevo.' }));
+          return;
+        }
+        requester = decoded;
+        // Marcar descarga en BD (último contacto con ese email)
+        // No bloqueamos si no encontramos contacto — el token es suficiente
+      }
+
       const cvData = JSON.parse(readCvData());
-      generateCvPdfBuffer(cvData)
+      generateCvPdfBuffer(cvData, requester)
         .then((pdfBuffer) => {
           res.writeHead(200, {
             'Content-Type': 'application/pdf',
-            'Content-Disposition': 'attachment; filename=\"CV-Raul-Gonzalez.pdf\"',
+            'Content-Disposition': 'attachment; filename="CV-Raul-Gonzalez.pdf"',
             'Cache-Control': 'no-store',
           });
           res.end(pdfBuffer);
@@ -139,13 +258,50 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+  // ── POST /api/contact — formulario público de contacto ─────────────────
+  if (method === 'POST' && url === '/api/contact') {
+    try {
+      const body = await readJsonBody(req);
+      const validation = validateContact(body);
+      if (!validation.ok) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: validation.error }));
+        return;
+      }
+
+      const ip = req.socket.remoteAddress ?? 'unknown';
+      if (!checkContactRateLimit(ip)) {
+        res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Demasiadas solicitudes. Intenta en 15 minutos.' }));
+        return;
+      }
+
+      const contact = createContact(body);
+      console.log(`[contact] Nuevo contacto: ${body.email} — ${body.purpose ?? 'sin propósito'}`);
+
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ ok: true, id: contact.id }));
+    } catch (err) {
+      console.error('[contact] Error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Error interno' }));
+    }
+    return;
+  }
+
   if (method === 'POST' && url === '/api/ai/ask') {
     readJsonBody(req)
-      .then((payload) => aiFetch('/ask', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }))
+      .then((payload) => {
+        // Inyectar prompt activo desde BD si no viene en el payload
+        if (!payload.systemPrompt) {
+          payload.systemPrompt = getCurrentPrompt();
+        }
+        return aiFetch('/ask', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      })
       .then((result) => {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify({ ok: true, ...result }));

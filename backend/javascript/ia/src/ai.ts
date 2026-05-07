@@ -193,6 +193,13 @@ async function deterministicFallback(question: string): Promise<string> {
 
 // ─── Groq ─────────────────────────────────────────────────────────────
 
+/**
+ * Prompt por defecto (fallback-only).
+ *
+ * El prompt activo se gestiona desde el panel admin (SQLite en backend-portal)
+ * y se inyecta como `systemPrompt` en el payload de `/ask`.
+ * Este array solo se usa si NO se recibe `systemPrompt` en el payload.
+ */
 export const CV_SYSTEM_PROMPT: string[] = [
   'Eres un asistente de CV con guardrails estrictos.',
   'Responde SOLO con base en el CONTEXTO proporcionado.',

@@ -24,6 +24,7 @@ WORKDIR /app
 COPY --from=builder --chown=appuser:appgroup /app/dist ./dist
 COPY --from=builder --chown=appuser:appgroup /app/node_modules ./node_modules
 COPY --chown=appuser:appgroup backend/javascript/portal/data ./data
+COPY --chown=appuser:appgroup backend/javascript/portal/src/schema ./src/schema
 
 RUN mkdir -p /app/data/db && chown appuser:appgroup /app/data/db
 
