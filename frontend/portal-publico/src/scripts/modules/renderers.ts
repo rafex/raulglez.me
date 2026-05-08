@@ -11,6 +11,14 @@ import type {
 } from '../../types/cv.types';
 import { esc, highlightSemantic } from './text-utils';
 
+// ─── Jump links ───────────────────────────────────────────────────────────────
+
+const LINK_SVG = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>`;
+
+function sectionAnchor(id: string): string {
+  return `<a class="section__anchor" href="#${id}" aria-label="Copiar enlace a esta sección" data-section="${id}">${LINK_SVG}</a>`;
+}
+
 function highlightVisionText(text: string): string {
   return highlightSemantic(text);
 }
@@ -53,7 +61,7 @@ export function renderAbout(text: string, education: EducationItem[] = []): stri
     : '';
 
   return `
-    <h2 class="section__title">Sobre mí</h2>
+    <h2 class="section__title">Sobre mí${sectionAnchor('about')}</h2>
     <p class="about__text">${highlightSemantic(text)}</p>
     ${educationBlock}`;
 }
@@ -99,7 +107,7 @@ export function renderExperience(items: ExperienceItem[]): string {
     </article>`).join('');
 
   return `
-    <h2 class="section__title">Experiencia</h2>
+    <h2 class="section__title">Experiencia${sectionAnchor('experience')}</h2>
     <div class="experience__timeline">${cards}</div>`;
 }
 
@@ -117,7 +125,7 @@ export function renderSkills(skills: Skills): string {
   const competencies = skills.competencies.map((s) => `<span class="badge badge--competency">${esc(s)}</span>`).join('');
 
   return `
-    <h2 class="section__title">Habilidades</h2>
+    <h2 class="section__title">Habilidades${sectionAnchor('skills')}</h2>
     <div class="skills__group">
       <h3 class="skills__subtitle">Técnicas</h3>
       <div class="skills__grid">${technical}</div>
@@ -137,7 +145,7 @@ export function renderEducation(certs: Certification[]): string {
     </article>`).join('');
 
   return `
-    <h2 class="section__title">Certificaciones</h2>
+    <h2 class="section__title">Certificaciones${sectionAnchor('education')}</h2>
     <div class="education__grid">${cards}</div>`;
 }
 
@@ -161,7 +169,7 @@ export function renderConferences(confs: Conference[]): string {
   }).join('');
 
   return `
-    <h2 class="section__title">Conferencias</h2>
+    <h2 class="section__title">Conferencias${sectionAnchor('conferences')}</h2>
     <div class="conferences__list">${items}</div>`;
 }
 
@@ -174,7 +182,7 @@ export function renderArticles(articles: Article[]): string {
     </article>`).join('');
 
   return `
-    <h2 class="section__title">Artículos</h2>
+    <h2 class="section__title">Artículos${sectionAnchor('articles')}</h2>
     <div class="articles__list">${cards}</div>`;
 }
 
@@ -189,7 +197,7 @@ export function renderProjects(projects: Project[]): string {
     </article>`).join('');
 
   return `
-    <h2 class="section__title">Proyectos</h2>
+    <h2 class="section__title">Proyectos${sectionAnchor('projects')}</h2>
     <div class="projects__grid">${cards}</div>`;
 }
 
@@ -221,6 +229,6 @@ export function renderContact(contact: Contact): string {
   }
 
   return `
-    <h2 class="section__title">Contacto</h2>
+    <h2 class="section__title">Contacto${sectionAnchor('contact')}</h2>
     <div class="contact__grid">${cards.join('')}</div>`;
 }

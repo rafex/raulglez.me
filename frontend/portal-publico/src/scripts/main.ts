@@ -35,6 +35,51 @@ function hideLoader(): void {
   }, 450);
 }
 
+// ─── Jump links ───────────────────────────────────────────────────────────────
+
+function scrollToHash(hash: string): void {
+  if (!hash) return;
+  const target = document.querySelector(hash) as HTMLElement | null;
+  if (!target) return;
+  target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function showCopiedTooltip(anchor: HTMLElement): void {
+  anchor.classList.add('section__anchor--copied');
+  window.setTimeout(() => anchor.classList.remove('section__anchor--copied'), 1800);
+}
+
+function initJumpLinks(): void {
+  // Scroll to hash present in URL on page load
+  if (window.location.hash) {
+    window.setTimeout(() => scrollToHash(window.location.hash), 80);
+  }
+
+  // React to browser back/forward hash changes
+  window.addEventListener('hashchange', () => scrollToHash(window.location.hash));
+
+  // Delegate clicks on all .section__anchor elements
+  document.addEventListener('click', (e: MouseEvent) => {
+    const anchor = (e.target as Element).closest('.section__anchor') as HTMLAnchorElement | null;
+    if (!anchor) return;
+
+    e.preventDefault();
+    const sectionId = anchor.dataset.section ?? '';
+    const url = `${window.location.origin}${window.location.pathname}#${sectionId}`;
+
+    // Update address bar without triggering native scroll
+    history.pushState(null, '', `#${sectionId}`);
+    scrollToHash(`#${sectionId}`);
+
+    // Copy link to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+      showCopiedTooltip(anchor);
+    }).catch(() => {
+      // Clipboard not available (e.g. non-secure context) — silently skip
+    });
+  });
+}
+
 async function loadCV(): Promise<void> {
   try {
     const res = await fetch('/api/cv');
@@ -68,6 +113,7 @@ async function loadCV(): Promise<void> {
     }
 
     hideLoader();
+    initJumpLinks();
   } catch (err) {
     const app = document.querySelector('#app');
     if (app) app.innerHTML = '<p class="error">Error cargando el CV. Revisa la consola.</p>';
