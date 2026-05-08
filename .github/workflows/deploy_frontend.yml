@@ -68,4 +68,5 @@ jobs:
             --create-namespace \
             --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal-publico \
             --set image.tag=${{ steps.tag.outputs.tag }} \
+            --set podAnnotations."kubectl\.kubernetes\.io/restartedAt"="$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             --wait --timeout 2m
