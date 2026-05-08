@@ -1,0 +1,286 @@
+name: Security Audit — Vulnerabilidades en Dependencias
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 8 * * 1'   # Lunes 08:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: security-audit-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  audit:
+    name: Auditoría de dependencias
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Instalar pip-audit
+        run: pip install pip-audit==2.9.0
+
+      # ── Instalar dependencias Node (sin lifecycle scripts) ─────────────────
+      - name: npm ci — frontend/portal-publico
+        run: npm ci --ignore-scripts
+        working-directory: frontend/portal-publico
+
+      - name: npm ci — frontend/portal-admin
+        run: npm ci --ignore-scripts
+        working-directory: frontend/portal-admin
+
+      - name: npm ci — backend/javascript/portal
+        run: npm ci --ignore-scripts
+        working-directory: backend/javascript/portal
+
+      - name: npm ci — backend/javascript/ia
+        run: npm ci --ignore-scripts
+        working-directory: backend/javascript/ia
+
+      # ── Auditorías npm ─────────────────────────────────────────────────────
+      # continue-on-error: npm audit devuelve exit != 0 cuando hay vulns
+      - name: npm audit — frontend/portal-publico
+        run: npm audit --json > /tmp/npm-portal-publico.json
+        working-directory: frontend/portal-publico
+        continue-on-error: true
+
+      - name: npm audit — frontend/portal-admin
+        run: npm audit --json > /tmp/npm-portal-admin.json
+        working-directory: frontend/portal-admin
+        continue-on-error: true
+
+      - name: npm audit — backend/javascript/portal
+        run: npm audit --json > /tmp/npm-backend-portal.json
+        working-directory: backend/javascript/portal
+        continue-on-error: true
+
+      - name: npm audit — backend/javascript/ia
+        run: npm audit --json > /tmp/npm-backend-ia.json
+        working-directory: backend/javascript/ia
+        continue-on-error: true
+
+      # ── Auditoría Python ───────────────────────────────────────────────────
+      - name: pip-audit — backend/python/ia
+        run: |
+          pip-audit \
+            -r backend/python/ia/requirements.txt \
+            --format json \
+            --output /tmp/pip-ia.json \
+            --progress-spinner off \
+            2>/dev/null || true
+
+      # ── Generar reporte consolidado ────────────────────────────────────────
+      - name: Generar reporte
+        id: report
+        run: |
+          python3 << 'PYEOF'
+          import json, datetime, os, sys
+
+          REPORT_PATH = "/tmp/audit-report.md"
+
+          SEV_EMOJI  = {"critical": "🔴", "high": "🟠", "moderate": "🟡", "low": "🔵", "info": "⚪"}
+          SEV_ORDER  = ["critical", "high", "moderate", "low", "info"]
+          SEV_WEIGHT = {"critical": 0, "high": 1, "moderate": 2, "low": 3, "info": 4}
+
+          def load_json(path):
+              try:
+                  with open(path) as f:
+                      return json.load(f)
+              except Exception:
+                  return None
+
+          npm_targets = [
+              ("frontend/portal-publico",    "/tmp/npm-portal-publico.json"),
+              ("frontend/portal-admin",      "/tmp/npm-portal-admin.json"),
+              ("backend/javascript/portal",  "/tmp/npm-backend-portal.json"),
+              ("backend/javascript/ia",      "/tmp/npm-backend-ia.json"),
+          ]
+
+          lines         = []
+          detail_lines  = []
+          total_critical = 0
+          total_high     = 0
+          has_any_vuln   = False
+
+          now    = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+          commit = os.environ.get("GITHUB_SHA", "local")[:8]
+          branch = os.environ.get("GITHUB_REF_NAME", "local")
+          run_id = os.environ.get("GITHUB_RUN_NUMBER", "—")
+
+          lines += [
+              "# 🔒 Reporte de Auditoría de Seguridad",
+              "",
+              f"| Campo | Valor |",
+              f"|-------|-------|",
+              f"| **Fecha** | {now} |",
+              f"| **Commit** | `{commit}` |",
+              f"| **Rama** | `{branch}` |",
+              f"| **Run** | #{run_id} |",
+              "",
+              "---",
+              "",
+              "## Resumen",
+              "",
+              "| Paquete | 🔴 Crítico | 🟠 Alto | 🟡 Moderado | 🔵 Bajo | ⚪ Info | Total |",
+              "|---------|:----------:|:------:|:-----------:|:-------:|:------:|:-----:|",
+          ]
+
+          # ── npm ─────────────────────────────────────────────────────────────
+          for pkg_name, json_path in npm_targets:
+              data = load_json(json_path)
+              if data is None:
+                  lines.append(f"| `{pkg_name}` | — | — | — | — | — | ❌ sin datos |")
+                  continue
+
+              meta = data.get("metadata", {}).get("vulnerabilities", {})
+              crit = meta.get("critical", 0)
+              high = meta.get("high",     0)
+              mod  = meta.get("moderate", 0)
+              low  = meta.get("low",      0)
+              info = meta.get("info",     0)
+              tot  = meta.get("total",    0)
+
+              total_critical += crit
+              total_high     += high
+              if tot > 0:
+                  has_any_vuln = True
+
+              lines.append(f"| `{pkg_name}` | {crit} | {high} | {mod} | {low} | {info} | **{tot}** |")
+
+              vulns = data.get("vulnerabilities", {})
+              if not vulns:
+                  continue
+
+              detail_lines.append(f"\n### `{pkg_name}`\n")
+              for vuln_name, vuln in sorted(
+                  vulns.items(),
+                  key=lambda x: SEV_WEIGHT.get(x[1].get("severity", "info"), 99)
+              ):
+                  sev   = vuln.get("severity", "info")
+                  emoji = SEV_EMOJI.get(sev, "⚪")
+                  fix   = vuln.get("fixAvailable")
+                  if isinstance(fix, dict):
+                      fix_str = f" → fix: `{fix.get('name')}@{fix.get('version')}`"
+                  elif fix is True:
+                      fix_str = " → fix disponible"
+                  else:
+                      fix_str = " → sin fix"
+
+                  detail_lines.append(f"- {emoji} **{sev.upper()}** `{vuln_name}`{fix_str}")
+                  for adv in [v for v in vuln.get("via", []) if isinstance(v, dict)][:3]:
+                      title = adv.get("title") or adv.get("name", "")
+                      url   = adv.get("url", "")
+                      cve   = adv.get("cwe", [])
+                      cve_str = f" ({', '.join(cve)})" if cve else ""
+                      link  = f"[{title}]({url}){cve_str}" if url else f"{title}{cve_str}"
+                      if link.strip():
+                          detail_lines.append(f"  - {link}")
+
+          # ── Python pip ───────────────────────────────────────────────────────
+          raw_pip = load_json("/tmp/pip-ia.json")
+          # pip-audit JSON puede ser lista o dict {"dependencies": [...]}
+          if isinstance(raw_pip, dict):
+              pip_data = raw_pip.get("dependencies", [])
+          elif isinstance(raw_pip, list):
+              pip_data = raw_pip
+          else:
+              pip_data = None
+
+          if pip_data is not None:
+              pip_total = sum(len(p.get("vulns", [])) for p in pip_data)
+              if pip_total == 0:
+                  lines.append(f"| `backend/python/ia` | 0 | 0 | 0 | 0 | 0 | **0** |")
+              else:
+                  has_any_vuln = True
+                  lines.append(f"| `backend/python/ia` | — | — | — | — | — | **{pip_total}** |")
+                  detail_lines.append("\n### `backend/python/ia`\n")
+                  for pkg in pip_data:
+                      for v in pkg.get("vulns", []):
+                          vid     = v.get("id", "?")
+                          aliases = ", ".join(v.get("aliases", []))
+                          fixes   = ", ".join(v.get("fix_versions", []))
+                          fix_str = f" → fix: `{fixes}`" if fixes else " → sin fix"
+                          desc    = (v.get("description") or "")[:140]
+                          alias_str = f" ({aliases})" if aliases else ""
+                          detail_lines.append(
+                              f"- 🟠 **{vid}**{alias_str} `{pkg['name']}=={pkg['version']}`{fix_str}"
+                          )
+                          if desc:
+                              detail_lines.append(f"  > {desc}…")
+          else:
+              lines.append(f"| `backend/python/ia` | — | — | — | — | — | ❌ sin datos |")
+
+          lines.append("")
+          lines.append("---")
+          lines.append("")
+
+          # ── Sección de detalle ───────────────────────────────────────────────
+          if not has_any_vuln:
+              lines.append("## ✅ Sin vulnerabilidades conocidas")
+              lines.append("")
+              lines.append("> Todos los paquetes auditados están libres de vulnerabilidades conocidas.")
+          else:
+              lines.append("## Detalle de vulnerabilidades")
+              lines += detail_lines
+
+          lines += [
+              "",
+              "---",
+              "",
+              "_Generado por GitHub Actions · `npm audit` + `pip-audit 2.9.0`_",
+          ]
+
+          report = "\n".join(lines)
+          with open(REPORT_PATH, "w") as f:
+              f.write(report)
+
+          gho = os.environ.get("GITHUB_OUTPUT", "")
+          if gho:
+              with open(gho, "a") as f:
+                  f.write(f"critical={total_critical}\n")
+                  f.write(f"high={total_high}\n")
+                  f.write(f"has_vulns={'true' if has_any_vuln else 'false'}\n")
+
+          print(f"✔ Reporte → {REPORT_PATH}")
+          print(f"  crítico={total_critical}  alto={total_high}  tiene_vulns={has_any_vuln}")
+          PYEOF
+
+      # ── Publicar en el resumen del workflow ────────────────────────────────
+      - name: Publicar resumen
+        if: always()
+        run: cat /tmp/audit-report.md >> $GITHUB_STEP_SUMMARY
+
+      # ── Subir como artefacto (90 días) ─────────────────────────────────────
+      - name: Subir reporte
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-audit-${{ github.run_number }}
+          path: /tmp/audit-report.md
+          retention-days: 90
+
+      # ── Fallo explícito si hay vulns críticas o altas ──────────────────────
+      - name: Verificar umbral de severidad
+        if: steps.report.outputs.critical > 0 || steps.report.outputs.high > 0
+        run: |
+          echo "::error::Vulnerabilidades encontradas — críticas: ${{ steps.report.outputs.critical }}, altas: ${{ steps.report.outputs.high }}"
+          echo "Consulta el artefacto 'security-audit-${{ github.run_number }}' o el resumen del workflow."
+          exit 1
