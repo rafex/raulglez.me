@@ -169,7 +169,7 @@ export function renderConferences(confs: Conference[]): string {
   }).join('');
 
   return `
-    <h2 class="section__title">Conferencias${sectionAnchor('conferences')}</h2>
+    <h2 class="section__title">Speaking${sectionAnchor('conferences')}</h2>
     <div class="conferences__list">${items}</div>`;
 }
 
