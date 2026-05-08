@@ -8,6 +8,7 @@ import { handleAdminRoute } from './admin-routes.js';
 import { attachWebSocketServer } from './ws-handler.js';
 import { validateContact, createContact, markCvDownloaded, getContactById } from './db/contacts.js';
 import { getCurrentPrompt } from './admin-routes.js';
+import { searchCv } from './search.js';
 
 // backend-ia vía HTTP (para rutas de admin que no usan MQTT)
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
@@ -369,6 +370,29 @@ const server = http.createServer(async (req, res) => {
         res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: String(err) }));
       });
+    return;
+  }
+
+  // ── GET /api/search?q=… — búsqueda en el CV ────────────────────────────────
+  if (method === 'GET' && url.startsWith('/api/search')) {
+    try {
+      const rawUrl = req.url ?? '/';
+      const qs = rawUrl.includes('?') ? rawUrl.split('?')[1] : '';
+      const q = (new URLSearchParams(qs).get('q') ?? '').trim();
+      if (!q) {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: true, results: [] }));
+        return;
+      }
+      const cvData = JSON.parse(readCvData());
+      const results = searchCv(cvData, q);
+      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+      res.end(JSON.stringify({ ok: true, results }));
+    } catch (err) {
+      console.error('[search] Error:', err);
+      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: 'Error en búsqueda' }));
+    }
     return;
   }
 

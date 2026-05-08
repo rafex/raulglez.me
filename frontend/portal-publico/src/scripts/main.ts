@@ -17,6 +17,7 @@ import { configureSemanticHighlights } from './modules/text-utils';
 import { initChat } from './modules/chat';
 import { initAiReviewPanel } from './modules/ai-review';
 import { initContactForm, initPdfModal } from './modules/contact-form';
+import { initSearch } from './modules/search';
 
 // AOS cargado vía CDN en index.pug — se expone como window.AOS
 declare const AOS: any;
@@ -114,6 +115,7 @@ async function loadCV(): Promise<void> {
 
     hideLoader();
     initJumpLinks();
+    initSearch();
   } catch (err) {
     const app = document.querySelector('#app');
     if (app) app.innerHTML = '<p class="error">Error cargando el CV. Revisa la consola.</p>';
