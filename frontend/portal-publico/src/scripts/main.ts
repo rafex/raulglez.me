@@ -18,6 +18,7 @@ import { initChat } from './modules/chat';
 import { initAiReviewPanel } from './modules/ai-review';
 import { initContactForm, initPdfModal } from './modules/contact-form';
 import { initSearch } from './modules/search';
+import { initCookieConsent } from './modules/cookie-consent';
 
 // AOS cargado vía CDN en index.pug — se expone como window.AOS
 declare const AOS: any;
@@ -124,4 +125,6 @@ async function loadCV(): Promise<void> {
   }
 }
 
+// Aviso de cookies — antes de cargar el CV para que aparezca de inmediato
+initCookieConsent();
 loadCV();
