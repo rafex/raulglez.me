@@ -1,0 +1,91 @@
+/* === Design Tokens === */
+:root {
+  --color-primary: #0f2742;
+  --color-secondary: #123b67;
+  --color-accent: #1f5f96;
+  --color-highlight: #2f74b5;
+  --color-text: #203243;
+  --color-text-light: #4a5f73;
+  --color-text-muted: #7f93a7;
+  --color-bg: #f3f7fb;
+  --color-bg-alt: #ffffff;
+  --color-border: #d5e0ea;
+  --font-primary: 'Atkinson Hyperlegible', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1.06rem;
+  --font-size-md: 1.18rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-2xl: 2rem;
+  --font-size-3xl: 2.5rem;
+  --font-size-4xl: 3rem;
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+  --spacing-3xl: 4rem;
+  --max-width: 1040px;
+  --border-radius: 8px;
+  --border-radius-lg: 12px;
+  --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+  --shadow-lg: 0 8px 30px rgba(0,0,0,0.12);
+  --transition-fast: 150ms ease;
+  --transition-base: 300ms ease;
+}
+
+html[data-theme='protanopia'] {
+  --color-primary: #1b3554;
+  --color-secondary: #2a5c89;
+  --color-accent: #307bb8;
+  --color-highlight: #3d8fd3;
+  --color-text: #1f2e3f;
+  --color-text-light: #445a71;
+  --color-text-muted: #6f8499;
+  --color-bg: #f2f7fc;
+  --color-bg-alt: #ffffff;
+  --color-border: #cfdceb;
+}
+
+html[data-theme='deuteranopia'] {
+  --color-primary: #22324e;
+  --color-secondary: #47608e;
+  --color-accent: #5b77ab;
+  --color-highlight: #356db2;
+  --color-text: #202f43;
+  --color-text-light: #4b5f7d;
+  --color-text-muted: #7487a3;
+  --color-bg: #f5f8fc;
+  --color-bg-alt: #ffffff;
+  --color-border: #d8e1ed;
+}
+
+html[data-theme='tritanopia'] {
+  --color-primary: #2f2b4d;
+  --color-secondary: #3d4d7e;
+  --color-accent: #55639a;
+  --color-highlight: #3d6fb5;
+  --color-text: #2a2f48;
+  --color-text-light: #545f7b;
+  --color-text-muted: #8089a3;
+  --color-bg: #f6f7fb;
+  --color-bg-alt: #ffffff;
+  --color-border: #daddec;
+}
+
+html[data-theme='contrast'] {
+  --color-primary: #000000;
+  --color-secondary: #0f2742;
+  --color-accent: #003b8e;
+  --color-highlight: #0056cc;
+  --color-text: #000000;
+  --color-text-light: #202020;
+  --color-text-muted: #333333;
+  --color-bg: #ffffff;
+  --color-bg-alt: #ffffff;
+  --color-border: #111111;
+}

@@ -1,68 +1,56 @@
 # Session Resume
 
-_Sesión: 2026-05-05-desacoplamiento | Cerrada: 2026-05-06 | Agente: deepseek-v4-pro_
+_Sesión: 2026-05-06-integracion-cv-articles | Cerrada: 2026-05-07 | Agente: deepseek-v4-pro_
 
 ## Estado al cerrar
 
-✅ **Arquitectura desacoplada en producción.** 3 servicios independientes + Mosquitto corriendo en k3s.
+Todas las tareas completadas. El portal público, el PDF, el admin panel y FAISS están alineados con el nuevo esquema de `cv.json` (campo `articles`, tipo `type` en conferencias). 4 PRs mergeados y en producción.
 
-## Servicios en k3s
+## Completado ✅
 
-| Servicio | Imagen | Tamaño | Estado |
-|----------|--------|--------|--------|
-| `raulglez-frontend` | `ghcr.io/rafex/raulglez-frontend:latest` | ~80 MB | ✅ |
-| `raulglez-backend` | `ghcr.io/rafex/raulglez-backend:latest` | ~180 MB | ✅ |
-| `raulglez-ai` | `ghcr.io/rafex/raulglez-ai:latest` | ~2.5 GB | ✅ |
-| `mosquitto` | `eclipse-mosquitto:2` | ~5 MB | ✅ |
+- PR #36: fix(admin) nginx sirve SPA en lugar de proxy a backend + feat(portal) renderArticles() y conference type badge
+- PR #37: fix(admin) GET /admin/login redirige 302 al SPA (antes servía fallback vacío de 251B)
+- PR #38: style(portal) CSS grid para `.articles__list` — la sección se renderizaba en el DOM pero sin layout visible
+- PR #39: feat(pdf) sección Artículos + tipo de conferencia en PDF (`GET /api/cv.pdf`)
+- FAISS reindexado: 443 docs, 384 dim — nuevo cv.json indexado, queries sobre artículos devuelven chunks correctos
+- Backend-portal, backend-ia, portal-publico, portal-admin: todos redeployados con `rollout restart`
+- Usado `just publish-*` y `just deploy-*` del Justfile para pipelines
 
-## Endpoints verificados
+## Pendiente / En progreso 🔄
 
-| Endpoint | Modo | Estado |
-|----------|------|--------|
-| `GET /api/cv` | - | ✅ 10 secciones |
-| `POST /api/ai/ask` | genai | ✅ Responde con datos del CV |
-| Backend → AI | HTTP interno | ✅ Conectividad confirmada |
+Ninguna — todo completado.
 
-## Flujo de la arquitectura
+## Archivos modificados
 
-```
-Usuario → haproxy Ingress → raulglez-frontend (nginx:80)
-                                │ /api/* → proxy_pass
-                                ▼
-                         raulglez-backend (Node.js:3000)
-                                │ /api/ai/* → fetch HTTP
-                                ▼
-                         raulglez-ai (Node.js:3000 + Python FAISS)
-```
+| Archivo | Operación | PR | Estado |
+|---------|-----------|-----|--------|
+| `containers/nginx-portal-admin.conf` | edit | #36 | ✅ mergeado |
+| `containers/Dockerfile.portal-admin` | edit | #36 | ✅ mergeado |
+| `frontend/portal-publico/src/types/cv.types.ts` | edit | #36 | ✅ mergeado |
+| `frontend/portal-publico/src/scripts/modules/renderers.ts` | edit | #36 | ✅ mergeado |
+| `frontend/portal-publico/src/scripts/main.ts` | edit | #36 | ✅ mergeado |
+| `frontend/portal-publico/index.pug` | edit | #36 | ✅ mergeado |
+| `backend/javascript/portal/src/admin-routes.ts` | edit | #37 | ✅ mergeado |
+| `frontend/portal-publico/src/styles/layout.css` | edit | #38 | ✅ mergeado |
+| `frontend/portal-publico/src/styles/responsive.css` | edit | #38 | ✅ mergeado |
+| `backend/javascript/portal/src/pdf.ts` | edit | #39 | ✅ mergeado |
 
-## Bugs corregidos (10 bugs total)
+## Decisiones técnicas tomadas
 
-| # | Bug | Fix |
-|---|-----|-----|
-| 1 | Imagen raulglez-me → GHCR 403 | values.yaml: raulglez.me |
-| 2 | node_modules no copiado | Dockerfile: COPY node_modules |
-| 3 | emptyDir borraba cv.json | mountPath: /app/data/db |
-| 4 | Rutas ai.ts incorrectas | CV_JSON/DB_PATH → /app/data/ |
-| 5 | Ingress nginx en cluster haproxy | className: haproxy |
-| 6 | OOM sentence-transformers | RAM: 128Mi → 1Gi/2Gi |
-| 7 | tag main vs latest | deploy.yml: main→latest |
-| 8 | nginx no resolver DNS | proxy_pass estático + orden deploy |
-| 9 | nginx Permission denied | emptyDir /var/cache/nginx |
-| 10 | containerPort 3000 ≠ AI_PORT 3001 | AI_PORT=3000 + Secret |
+- **nginx portal-admin**: `location /admin/` usa `try_files` para SPA estática; solo `POST /admin/login` y `POST /admin/logout` se proxy al backend. Dockerfile copia `dist/` a `/usr/share/nginx/html/admin/` (alineado con `base: '/admin/'` de Vite).
+- **admin-routes.ts**: GET `/admin`, `/admin/`, `/admin/login` redirigen 302 a `/admin/` para que nginx sirva el SPA. El SPA maneja login client-side vía `checkSession()`.
+- **CSS articles**: `.articles__list` comparte grid con `.conferences__list` (280px min, auto-fit, gap lg). Añadido a los 3 breakpoints responsive.
+- **PDF articles**: tipo `CVArticle` con `{title, publication, date}`. Sección condicional `if (data.articles?.length)` entre Conferencias y Proyectos. Conferencias muestran type como `[talk]`.
+- **FAISS**: auto-rebuild en primera query vía `ensure_index()` que compara mtime de cv.json y SQLite contra manifest.
 
-## Commits
+## Errores no resueltos
 
-- `06f708c`: feat inicial — 3 Dockerfiles, workflows, ai-server.ts
-- `c53b29c`: fix tag main→latest
-- `7fcb4cd`: fix fullnameOverride
-- `d4da3cf`: fix nginx variable proxy_pass
-- `d175ee2`: fix nginx revert to static
-- `12bdb00`: fix containerPort + deploy.yml + AI_SERVICE_URL en Secret
+Ninguno. El falso negativo en la verificación del PDF era por CID font encoding (hex `<hex>`) — no por falta de contenido. La sección Artículos sí está presente en el PDF.
 
-## Próximo paso
+## Próximo paso recomendado
 
-El sistema está operativo. Para cambios futuros:
-- Cambios en frontend: `gh workflow run "Publish Frontend" --ref main`
-- Cambios en backend: `gh workflow run "Publish Backend" --ref main`
-- Cambios en AI: `gh workflow run "Publish AI" --ref main`
-- Deploy completo: `gh workflow run Deploy -f tag=latest -f environment=production`
+No hay pasos pendientes. Si se requiere trabajo nuevo, identificar la iniciativa en `agents/ROADMAP.md` o crear una nueva spec en `agents/specs/`.
+
+## Contexto para retomar
+
+El portal (`raulglez.me`) está en producción con el nuevo cv.json integrado en todos los componentes: frontend público (articles visibles con CSS grid), PDF (`/api/cv.pdf` incluye sección Artículos), admin panel (`/admin/` sirve SPA correctamente), y FAISS indexa los nuevos campos para el chat IA. Los pipelines se disparan con `just publish-*` y `just deploy-*`. Todo cambio de código usa worktrees aislados en `.opencode/worktrees/`.
