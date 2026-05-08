@@ -22,6 +22,41 @@
   transform: translateY(0);
 }
 
+/* From Uiverse.io by satyamchaudharydev — nombre animado */
+.header__name-btn {
+  --border-right: 6px;
+  --text-stroke-color: rgba(255, 255, 255, 0.6);
+  --animation-color: #37FF8B;
+  letter-spacing: 3px;
+  text-decoration: none;
+  font-size: inherit;
+  font-family: inherit;
+  position: relative;
+  text-transform: uppercase;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text-stroke-color);
+  display: inline-block;
+  cursor: default;
+}
+
+.header__name-btn .hover-text {
+  position: absolute;
+  box-sizing: border-box;
+  color: var(--animation-color);
+  width: 0%;
+  inset: 0;
+  border-right: var(--border-right) solid var(--animation-color);
+  overflow: hidden;
+  transition: 0.5s;
+  -webkit-text-stroke: 1px var(--animation-color);
+  white-space: nowrap;
+}
+
+.header__name-btn:hover .hover-text {
+  width: 100%;
+  filter: drop-shadow(0 0 23px var(--animation-color));
+}
+
 /* === Accesibilidad: sin movimiento === */
 @media (prefers-reduced-motion: reduce) {
   .section,

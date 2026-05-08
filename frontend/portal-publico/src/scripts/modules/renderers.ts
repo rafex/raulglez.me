@@ -38,7 +38,12 @@ export function renderHeader(data: Header): string {
   const displayName = data.nickname ?? data.name;
   return `
     <div class="content">
-      <h1 class="header__name">${esc(displayName)}</h1>
+      <h1 class="header__name">
+        <span class="header__name-btn" data-text="${esc(displayName)}">
+          <span class="actual-text">&nbsp;${esc(displayName)}&nbsp;</span>
+          <span aria-hidden="true" class="hover-text">&nbsp;${esc(displayName)}&nbsp;</span>
+        </span>
+      </h1>
       ${data.title ? `<p class="header__title">${esc(data.title)}</p>` : ''}
       <p class="header__role">${esc(data.role)}</p>
       <div class="header__vision">${renderVision(data.vision)}</div>
