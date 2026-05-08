@@ -33,10 +33,10 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.x'
+          python-version: '3.11'   # node:lts-slim (Bookworm) usa Python 3.11
 
-      - name: Instalar pip-audit
-        run: pip install pip-audit==2.9.0
+      - name: Instalar pip-audit y pip-tools
+        run: pip install pip-audit==2.9.0 pip-tools==7.4.1
 
       # ── Instalar dependencias Node (sin lifecycle scripts) ─────────────────
       - name: npm ci — frontend/portal-publico
@@ -78,10 +78,25 @@ jobs:
         continue-on-error: true
 
       # ── Auditoría Python ───────────────────────────────────────────────────
-      - name: pip-audit — backend/python/ia
+      # pip-compile resuelve el árbol completo de transitivas sin instalarlas
+      - name: Resolver transitivas Python (pip-compile)
         run: |
+          pip-compile \
+            backend/python/ia/requirements.txt \
+            --output-file /tmp/requirements-lock.txt \
+            --no-header \
+            --quiet \
+            2>/dev/null || true
+
+      - name: pip-audit — backend/python/ia (directas + transitivas)
+        run: |
+          # Auditar contra el lock completo si existe; si no, contra requirements.txt
+          REQ_FILE="backend/python/ia/requirements.txt"
+          if [ -s /tmp/requirements-lock.txt ]; then
+            REQ_FILE="/tmp/requirements-lock.txt"
+          fi
           pip-audit \
-            -r backend/python/ia/requirements.txt \
+            -r "$REQ_FILE" \
             --format json \
             --output /tmp/pip-ia.json \
             --progress-spinner off \
@@ -269,12 +284,14 @@ jobs:
         run: cat /tmp/audit-report.md >> $GITHUB_STEP_SUMMARY
 
       # ── Subir como artefacto (90 días) ─────────────────────────────────────
-      - name: Subir reporte
+      - name: Subir reporte y lock Python
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: security-audit-${{ github.run_number }}
-          path: /tmp/audit-report.md
+          path: |
+            /tmp/audit-report.md
+            /tmp/requirements-lock.txt
           retention-days: 90
 
       # ── Fallo explícito si hay vulns críticas o altas ──────────────────────
