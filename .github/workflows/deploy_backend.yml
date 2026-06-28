@@ -17,7 +17,7 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  K3S_NAMESPACE: mvps
+  K3S_NAMESPACE: raulglez-me
   APP_ENV_SECRET: raulglez-me-env
 
 jobs:
