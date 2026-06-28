@@ -70,19 +70,19 @@ Desde la UI de GitHub Actions → seleccionar workflow → "Run workflow" → in
 
 ## Primer deploy (namespace vacío)
 
-El orden importa en el primer deploy porque `deploy_backend.yml` crea el namespace `mvps`
+El orden importa en el primer deploy porque `deploy_backend.yml` crea el namespace `raulglez-me`
 y el Secret `raulglez-me-env` que los demás servicios necesitan.
 
 **Orden obligatorio en el primer deploy:**
 
 ```
 1. Ejecutar deploy_backend.yml (manual dispatch)
-   → crea namespace mvps
+   → crea namespace raulglez-me
    → crea Secret raulglez-me-env
    → despliega mosquitto + backend-portal
 
 2. Ejecutar deploy_ai.yml (manual dispatch)
-   → encuentra namespace mvps y Secret raulglez-me-env ya existentes
+   → encuentra namespace raulglez-me y Secret raulglez-me-env ya existentes
    → despliega backend-ia
 
 3. Ejecutar deploy_frontend.yml (manual dispatch)
@@ -113,7 +113,7 @@ automáticamente en el orden correcto vía `workflow_run`, no hay dependencia de
 
 ## Secrets en Kubernetes
 
-El workflow `deploy_backend.yml` crea/actualiza el Secret `raulglez-me-env` en el namespace `mvps`:
+El workflow `deploy_backend.yml` crea/actualiza el Secret `raulglez-me-env` en el namespace `raulglez-me`:
 
 ```yaml
 GROQ_API_KEY: <secrets.GROQ_API_KEY>
@@ -130,7 +130,7 @@ Helm consume `raulglez-me-env` vía `envFrom` en los Deployments de `backend-por
 
 ## Namespace de despliegue
 
-Todos los recursos se crean en el namespace `mvps` (definido en `env.K3S_NAMESPACE`).
+Todos los recursos se crean en el namespace `raulglez-me` (definido en `env.K3S_NAMESPACE`).
 
 ## Verificación post-deploy
 
@@ -149,7 +149,7 @@ curl -I https://raulglez.me/api/cv.pdf
 
 ### Backend-ia (interno)
 ```bash
-kubectl -n mvps port-forward svc/raulglez-backend-ia 3003:3000
+kubectl -n raulglez-me port-forward svc/raulglez-backend-ia 3003:3000
 curl http://localhost:3003/health
 # → { ok: true, service: 'backend-ia', cvReady: true }
 ```
@@ -185,13 +185,13 @@ curl http://localhost:3003/health
 
 ```bash
 # Ver historial de un release
-helm -n mvps history raulglez-backend-portal
+helm -n raulglez-me history raulglez-backend-portal
 
 # Rollback a revisión anterior
-helm -n mvps rollback raulglez-backend-portal
+helm -n raulglez-me rollback raulglez-backend-portal
 
 # O hacer rollback manual del Deployment
-kubectl -n mvps rollout undo deployment/raulglez-backend-portal
+kubectl -n raulglez-me rollout undo deployment/raulglez-backend-portal
 ```
 
 ## Diagnóstico de fallos en rollout
