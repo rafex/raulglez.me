@@ -26,7 +26,7 @@ export default defineConfig({
     outDir: 'dist',
     assetsDir: 'assets',
     emptyOutDir: true,
-    minify: 'esbuild',
+    minify: 'oxc',
     rollupOptions: {
       input: {
         main: path.resolve(import.meta.dirname, 'index.html'),
