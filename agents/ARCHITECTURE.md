@@ -47,8 +47,8 @@ Servicio Node.js puro (`node:http`), sin frameworks:
 | `/api/cv` | GET | Proyección pública de `cv.json` (oculta `contact.private`) |
 | `/api/cv.pdf` | GET | PDF generado en runtime con pdfkit; requiere token temporal |
 | `/api/cv.pdf/request` | POST | Validación de contacto y emisión de token de descarga |
-| `/api/contact` | POST | Captura pública de contacto, con validación y rate limit |
-| `/api/search?q=` | GET | Búsqueda en contenido público del CV |
+| `/api/contact` | POST | Captura pública con validación y rate limit; propósito opcional vacío se guarda como `NULL` |
+| `/api/search?q=` | GET | Búsqueda léxica en contenido público del CV; máximo 512 caracteres y 20 solicitudes por minuto por IP e instancia |
 | `/ws/chat` | WebSocket | Upgrade HTTP → WS; publica a MQTT y espera respuesta |
 | `/health` | GET | Health check |
 | `/admin/login` | POST | Autenticación por usuario/contraseña (cookie de sesión) |
@@ -108,6 +108,13 @@ Orquesta la capa Python via `spawn('python3', ['rag_faiss.py'])` con protocolo J
 Timeout de espera: 60 s. Timeout de inactividad WS: 5 min. Ping keepalive: 30 s.
 El servidor limita el frame a 16 KiB, la pregunta a 2.000 caracteres y cada IP a 10 consultas
 cada 15 minutos; solo se aceptan los campos de contacto conocidos y con longitud acotada.
+El buscador público solicita nombre y teléfono antes de enviar una pregunta a la IA; usa el mismo
+WebSocket `/ws/chat` y sus validaciones, límites y almacenamiento.
+
+El límite de `/api/search` se conserva en memoria por réplica. HAProxy Ingress deriva `X-Real-IP`
+de la IP recibida por PROXY protocol y lo sobrescribe; Nginx público reenvía ese valor al servicio
+interno. El backend descarta `X-Forwarded-For`, que puede conservar valores proporcionados por el
+cliente.
 
 ## Flujo del panel admin
 
@@ -156,6 +163,8 @@ Dockerfile.backend-ia    → imagen delgada <200 MB adicionales
 | Panel admin accesible | Cookie de sesión HttpOnly + COOKIE_SECURE=true en prod |
 | Interacciones IA expuestas | Sin rutas públicas de lectura/edición/reindexado; operaciones solo vía `/api/admin/*` autenticadas |
 | Abuso del chat y formularios | Límites de tamaño, validación de campos y rate limits |
+| Abuso de búsqueda pública | Máximo de 20 solicitudes/minuto por IP y réplica; consulta limitada a 512 caracteres |
+| Exposición de versión Nginx | `server_tokens off` en la configuración principal de las imágenes del portal |
 | Imagen IA gigante | Imagen base estática; solo código cambia en cada deploy |
 | MQTT sin autenticación | Broker interno al cluster (ClusterIP), sin exposición externa |
 
@@ -170,3 +179,8 @@ Cada servicio tiene su chart Helm independiente en `helm/raulglez-me/<servicio>/
 | `backend-portal` | RollingUpdate | 500m/512Mi | Secret `raulglez-me-env`, PVC db |
 | `backend-ia` | Recreate | 1000m/2Gi | Secret `raulglez-me-env`, PVC db+index |
 | `mosquitto` | Recreate | 100m/64Mi | Probes TCP (no HTTP) |
+
+Los encabezados CSP, X-Frame-Options, X-Content-Type-Options y Referrer-Policy se configuran en
+las respuestas administrativas de backend-portal; no se aplican globalmente a las páginas públicas.
+La versión que anuncia el borde externo depende también de la capa ingress y debe comprobarse tras
+el despliegue.

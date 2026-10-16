@@ -2370,6 +2370,58 @@ a.contact__value:hover { text-decoration: underline; }
   margin: 0;
 }
 
+.srch-ai-consent {
+  color: #8fa6c9;
+  font-size: 0.78rem;
+  line-height: 1.45;
+  margin: 0 0 0.65rem;
+}
+
+.srch-ai-form {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.srch-ai-form label {
+  display: grid;
+  gap: 0.25rem;
+  color: #9bb1d3;
+  font-size: 0.76rem;
+}
+
+.srch-ai-form input {
+  min-width: 0;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid rgba(110, 140, 255, 0.28);
+  border-radius: 7px;
+  background: #080c25;
+  color: #d8e5ff;
+  font: inherit;
+}
+
+.srch-ai-form button {
+  justify-self: start;
+  border: 0;
+  border-radius: 7px;
+  padding: 0.55rem 0.8rem;
+  background: #496dff;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+.srch-ai-form button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.srch-ai-status {
+  min-height: 1em;
+  margin: 0;
+  color: #9bb1d3;
+  font-size: 0.76rem;
+}
+
 /* States */
 .srch-loading {
   font-size: 0.82rem;

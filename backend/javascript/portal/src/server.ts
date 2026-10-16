@@ -3,12 +3,13 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
-import { isIP } from 'node:net';
 import { generateCvPdfBuffer } from './pdf.js';
 import { handleAdminRoute } from './admin-routes.js';
 import { attachWebSocketServer } from './ws-handler.js';
 import { validateContact, createContact } from './db/contacts.js';
 import { searchCv } from './search.js';
+import { getTrustedClientIp } from './client-ip.js';
+import { allowSearchRequest } from './search-security.js';
 
 // backend-ia vía HTTP (para rutas de admin que no usan MQTT)
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? 'http://raulglez-backend-ia:3000';
@@ -46,14 +47,7 @@ function readCvData(): string {
 }
 
 function getClientIp(req: http.IncomingMessage): string {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string') {
-    const firstForwardedIp = forwardedFor.split(',')[0]?.trim();
-    if (firstForwardedIp && isIP(firstForwardedIp)) return firstForwardedIp;
-  }
-  const realIp = req.headers['x-real-ip'];
-  if (typeof realIp === 'string' && isIP(realIp.trim())) return realIp.trim();
-  return req.socket.remoteAddress ?? 'unknown';
+  return getTrustedClientIp(req);
 }
 
 function toPublicCv(data: any): any {
@@ -296,20 +290,40 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ ok: true, id: contact.id }));
     } catch (err) {
-      console.error('[contact] Error:', err);
+      console.error('[contact] Error:', err instanceof Error
+        ? { name: err.name, message: err.message }
+        : 'unknown error');
       const tooLarge = String(err).includes('Request body too large');
-      res.writeHead(tooLarge ? 413 : 500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: tooLarge ? 'Solicitud demasiado grande' : 'Error interno' }));
+      const invalidJson = err instanceof SyntaxError;
+      const status = tooLarge ? 413 : invalidJson ? 400 : 500;
+      const error = tooLarge ? 'Solicitud demasiado grande' : invalidJson ? 'JSON inválido' : 'Error interno';
+      res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error }));
     }
     return;
   }
 
   // ── GET /api/search?q=… — búsqueda en el CV ────────────────────────────────
-  if (method === 'GET' && url.startsWith('/api/search')) {
+  if (method === 'GET' && url === '/api/search') {
     try {
+      if (!allowSearchRequest(getClientIp(req))) {
+        res.writeHead(429, {
+          'Content-Type': 'application/json; charset=utf-8',
+          'Cache-Control': 'no-store',
+          'Retry-After': '60',
+        });
+        res.end(JSON.stringify({ ok: false, error: 'Demasiadas búsquedas. Intenta en un minuto.' }));
+        return;
+      }
+
       const rawUrl = req.url ?? '/';
       const qs = rawUrl.includes('?') ? rawUrl.split('?')[1] : '';
       const q = (new URLSearchParams(qs).get('q') ?? '').trim();
+      if (q.length > 512) {
+        res.writeHead(400, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ ok: false, error: 'La búsqueda excede el límite de 512 caracteres.' }));
+        return;
+      }
       if (!q) {
         res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
         res.end(JSON.stringify({ ok: true, results: [] }));

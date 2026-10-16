@@ -6,6 +6,7 @@ import net from 'node:net';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { DatabaseSync } from 'node:sqlite';
 import WebSocket from 'ws';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
@@ -147,7 +148,14 @@ test('public WebSocket chat remains available for ping and pong', async () => {
   }
 });
 
-test('public contact endpoint rejects oversized data without storing it', async () => {
+test('public contact endpoint rejects malformed and oversized input', async () => {
+  const malformedResponse = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{"name":',
+  });
+  assert.equal(malformedResponse.status, 400);
+
   const longCompanyResponse = await fetch(`${baseUrl}/api/contact`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -166,4 +174,85 @@ test('public contact endpoint rejects oversized data without storing it', async 
     body: `{"message":"${'x'.repeat(70_000)}"}`,
   });
   assert.equal(oversizedResponse.status, 413);
+});
+
+test('public contact persists valid submissions and rolls back failed inserts', async () => {
+  const dbPath = path.join(testWorkDir, 'data', 'db', 'app.sqlite');
+  const readContactCount = () => {
+    const db = new DatabaseSync(dbPath);
+    try {
+      return db.prepare('SELECT COUNT(*) AS count FROM contacts').get().count;
+    } finally {
+      db.close();
+    }
+  };
+  const payload = {
+    name: 'Synthetic Test',
+    email: 'synthetic-test@example.invalid',
+    phone: '+525512345678',
+    purpose: '',
+  };
+
+  const beforeSuccess = readContactCount();
+  const success = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  assert.equal(success.status, 200);
+  const successData = await success.json();
+  assert.equal(typeof successData.id, 'number');
+  assert.equal(readContactCount(), beforeSuccess + 1);
+
+  const db = new DatabaseSync(dbPath);
+  try {
+    assert.equal(db.prepare('SELECT purpose FROM contacts WHERE id = ?').get(successData.id).purpose, null);
+  } finally {
+    db.close();
+  }
+
+  const invalidPurpose = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, email: 'invalid-purpose@example.invalid', purpose: 'other' }),
+  });
+  assert.equal(invalidPurpose.status, 400);
+  assert.equal(readContactCount(), beforeSuccess + 1);
+
+  const triggerDb = new DatabaseSync(dbPath);
+  triggerDb.exec(`CREATE TRIGGER fail_contact_insert AFTER INSERT ON contacts
+    BEGIN SELECT RAISE(ABORT, 'forced test failure'); END;`);
+  triggerDb.close();
+
+  const beforeFailure = readContactCount();
+  const failure = await fetch(`${baseUrl}/api/contact`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ...payload, email: 'failed-test@example.invalid', purpose: 'help' }),
+  });
+  assert.equal(failure.status, 500);
+  assert.deepEqual(await failure.json(), { ok: false, error: 'Error interno' });
+  assert.equal(readContactCount(), beforeFailure);
+
+  const cleanup = new DatabaseSync(dbPath);
+  cleanup.exec('DROP TRIGGER fail_contact_insert');
+  cleanup.close();
+});
+
+test('search endpoint caps query length and limits each client to 20 requests per minute', async () => {
+  const headers = { 'x-real-ip': '198.51.100.44' };
+  const tooLong = await fetch(`${baseUrl}/api/search?q=${'x'.repeat(513)}`, {
+    headers: { 'x-real-ip': '198.51.100.45' },
+  });
+  assert.equal(tooLong.status, 400);
+
+  for (let i = 0; i < 20; i++) {
+    const response = await fetch(`${baseUrl}/api/search?q=java-${i}`, { headers });
+    assert.equal(response.status, 200, `request ${i + 1}`);
+    assert.match(response.headers.get('cache-control') ?? '', /no-store/);
+  }
+
+  const limited = await fetch(`${baseUrl}/api/search?q=java-last`, { headers });
+  assert.equal(limited.status, 429);
+  assert.equal(limited.headers.get('retry-after'), '60');
 });

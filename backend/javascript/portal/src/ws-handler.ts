@@ -14,10 +14,10 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage } from 'http';
 import type { Server } from 'http';
 import { randomUUID } from 'node:crypto';
-import { isIP } from 'node:net';
 import mqtt from 'mqtt';
 import { getCurrentPrompt } from './admin-routes.js';
 import { allowChatAsk, validateChatAsk } from './chat-security.js';
+import { getTrustedClientIp } from './client-ip.js';
 
 const MQTT_URL = process.env.MQTT_URL ?? 'mqtt://mosquitto:1883';
 const MQTT_TOPIC_ASK = 'ai/ask';
@@ -41,14 +41,7 @@ type WsMessageOut =
 // Mapa correlationId → WebSocket cliente que espera la respuesta
 const pendingRequests = new Map<string, WebSocket>();
 function getWsClientIp(req: IncomingMessage): string {
-  const forwardedFor = req.headers['x-forwarded-for'];
-  if (typeof forwardedFor === 'string') {
-    const firstForwardedIp = forwardedFor.split(',')[0]?.trim();
-    if (firstForwardedIp && isIP(firstForwardedIp)) return firstForwardedIp;
-  }
-  const forwardedIp = req.headers['x-real-ip'];
-  if (typeof forwardedIp === 'string' && isIP(forwardedIp.trim())) return forwardedIp.trim();
-  return req.socket.remoteAddress ?? 'unknown';
+  return getTrustedClientIp(req);
 }
 
 let mqttClient: mqtt.MqttClient | null = null;

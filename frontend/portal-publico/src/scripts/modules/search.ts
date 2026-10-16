@@ -2,9 +2,8 @@
  * search.ts — Buscador del CV con overlay galaxy.
  *
  * Flujo al escribir:
- *   1. GET /api/search?q=… → resultados del CV → muestra con jump links
- *   2. POST /api/ai/ask    → consulta IA con contacto anónimo → muestra respuesta
- *   Ambas peticiones se lanzan en paralelo (fire & forget independientes).
+ *   1. GET /api/search?q=… → resultados públicos del CV
+ *   2. La persona completa nombre y teléfono y consulta por WebSocket /ws/chat.
  */
 
 // ─── Tipos ────────────────────────────────────────────────────────────────────
@@ -40,21 +39,69 @@ async function fetchCvSearch(q: string): Promise<SearchResult[]> {
   }
 }
 
-async function fetchAiAnswer(question: string): Promise<string> {
-  try {
-    const res = await fetch('/api/ai/ask', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        question,
-        contact: { name: 'buscador', phone: '+000000000000' },
-      }),
+type ChatContact = { name: string; phone: string };
+
+function fetchAiAnswer(question: string, contact: ChatContact): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
+    const socket = new WebSocket(`${protocol}://${location.host}/ws/chat`);
+    let settled = false;
+    let timeout: ReturnType<typeof setTimeout>;
+
+    const finish = (error?: Error, answer?: string): void => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      try { socket.close(); } catch { /* ya está cerrándose */ }
+      if (error) reject(error);
+      else resolve(answer ?? '');
+    };
+    timeout = setTimeout(() => finish(new Error('Tiempo de espera agotado. Intenta de nuevo.')), 65_000);
+
+    socket.addEventListener('open', () => {
+      if (settled) {
+        socket.close();
+        return;
+      }
+      socket.send(JSON.stringify({ type: 'ask', payload: { question, contact } }));
+    }, { once: true });
+
+    socket.addEventListener('message', (event) => {
+      let message: { type?: string; answer?: string; message?: string };
+      try {
+        message = JSON.parse(String(event.data));
+      } catch {
+        return;
+      }
+      if (message.type === 'answer') finish(undefined, message.answer ?? '');
+      if (message.type === 'error') finish(new Error(message.message ?? 'No fue posible consultar a la IA.'));
     });
-    const data = (await res.json()) as { ok: boolean; answer?: string };
-    return data.ok && data.answer ? data.answer : '';
-  } catch {
-    return '';
-  }
+
+    socket.addEventListener('error', () => finish(new Error('Error de conexión con el servidor. Intenta de nuevo.')));
+    socket.addEventListener('close', () => {
+      if (!settled) finish(new Error('La conexión se cerró antes de recibir la respuesta.'));
+    });
+  });
+}
+
+function renderAiForm(question: string): string {
+  const canAsk = question.length >= 8;
+  return `
+    <div class="srch-ai-header">
+      <span class="srch-ai-icon" aria-hidden="true">🤖</span>
+      <span>Consulta a la IA</span>
+    </div>
+    <p class="srch-ai-consent">Para responder y guardar la interacción, comparte tu nombre y teléfono.</p>
+    <form class="srch-ai-form" data-question="${esc(question)}">
+      <label>Nombre
+        <input name="name" autocomplete="name" maxlength="120" required>
+      </label>
+      <label>Teléfono
+        <input name="phone" type="tel" autocomplete="tel" maxlength="20" pattern="\\+?[0-9\\s().-]{7,20}" required>
+      </label>
+      <button type="submit" ${canAsk ? '' : 'disabled'}>Preguntar a la IA</button>
+      <p class="srch-ai-status" role="status">${canAsk ? '' : 'Escribe al menos 8 caracteres para consultar a la IA.'}</p>
+    </form>`;
 }
 
 // ─── Render ───────────────────────────────────────────────────────────────────
@@ -103,6 +150,7 @@ export function initSearch(): void {
   const aiResults  = document.querySelector('#srch-ai-results') as HTMLElement | null;
 
   if (!toggleBtn || !overlay || !closeBtn || !input || !cvResults || !aiResults) return;
+  input.maxLength = 512;
 
   // ── Abrir / cerrar ──────────────────────────────────────────────────────────
 
@@ -149,61 +197,114 @@ export function initSearch(): void {
   // ── Lógica de búsqueda ──────────────────────────────────────────────────────
 
   let debounceTimer: ReturnType<typeof setTimeout> | null = null;
-  let lastAiQuery = '';
+  let lastSearchQuery = '';
+  let lastSearchResults: SearchResult[] = [];
+  let lastSearchAt = 0;
+  let requestVersion = 0;
+  let activeQuery = '';
 
   const doSearch = (q: string): void => {
-    if (!q.trim()) {
+    const query = q.trim();
+    if (!query) {
       cvResults.innerHTML = '';
       aiResults.innerHTML = '';
+      activeQuery = '';
+      requestVersion++;
       return;
     }
 
-    // Loading states
-    cvResults.innerHTML = '<p class="srch-loading">Buscando en el CV…</p>';
-    aiResults.innerHTML = `
-      <div class="srch-ai-header">
-        <span class="srch-ai-icon" aria-hidden="true">🤖</span>
-        <span>La IA está analizando tu búsqueda…</span>
-      </div>`;
-
-    // 1. Búsqueda local en CV (rápida)
-    fetchCvSearch(q).then((results) => {
-      cvResults.innerHTML = renderCvResults(results, q);
-    });
-
-    // 2. Consulta a la IA (más lenta, contacto anónimo para trazabilidad)
-    if (q !== lastAiQuery) {
-      lastAiQuery = q;
-      fetchAiAnswer(q).then((answer) => {
-        if (answer) {
-          aiResults.innerHTML = `
-            <div class="srch-ai-header">
-              <span class="srch-ai-icon" aria-hidden="true">🤖</span>
-              <span>Análisis de la IA</span>
-            </div>
-            <p class="srch-ai-answer">${esc(answer)}</p>`;
-        } else {
-          aiResults.innerHTML = '';
-        }
-      });
+    if (query.length > 512) {
+      cvResults.innerHTML = '';
+      aiResults.innerHTML = '<p class="srch-empty">La búsqueda no puede superar 512 caracteres.</p>';
+      return;
     }
+
+    const version = ++requestVersion;
+    activeQuery = query;
+
+    cvResults.innerHTML = '<p class="srch-loading">Buscando en el CV…</p>';
+    aiResults.innerHTML = renderAiForm(query);
+
+    if (query.length < 2) return;
+    if (query === lastSearchQuery) {
+      cvResults.innerHTML = renderCvResults(lastSearchResults, query);
+      return;
+    }
+    lastSearchQuery = query;
+    fetchCvSearch(query).then((results) => {
+      if (version === requestVersion) {
+        lastSearchResults = results;
+        cvResults.innerHTML = renderCvResults(results, query);
+      }
+    });
   };
+
+  const scheduleSearch = (q: string): void => {
+    const query = q.trim();
+    if (query === activeQuery && !debounceTimer) return;
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+      debounceTimer = null;
+    }
+    if (query !== activeQuery) {
+      activeQuery = query;
+      requestVersion++;
+    }
+    if (!query) {
+      doSearch('');
+      return;
+    }
+    if (query.length > 512) {
+      doSearch(query);
+      return;
+    }
+    cvResults.innerHTML = '<p class="srch-loading">Buscando en el CV…</p>';
+    aiResults.innerHTML = '';
+    const delay = Math.max(600, 3_200 - (Date.now() - lastSearchAt));
+    debounceTimer = setTimeout(() => {
+      debounceTimer = null;
+      lastSearchAt = Date.now();
+      doSearch(query);
+    }, delay);
+  };
+
+  aiResults.addEventListener('submit', (event: SubmitEvent) => {
+    const form = (event.target as Element).closest('.srch-ai-form') as HTMLFormElement | null;
+    if (!form) return;
+    event.preventDefault();
+
+    const question = form.dataset.question ?? '';
+    if (question !== activeQuery || question.length < 8) return;
+    const formData = new FormData(form);
+    const name = String(formData.get('name') ?? '').trim();
+    const phone = String(formData.get('phone') ?? '').trim();
+    const status = form.querySelector('.srch-ai-status') as HTMLElement | null;
+    const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement | null;
+    if (!name || !phone || !status || !submit) return;
+
+    submit.disabled = true;
+    status.textContent = 'La IA está analizando tu búsqueda…';
+    const version = requestVersion;
+    fetchAiAnswer(question, { name, phone }).then((answer) => {
+      if (version !== requestVersion || question !== activeQuery) return;
+      aiResults.innerHTML = `
+        <div class="srch-ai-header"><span class="srch-ai-icon" aria-hidden="true">🤖</span><span>Análisis de la IA</span></div>
+        <p class="srch-ai-answer">${esc(answer)}</p>`;
+    }).catch((error: unknown) => {
+      if (version !== requestVersion || question !== activeQuery) return;
+      status.textContent = error instanceof Error ? error.message : 'No fue posible consultar a la IA.';
+      submit.disabled = false;
+    });
+  });
 
   input.addEventListener('input', () => {
     const q = input.value;
-    if (debounceTimer) clearTimeout(debounceTimer);
-    if (!q.trim()) {
-      cvResults.innerHTML = '';
-      aiResults.innerHTML = '';
-      return;
-    }
-    debounceTimer = setTimeout(() => doSearch(q), 400);
+    scheduleSearch(q);
   });
 
   input.addEventListener('keydown', (e: KeyboardEvent) => {
     if (e.key === 'Enter') {
-      if (debounceTimer) clearTimeout(debounceTimer);
-      doSearch(input.value);
+      scheduleSearch(input.value);
     }
   });
 }

@@ -94,7 +94,11 @@ export function validateContact(data: ContactInput): { ok: boolean; error?: stri
   if (data.message !== undefined && (typeof data.message !== 'string' || data.message.length > 2000)) {
     return { ok: false, error: 'El mensaje excede el límite permitido' };
   }
-  if (data.purpose && !['recruiting', 'speaking', 'workshop', 'help', 'quote'].includes(data.purpose)) {
+  if (data.purpose !== undefined && data.purpose !== null && typeof data.purpose !== 'string') {
+    return { ok: false, error: 'Propósito no válido' };
+  }
+  const purpose = typeof data.purpose === 'string' ? data.purpose.trim() : '';
+  if (purpose && !['recruiting', 'speaking', 'workshop', 'help', 'quote'].includes(purpose)) {
     return { ok: false, error: 'Propósito no válido' };
   }
   return { ok: true };
@@ -104,18 +108,21 @@ export function validateContact(data: ContactInput): { ok: boolean; error?: stri
 
 export function createContact(data: ContactInput): ContactRow {
   const d = getDb();
-  const info = d.prepare(`
+  const purpose = typeof data.purpose === 'string' ? data.purpose.trim() || null : null;
+  const contact = d.prepare(`
     INSERT INTO contacts (name, email, phone, company, purpose, message)
     VALUES (?, ?, ?, ?, ?, ?)
-  `).run(
+    RETURNING *
+  `).get(
     data.name.trim(),
     data.email.trim().toLowerCase(),
     data.phone.trim(),
     data.company?.trim() ?? null,
-    data.purpose ?? null,
+    purpose,
     data.message?.trim() ?? null
   );
-  return getContactById(Number(info.lastInsertRowid))!;
+  if (!contact) throw new Error('Contact insert did not return a row');
+  return contact as unknown as ContactRow;
 }
 
 export function getContactById(id: number): ContactRow | null {
