@@ -19,6 +19,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/javascript/ia/package-lock.json
+
+      - name: Build backend AI
+        working-directory: backend/javascript/ia
+        run: npm ci && npm run build
+
       - name: Set image tags
         id: meta
         run: |

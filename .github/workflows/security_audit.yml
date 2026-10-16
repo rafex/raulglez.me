@@ -36,7 +36,7 @@ jobs:
           python-version: '3.11'   # node:lts-slim (Bookworm) usa Python 3.11
 
       - name: Instalar pip-audit y pip-tools
-        run: pip install pip-audit==2.9.0 pip-tools==7.4.1
+        run: pip install pip-audit==2.9.0 pip-tools==7.6.2
 
       # ── Instalar dependencias Node (sin lifecycle scripts) ─────────────────
       - name: npm ci — frontend/portal-publico
@@ -56,23 +56,27 @@ jobs:
         working-directory: backend/javascript/ia
 
       # ── Auditorías npm ─────────────────────────────────────────────────────
-      # continue-on-error: npm audit devuelve exit != 0 cuando hay vulns
+      # Se continúa para generar el reporte; el gate final diferencia hallazgos de errores.
       - name: npm audit — frontend/portal-publico
+        id: npm_audit_public
         run: npm audit --json > /tmp/npm-portal-publico.json
         working-directory: frontend/portal-publico
         continue-on-error: true
 
       - name: npm audit — frontend/portal-admin
+        id: npm_audit_admin
         run: npm audit --json > /tmp/npm-portal-admin.json
         working-directory: frontend/portal-admin
         continue-on-error: true
 
       - name: npm audit — backend/javascript/portal
+        id: npm_audit_backend
         run: npm audit --json > /tmp/npm-backend-portal.json
         working-directory: backend/javascript/portal
         continue-on-error: true
 
       - name: npm audit — backend/javascript/ia
+        id: npm_audit_ai
         run: npm audit --json > /tmp/npm-backend-ia.json
         working-directory: backend/javascript/ia
         continue-on-error: true
@@ -80,27 +84,24 @@ jobs:
       # ── Auditoría Python ───────────────────────────────────────────────────
       # pip-compile resuelve el árbol completo de transitivas sin instalarlas
       - name: Resolver transitivas Python (pip-compile)
+        id: pip_compile
         run: |
           pip-compile \
             backend/python/ia/requirements.txt \
             --output-file /tmp/requirements-lock.txt \
             --no-header \
-            --quiet \
-            2>/dev/null || true
+            --quiet
+        continue-on-error: true
 
       - name: pip-audit — backend/python/ia (directas + transitivas)
+        id: pip_audit
         run: |
-          # Auditar contra el lock completo si existe; si no, contra requirements.txt
-          REQ_FILE="backend/python/ia/requirements.txt"
-          if [ -s /tmp/requirements-lock.txt ]; then
-            REQ_FILE="/tmp/requirements-lock.txt"
-          fi
           pip-audit \
-            -r "$REQ_FILE" \
+            -r /tmp/requirements-lock.txt \
             --format json \
             --output /tmp/pip-ia.json \
-            --progress-spinner off \
-            2>/dev/null || true
+            --progress-spinner off
+        continue-on-error: true
 
       # ── Generar reporte consolidado ────────────────────────────────────────
       - name: Generar reporte
@@ -133,9 +134,11 @@ jobs:
           detail_lines  = []
           total_critical = 0
           total_high     = 0
+          total_vulns    = 0
+          audit_data_ok  = True
           has_any_vuln   = False
 
-          now    = datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+          now    = datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%d %H:%M UTC")
           commit = os.environ.get("GITHUB_SHA", "local")[:8]
           branch = os.environ.get("GITHUB_REF_NAME", "local")
           run_id = os.environ.get("GITHUB_RUN_NUMBER", "—")
@@ -161,11 +164,17 @@ jobs:
           # ── npm ─────────────────────────────────────────────────────────────
           for pkg_name, json_path in npm_targets:
               data = load_json(json_path)
-              if data is None:
+              metadata = data.get("metadata") if isinstance(data, dict) else None
+              if (
+                  not isinstance(metadata, dict)
+                  or not isinstance(metadata.get("vulnerabilities"), dict)
+                  or not isinstance(data.get("vulnerabilities"), dict)
+              ):
+                  audit_data_ok = False
                   lines.append(f"| `{pkg_name}` | — | — | — | — | — | ❌ sin datos |")
                   continue
 
-              meta = data.get("metadata", {}).get("vulnerabilities", {})
+              meta = metadata["vulnerabilities"]
               crit = meta.get("critical", 0)
               high = meta.get("high",     0)
               mod  = meta.get("moderate", 0)
@@ -175,6 +184,7 @@ jobs:
 
               total_critical += crit
               total_high     += high
+              total_vulns    += tot
               if tot > 0:
                   has_any_vuln = True
 
@@ -213,14 +223,15 @@ jobs:
           raw_pip = load_json("/tmp/pip-ia.json")
           # pip-audit JSON puede ser lista o dict {"dependencies": [...]}
           if isinstance(raw_pip, dict):
-              pip_data = raw_pip.get("dependencies", [])
+              pip_data = raw_pip.get("dependencies")
           elif isinstance(raw_pip, list):
               pip_data = raw_pip
           else:
               pip_data = None
 
-          if pip_data is not None:
+          if isinstance(pip_data, list):
               pip_total = sum(len(p.get("vulns", [])) for p in pip_data)
+              total_vulns += pip_total
               if pip_total == 0:
                   lines.append(f"| `backend/python/ia` | 0 | 0 | 0 | 0 | 0 | **0** |")
               else:
@@ -236,11 +247,12 @@ jobs:
                           desc    = (v.get("description") or "")[:140]
                           alias_str = f" ({aliases})" if aliases else ""
                           detail_lines.append(
-                              f"- 🟠 **{vid}**{alias_str} `{pkg['name']}=={pkg['version']}`{fix_str}"
+                              f"- **{vid}**{alias_str} `{pkg['name']}=={pkg['version']}`{fix_str}"
                           )
                           if desc:
                               detail_lines.append(f"  > {desc}…")
           else:
+              audit_data_ok = False
               lines.append(f"| `backend/python/ia` | — | — | — | — | — | ❌ sin datos |")
 
           lines.append("")
@@ -248,13 +260,14 @@ jobs:
           lines.append("")
 
           # ── Sección de detalle ───────────────────────────────────────────────
-          if not has_any_vuln:
-              lines.append("## ✅ Sin vulnerabilidades conocidas")
-              lines.append("")
-              lines.append("> Todos los paquetes auditados están libres de vulnerabilidades conocidas.")
-          else:
+          if has_any_vuln:
               lines.append("## Detalle de vulnerabilidades")
               lines += detail_lines
+
+          if not audit_data_ok:
+              lines += ["", "## ❌ Auditoría incompleta", "", "> Falta un reporte válido de npm audit o pip-audit; la ejecución debe fallar."]
+          elif not has_any_vuln:
+              lines += ["## ✅ Sin vulnerabilidades conocidas", "", "> Todos los paquetes auditados están libres de vulnerabilidades conocidas."]
 
           lines += [
               "",
@@ -273,15 +286,17 @@ jobs:
                   f.write(f"critical={total_critical}\n")
                   f.write(f"high={total_high}\n")
                   f.write(f"has_vulns={'true' if has_any_vuln else 'false'}\n")
+                  f.write(f"audit_data_ok={'true' if audit_data_ok else 'false'}\n")
+                  f.write(f"total_vulns={total_vulns}\n")
 
           print(f"✔ Reporte → {REPORT_PATH}")
-          print(f"  crítico={total_critical}  alto={total_high}  tiene_vulns={has_any_vuln}")
+          print(f"  vulnerabilidades={total_vulns}  reportes_validos={audit_data_ok}")
           PYEOF
 
       # ── Publicar en el resumen del workflow ────────────────────────────────
       - name: Publicar resumen
         if: always()
-        run: cat /tmp/audit-report.md >> $GITHUB_STEP_SUMMARY
+        run: cat /tmp/audit-report.md >> "$GITHUB_STEP_SUMMARY"
 
       # ── Subir como artefacto (90 días) ─────────────────────────────────────
       - name: Subir reporte y lock Python
@@ -294,10 +309,10 @@ jobs:
             /tmp/requirements-lock.txt
           retention-days: 90
 
-      # ── Fallo explícito si hay vulns críticas o altas ──────────────────────
-      - name: Verificar umbral de severidad
-        if: steps.report.outputs.critical > 0 || steps.report.outputs.high > 0
+      # ── Cualquier hallazgo o falta de reporte bloquea el workflow ──────────
+      - name: Verificar resultado de auditoría
+        if: steps.report.outputs.audit_data_ok != 'true' || steps.report.outputs.total_vulns != '0' || steps.npm_audit_public.outcome == 'failure' || steps.npm_audit_admin.outcome == 'failure' || steps.npm_audit_backend.outcome == 'failure' || steps.npm_audit_ai.outcome == 'failure' || steps.pip_compile.outcome == 'failure' || steps.pip_audit.outcome == 'failure'
         run: |
-          echo "::error::Vulnerabilidades encontradas — críticas: ${{ steps.report.outputs.critical }}, altas: ${{ steps.report.outputs.high }}"
+          echo "::error::Auditoría incompleta, con hallazgos o con un error de scanner: vulnerabilidades=${{ steps.report.outputs.total_vulns }}, reportes válidos=${{ steps.report.outputs.audit_data_ok }}"
           echo "Consulta el artefacto 'security-audit-${{ github.run_number }}' o el resumen del workflow."
           exit 1

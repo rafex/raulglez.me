@@ -9,3 +9,11 @@ ejecuta `npm test`. Ese comando compila TypeScript y valida las reglas de seguri
 el rechazo de aliases públicos de IA, la autenticación de las rutas administrativas, la proyección
 pública del CV y los límites del formulario de contacto. Si falla cualquier caso, la imagen no se
 publica.
+
+## Auditoría de dependencias
+
+`security_audit.yml` audita las cuatro instalaciones npm y el árbol Python con `pip-audit`.
+El job publica un reporte y artefacto, y falla si cualquier scanner detecta vulnerabilidades
+de cualquier severidad, si falta un reporte válido o si falla la resolución de dependencias.
+Los workflows frontend y backend ejecutan instalación limpia y build antes de publicar; el
+backend portal además ejecuta `npm test`.

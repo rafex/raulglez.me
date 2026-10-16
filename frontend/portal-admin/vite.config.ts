@@ -12,7 +12,7 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       input: {
-        admin: path.resolve(__dirname, 'index.html'),
+        admin: path.resolve(import.meta.dirname, 'index.html'),
       },
     },
   },

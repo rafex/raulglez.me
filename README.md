@@ -141,17 +141,22 @@ just helm-template portal-publico  # dry-run de un chart específico
 
 | Workflow | Trigger | Acción |
 |---|---|---|
-| `publish_frontend.yml` | push `frontend/portal-publico/**` | publica `raulglez-portal-publico` |
-| `publish_portal_admin.yml` | push `frontend/portal-admin/**` | publica `raulglez-portal-admin` |
-| `publish_backend.yml` | push `backend/javascript/portal/**` | publica `raulglez-backend-portal` |
-| `publish_ai.yml` | push `backend/javascript/ia/**` o `backend/python/ia/**` | publica `raulglez-backend-ia` |
-| `publish_python_base.yml` | push `backend/python/ia/requirements.txt` | publica imagen base Python (~2 GB) |
+| `publish_frontend.yml` | tag `v*` o ejecución manual | publica `raulglez-portal-publico` |
+| `publish_portal_admin.yml` | tag `v*` o ejecución manual | publica `raulglez-portal-admin` |
+| `publish_backend.yml` | tag `v*` o ejecución manual | prueba y publica `raulglez-backend-portal` |
+| `publish_ai.yml` | tag `v*` o ejecución manual | compila y publica `raulglez-backend-ia` |
+| `publish_python_base.yml` | cambios a dependencias Python o Dockerfile base, o ejecución manual | publica imagen base Python (~2 GB) |
 | `deploy_frontend.yml` | tras publish portal-publico | `helm upgrade` portal-publico |
 | `deploy_portal_admin.yml` | tras publish portal-admin | `helm upgrade` portal-admin |
 | `deploy_backend.yml` | tras publish backend-portal | `helm upgrade` backend-portal + mosquitto + secretos |
 | `deploy_ai.yml` | tras publish backend-ia | `helm upgrade` backend-ia |
+| `security_audit.yml` | push/PR a `main`, semanal o manual | audita npm y Python; bloquea cualquier hallazgo |
 
 Ver detalles en [`pipelines/CD.md`](pipelines/CD.md).
+
+Los workflows de publicación de servicios no corren automáticamente al hacer push a `main`.
+Para publicar cambios sin tag, iniciar el workflow Publish del servicio con `main` como ref;
+al concluir correctamente, el deploy correspondiente se ejecuta automáticamente.
 
 ## Release
 

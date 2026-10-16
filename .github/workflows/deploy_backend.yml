@@ -62,6 +62,11 @@ jobs:
           fi
           chmod 600 $HOME/.kube/config
 
+      - name: Ensure deployment namespace exists
+        run: |
+          kubectl create namespace "${{ env.K3S_NAMESPACE }}" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Create app env secret
         run: |
           GROQ_MODEL_VALUE="${{ vars.GROQ_MODEL }}"

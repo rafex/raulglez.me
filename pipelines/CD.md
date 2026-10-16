@@ -27,7 +27,7 @@ just release-tag v1.20260506-1   # crea y empuja el tag git
 ```
 
 ```
-git push tag v1.20260506-1
+git push origin v1.20260506-1
         ↓
 Todos los publish workflows se disparan (trigger: tags: ['v*'])
   → publican ghcr.io/rafex/raulglez-<servicio>:v1.20260506-1
@@ -35,7 +35,7 @@ Todos los publish workflows se disparan (trigger: tags: ['v*'])
         ↓
 Deploy workflows se disparan → despliegan la imagen con ese tag
         ↓
-k3s actualiza los 4 servicios
+k3s actualiza los cuatro servicios en `raulglez-me`
 ```
 
 **Nota**: Cuando el trigger es `tags: ['v*']`, todos los publish workflows se disparan
@@ -45,28 +45,33 @@ para un release completo de todas las imágenes.
 Los deploy workflows tienen grupos de concurrencia con `cancel-in-progress: false`
 para serializar deploys y evitar condiciones de carrera en Helm (`release: already exists`).
 
-### Opción B — Publish manual por servicio (cambio de código sin tag)
+### Opción B — Publish manual desde `main` (cambio de código sin tag)
 
 Para desplegar código nuevo en un servicio específico sin crear un tag de release:
 
 ```bash
-# Desplegar solo un servicio (push + dispatch desde justfile)
-just publish-frontend-publico
+# Publicar desde main; al terminar con éxito, Deploy se activa automáticamente
+just publish-portal-publico
 just publish-portal-admin
 just publish-backend
 just publish-ai
 ```
 
-Esto dispara el workflow de publish del servicio correspondiente vía `workflow_dispatch`,
-que a su vez desencadena el deploy del mismo servicio vía `workflow_run`.
+Cada comando usa `workflow_dispatch --ref main`. El publish ejecuta sus gates y publica la
+imagen `latest`; solo si termina correctamente, el workflow de deploy del servicio la instala.
 
 Cada publish workflow tiene un grupo de concurrencia con `cancel-in-progress: true`
 para evitar ejecuciones duplicadas si se dispara varias veces en rápida sucesión.
 
 ### Opción C — Manual (workflow_dispatch)
 
-Desde la UI de GitHub Actions → seleccionar workflow → "Run workflow" → ingresar el tag de imagen
-(p.ej. `v1.20260506-1` o `latest`). Útil para redesplegar sin cambiar código o para rollback.
+Desde GitHub Actions → seleccionar workflow → "Run workflow". Para publicar, seleccionar la
+ref `main`; para redesplegar o hacer rollback, seleccionar el tag de imagen existente. Un deploy
+manual no construye la imagen: el tag indicado debe estar publicado previamente en GHCR.
+
+El workflow `Deploy Full System (legacy)` también es manual. Despliega los charts actuales de
+Mosquitto, backend-portal, backend-ia, portal-publico y portal-admin en `raulglez-me`, usando el
+mismo tag de imagen para los cuatro servicios.
 
 ## Primer deploy (namespace vacío)
 
@@ -100,6 +105,8 @@ automáticamente en el orden correcto vía `workflow_run`, no hay dependencia de
 | Secret | Descripción |
 |---|---|
 | `KUBE_CONFIG_DATA` | kubeconfig en base64 para acceso al cluster k3s |
+| `GHCR_USERNAME` | Usuario con permiso de lectura de paquetes para el secret `ghcr-pull-secret` del workflow full redeploy |
+| `GHCR_TOKEN` | Token con permiso de lectura de paquetes para GHCR |
 | `GROQ_API_KEY` | API key de Groq para el servicio IA |
 | `ADMIN_USER` | Usuario del panel administrativo |
 | `ADMIN_PASSWORD` | Contraseña del panel administrativo |
@@ -198,8 +205,8 @@ kubectl -n raulglez-me rollout undo deployment/raulglez-backend-portal
 
 El workflow de deploy incluye un step `Debug rollout failure` que se activa si falla:
 ```
-kubectl -n mvps get deploy,rs,pods,svc -o wide
-kubectl -n mvps get events --sort-by=.metadata.creationTimestamp | tail -80
+kubectl -n raulglez-me get deploy,rs,pods,svc -o wide
+kubectl -n raulglez-me get events --sort-by=.metadata.creationTimestamp | tail -80
 ```
 
 Causas comunes:
@@ -210,13 +217,13 @@ Causas comunes:
 | Pod en `CrashLoopBackOff` | error de arranque; revisar `kubectl logs` |
 | `backend-ia` en `OOMKilled` | modelo FAISS requiere más memoria (ajustar `resources.limits.memory`) |
 | `backend-ia` startup timeout | `startupProbe` falló; la IA tardó > 15 min en cargar |
-| Chat no responde | Mosquitto no disponible; verificar `kubectl -n mvps get pod -l app=mosquitto` |
+| Chat no responde | Mosquitto no disponible; verificar `kubectl -n raulglez-me get pod -l app=mosquitto` |
 
 ## Notas sobre la imagen Python base
 
-`publish_python_base.yml` solo se dispara cuando cambia `backend/python/ia/requirements.txt`.
-Si se necesita forzar la reconstrucción (p.ej., nuevo modelo), modificar cualquier línea de
-ese archivo o usar `workflow_dispatch`.
+`publish_python_base.yml` se dispara cuando cambia `backend/python/ia/requirements.txt` o
+`containers/Dockerfile.python-base`. Para forzar la reconstrucción (p.ej., nuevo modelo),
+usar `workflow_dispatch`.
 
 El tag de la imagen base se referencia en `Dockerfile.backend-ia` con `ARG PYTHON_BASE_TAG`.
 Si se publica una nueva base, actualizar ese ARG y re-publicar `backend-ia`.

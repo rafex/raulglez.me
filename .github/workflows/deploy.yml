@@ -1,239 +1,151 @@
-name: Deploy (legacy — solo manual, para full redeploy)
+name: Deploy Full System (legacy)
 
 on:
-  # Desactivado el trigger automático. Los 3 deploy_*.yml por servicio lo reemplazan.
-  # Solo se usa manualmente cuando se necesita redeploy completo del sistema.
   workflow_dispatch:
     inputs:
       tag:
-        description: 'Container tag to deploy (e.g. v1.20260501)'
+        description: 'Tag presente en las cuatro imágenes de servicio'
         required: true
         type: string
-      environment:
-        description: 'Target environment'
-        required: true
-        type: choice
-        options:
-          - production
-        default: production
+        default: 'latest'
+
+concurrency:
+  group: deploy-full-system
+  cancel-in-progress: false
+
+permissions:
+  contents: read
 
 env:
-  K3S_NAMESPACE: mvps
+  K3S_NAMESPACE: raulglez-me
   APP_ENV_SECRET: raulglez-me-env
 
 jobs:
   deploy:
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     environment:
-      name: ${{ inputs.environment || 'production' }}
+      name: production
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Set tag
+      - name: Validate image tag
         id: tag
+        env:
+          DEPLOY_TAG: ${{ inputs.tag }}
         run: |
-          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
-            echo "tag=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
-          elif [ "${GITHUB_EVENT_NAME}" = "workflow_run" ]; then
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
-            if [ "$BRANCH" = "main" ]; then
-              echo "tag=latest" >> "$GITHUB_OUTPUT"
-            else
-              echo "tag=$BRANCH" >> "$GITHUB_OUTPUT"
-            fi
-          elif [ "${GITHUB_REF_TYPE}" = "tag" ]; then
-            echo "tag=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
-          else
-            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          if [[ ! "$DEPLOY_TAG" =~ ^[A-Za-z0-9_.-]+$ ]]; then
+            echo "Invalid image tag: use only letters, numbers, '.', '_' or '-'." >&2
+            exit 1
           fi
+          echo "value=$DEPLOY_TAG" >> "$GITHUB_OUTPUT"
 
-      - name: Setup kubectl
-        uses: azure/setup-kubectl@v4
+      - uses: azure/setup-kubectl@v4
+        with:
+          version: 'latest'
+
+      - uses: azure/setup-helm@v4
         with:
           version: 'latest'
 
       - name: Configure kubeconfig
+        env:
+          KUBECONFIG_DATA: ${{ secrets.KUBE_CONFIG_DATA }}
         run: |
-          mkdir -p $HOME/.kube
-          if echo "${{ secrets.KUBE_CONFIG_DATA }}" | base64 -d >/tmp/kubeconfig.decoded 2>/dev/null; then
+          mkdir -p "$HOME/.kube"
+          if printf '%s' "$KUBECONFIG_DATA" | base64 -d >/tmp/kubeconfig.decoded 2>/dev/null; then
             cp /tmp/kubeconfig.decoded "$HOME/.kube/config"
           else
-            printf '%s' "${{ secrets.KUBE_CONFIG_DATA }}" > "$HOME/.kube/config"
+            printf '%s' "$KUBECONFIG_DATA" > "$HOME/.kube/config"
           fi
-          chmod 600 $HOME/.kube/config
+          chmod 600 "$HOME/.kube/config"
 
-      - name: Setup Helm
-        uses: azure/setup-helm@v4
-        with:
-          version: 'latest'
-
-      - name: Create app env secret
+      - name: Ensure deployment namespace exists
         run: |
-          GROQ_MODEL_VALUE="${{ vars.GROQ_MODEL }}"
-          if [ -z "$GROQ_MODEL_VALUE" ]; then
-            GROQ_MODEL_VALUE="openai/gpt-oss-20b"
-          fi
-
-          kubectl create secret generic "${{ env.APP_ENV_SECRET }}" \
-            --from-literal=GROQ_API_KEY='${{ secrets.GROQ_API_KEY }}' \
-            --from-literal=GROQ_MODEL="$GROQ_MODEL_VALUE" \
-            --from-literal=AI_SERVICE_URL=http://raulglez-backend-ia:3000 \
-            --from-literal=AI_PORT=3000 \
-            --from-literal=ADMIN_USER='${{ secrets.ADMIN_USER }}' \
-            --from-literal=ADMIN_PASSWORD='${{ secrets.ADMIN_PASSWORD }}' \
-            --from-literal=SESSION_SECRET='${{ secrets.SESSION_SECRET }}' \
-            --from-literal=COOKIE_SECURE='true' \
-            --namespace="${{ env.K3S_NAMESPACE }}" \
+          kubectl create namespace "$K3S_NAMESPACE" \
             --dry-run=client -o yaml | kubectl apply -f -
 
-      # ── Mosquitto (broker MQTT, imagen oficial ~5 MB) ──────────────
+      - name: Create GHCR pull secret
+        env:
+          GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
+          GHCR_TOKEN: ${{ secrets.GHCR_TOKEN }}
+        run: |
+          kubectl create secret docker-registry ghcr-pull-secret \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_USERNAME" \
+            --docker-password="$GHCR_TOKEN" \
+            --namespace="$K3S_NAMESPACE" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Create app environment secret
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          ADMIN_USER: ${{ secrets.ADMIN_USER }}
+          ADMIN_PASSWORD: ${{ secrets.ADMIN_PASSWORD }}
+          SESSION_SECRET: ${{ secrets.SESSION_SECRET }}
+        run: |
+          MODEL_VALUE="${GROQ_MODEL:-llama-3.3-70b-versatile}"
+          kubectl create secret generic "$APP_ENV_SECRET" \
+            --from-literal=GROQ_API_KEY="$GROQ_API_KEY" \
+            --from-literal=GROQ_MODEL="$MODEL_VALUE" \
+            --from-literal=AI_SERVICE_URL=http://raulglez-backend-ia:3000 \
+            --from-literal=AI_PORT=3000 \
+            --from-literal=ADMIN_USER="$ADMIN_USER" \
+            --from-literal=ADMIN_PASSWORD="$ADMIN_PASSWORD" \
+            --from-literal=SESSION_SECRET="$SESSION_SECRET" \
+            --from-literal=COOKIE_SECURE=true \
+            --namespace="$K3S_NAMESPACE" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
       - name: Deploy Mosquitto
         run: |
-          # Clean up any existing resources to avoid Helm field-manager conflicts
-          kubectl -n "${{ env.K3S_NAMESPACE }}" delete deployment mosquitto --ignore-not-found=true
-          kubectl -n "${{ env.K3S_NAMESPACE }}" delete svc mosquitto --ignore-not-found=true
-          kubectl apply -f - <<'EOF'
-          apiVersion: apps/v1
-          kind: Deployment
-          metadata:
-            name: mosquitto
-            namespace: ${{ env.K3S_NAMESPACE }}
-          spec:
-            replicas: 1
-            selector:
-              matchLabels:
-                app: mosquitto
-            template:
-              metadata:
-                labels:
-                  app: mosquitto
-              spec:
-                containers:
-                  - name: mosquitto
-                    image: eclipse-mosquitto:2
-                    ports:
-                      - containerPort: 1883
-          ---
-          apiVersion: v1
-          kind: Service
-          metadata:
-            name: mosquitto
-            namespace: ${{ env.K3S_NAMESPACE }}
-          spec:
-            selector:
-              app: mosquitto
-            ports:
-              - port: 1883
-                targetPort: 1883
-          EOF
-          kubectl -n "${{ env.K3S_NAMESPACE }}" rollout status deployment/mosquitto --timeout=2m
-
-      # ── Frontend (~80 MB, deploy en segundos) ──────────────────────
-      - name: Deploy Frontend
-        run: |
-          helm upgrade --install raulglez-frontend helm/raulglez-me \
-            --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set fullnameOverride=raulglez-frontend \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-frontend \
-            --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set service.port=80 \
-            --set securityContext.runAsNonRoot=false \
-            --set securityContext.readOnlyRootFilesystem=false \
-            --set securityContext.runAsUser=0 \
-            --set securityContext.capabilities.drop[0]=ALL \
-            --set securityContext.capabilities.add[0]=NET_BIND_SERVICE \
-            --set dataVolume.mountPath=/var/cache/nginx \
-            --set resources.limits.cpu=100m \
-            --set resources.limits.memory=128Mi \
-            --set resources.requests.cpu=50m \
-            --set resources.requests.memory=64Mi \
-            --set autoscaling.enabled=false \
-            --set pdb.enabled=false \
+          helm upgrade --install mosquitto helm/raulglez-me/mosquitto \
+            --namespace "$K3S_NAMESPACE" \
+            --create-namespace \
             --wait --timeout 2m
 
-      # ── Backend (~180 MB, deploy en segundos) ─────────────────────
-      - name: Deploy Backend
+      - name: Deploy backend portal
         run: |
-          helm upgrade --install raulglez-backend helm/raulglez-me \
-            --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set fullnameOverride=raulglez-backend \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend \
-            --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set service.port=3000 \
-            --set env.secretName="${{ env.APP_ENV_SECRET }}" \
-            --set env.aiServiceUrl=http://raulglez-ai:3000 \
-            --set resources.limits.cpu=500m \
-            --set resources.limits.memory=512Mi \
-            --set resources.requests.cpu=100m \
-            --set resources.requests.memory=128Mi \
-            --set autoscaling.enabled=true \
-            --set autoscaling.maxReplicas=3 \
-            --set pdb.enabled=true \
-            --set pdb.minAvailable=1 \
-            --wait --timeout 2m
+          helm upgrade --install raulglez-backend-portal helm/raulglez-me/backend-portal \
+            --namespace "$K3S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend-portal \
+            --set image.tag=${{ steps.tag.outputs.value }} \
+            --wait --timeout 3m
 
-      # ── AI (~2.5 GB, deploy lento pero no bloquea) ────────────────
-      - name: Deploy AI
+      - name: Deploy backend AI
         run: |
-          helm upgrade --install raulglez-ai helm/raulglez-me \
-            --namespace "${{ env.K3S_NAMESPACE }}" \
-            --set fullnameOverride=raulglez-ai \
-            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-ai \
-            --set image.tag=${{ steps.tag.outputs.tag }} \
-            --set service.port=3000 \
-            --set env.secretName="${{ env.APP_ENV_SECRET }}" \
-            --set resources.limits.cpu=1000m \
-            --set resources.limits.memory=2Gi \
-            --set resources.requests.cpu=100m \
-            --set resources.requests.memory=512Mi \
-            --set autoscaling.enabled=false \
-            --set pdb.enabled=false \
-            --set livenessProbe.httpGet.path=/health \
-            --set livenessProbe.httpGet.port=3000 \
-            --set livenessProbe.initialDelaySeconds=60 \
-            --set readinessProbe.httpGet.path=/health \
-            --set readinessProbe.httpGet.port=3000 \
-            --set readinessProbe.initialDelaySeconds=30 \
-            --set startupProbe.httpGet.path=/health \
-            --set startupProbe.httpGet.port=3001 \
-            --set startupProbe.failureThreshold=60 \
-            --no-wait
+          helm upgrade --install raulglez-backend-ia helm/raulglez-me/backend-ia \
+            --namespace "$K3S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-backend-ia \
+            --set image.tag=${{ steps.tag.outputs.value }} \
+            --wait --timeout 15m
 
-      # ── Ingress (rutea frontend + backend) ─────────────────────────
-      - name: Deploy Ingress
+      - name: Deploy public portal
         run: |
-          kubectl apply -f - <<'EOF'
-          apiVersion: networking.k8s.io/v1
-          kind: Ingress
-          metadata:
-            name: raulglez-me
-            namespace: ${{ env.K3S_NAMESPACE }}
-            annotations:
-              cert-manager.io/cluster-issuer: "letsencrypt-prod"
-          spec:
-            ingressClassName: haproxy
-            rules:
-              - host: raulglez.me
-                http:
-                  paths:
-                    - path: /
-                      pathType: Prefix
-                      backend:
-                        service:
-                          name: raulglez-frontend
-                          port:
-                            number: 80
-          EOF
+          helm upgrade --install raulglez-portal-publico helm/raulglez-me/portal-publico \
+            --namespace "$K3S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal-publico \
+            --set image.tag=${{ steps.tag.outputs.value }} \
+            --wait --timeout 3m
+
+      - name: Deploy admin portal
+        run: |
+          helm upgrade --install raulglez-portal-admin helm/raulglez-me/portal-admin \
+            --namespace "$K3S_NAMESPACE" \
+            --create-namespace \
+            --set image.repository=ghcr.io/${{ github.repository_owner }}/raulglez-portal-admin \
+            --set image.tag=${{ steps.tag.outputs.value }} \
+            --wait --timeout 3m
 
       - name: Verify deployment
-        run: |
-          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,pods,svc,ingress -o wide
+        run: kubectl -n "$K3S_NAMESPACE" get deploy,pods,svc,ingress -o wide
 
       - name: Debug rollout failure
         if: failure()
         run: |
-          kubectl -n "${{ env.K3S_NAMESPACE }}" get deploy,rs,pods,svc -o wide
-          kubectl -n "${{ env.K3S_NAMESPACE }}" get events --sort-by=.metadata.creationTimestamp | tail -n 80 || true
+          kubectl -n "$K3S_NAMESPACE" get deploy,rs,pods,svc -o wide || true
+          kubectl -n "$K3S_NAMESPACE" get events --sort-by=.metadata.creationTimestamp | tail -n 80 || true

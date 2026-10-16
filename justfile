@@ -15,7 +15,7 @@
 #   just clean               → elimina artefactos
 #   just lint                → valida todos los Helm charts
 #   just all                 → setup + build
-#   just release-tag v1.20260504-1   → crea y empuja tag (dispara Publish+Deploy de servicios modificados)
+#   just release-tag v1.20260504-1   → crea y empuja tag (dispara Publish+Deploy de los 4 servicios)
 #   just release-tag-today 1 1        → crea tag v1.YYYYmmDD-1 y lo empuja
 #   just secrets-keygen      → genera llave age local
 #   just secrets-encrypt     → cifra .env → .env.enc con sops
@@ -225,7 +225,7 @@ release-tag tag:
     git tag "{{tag}}"
     @echo "🚀 Publicando tag {{tag}} en origin"
     git push origin "{{tag}}"
-    @echo "✅ Tag publicado. GitHub Actions ejecutará Publish + Deploy de los servicios modificados."
+    @echo "✅ Tag publicado. GitHub Actions ejecutará Publish + Deploy de los 4 servicios."
 
 ## Crea y publica tag con formato v#.YYYYmmDD-# (ej: just release-tag-today 1 1)
 release-tag-today major='1' patch='1':

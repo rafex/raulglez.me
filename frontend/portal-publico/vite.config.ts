@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 const devApiPlugin = {
   name: 'dev-api',
   configureServer(server: any) {
-    const cvPath = path.resolve(__dirname, '../../backend/javascript/portal/data/cv.json');
+    const cvPath = path.resolve(import.meta.dirname, '../../backend/javascript/portal/data/cv.json');
     server.middlewares.use('/api/cv', (_req: any, res: any) => {
       try {
         const cv = readFileSync(cvPath, 'utf-8');
@@ -29,7 +29,7 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       input: {
-        main: path.resolve(__dirname, 'index.html'),
+        main: path.resolve(import.meta.dirname, 'index.html'),
       },
     },
   },
