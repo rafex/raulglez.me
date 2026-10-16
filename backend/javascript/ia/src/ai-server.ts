@@ -111,8 +111,21 @@ function json(res: http.ServerResponse, status: number, body: unknown): void {
 function readJsonBody(req: http.IncomingMessage): Promise<any> {
   return new Promise((resolve, reject) => {
     let data = '';
-    req.on('data', (chunk: Buffer) => { data += chunk.toString(); });
+    let size = 0;
+    let rejected = false;
+    req.on('data', (chunk: Buffer) => {
+      if (rejected) return;
+      size += chunk.length;
+      if (size > 64 * 1024) {
+        rejected = true;
+        reject(new Error('Request body too large'));
+        req.resume();
+        return;
+      }
+      data += chunk.toString();
+    });
     req.on('end', () => {
+      if (rejected) return;
       try { resolve(JSON.parse(data || '{}')); }
       catch (e) { reject(e); }
     });
@@ -169,7 +182,8 @@ async function handleRequest(
       rateTrackedQuestion(Number(rateMatch[1]), payload);
       json(res, 200, { ok: true });
     } catch (err: any) {
-      json(res, 500, { ok: false, error: String(err) });
+      const tooLarge = String(err).includes('Request body too large');
+      json(res, tooLarge ? 413 : 500, { ok: false, error: tooLarge ? 'Request body too large' : String(err) });
     }
     return;
   }

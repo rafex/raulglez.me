@@ -45,7 +45,10 @@ Servicio Node.js puro (`node:http`), sin frameworks:
 | Ruta | Método | Descripción |
 |---|---|---|
 | `/api/cv` | GET | Proyección pública de `cv.json` (oculta `contact.private`) |
-| `/api/cv.pdf` | GET | PDF generado en runtime con pdfkit |
+| `/api/cv.pdf` | GET | PDF generado en runtime con pdfkit; requiere token temporal |
+| `/api/cv.pdf/request` | POST | Validación de contacto y emisión de token de descarga |
+| `/api/contact` | POST | Captura pública de contacto, con validación y rate limit |
+| `/api/search?q=` | GET | Búsqueda en contenido público del CV |
 | `/ws/chat` | WebSocket | Upgrade HTTP → WS; publica a MQTT y espera respuesta |
 | `/health` | GET | Health check |
 | `/admin/login` | POST | Autenticación por usuario/contraseña (cookie de sesión) |
@@ -57,6 +60,9 @@ Servicio Node.js puro (`node:http`), sin frameworks:
 | `/api/admin/prompt` | DELETE | Restaurar prompt al texto por defecto (requiere sesión) |
 | `/api/admin/reindex` | GET/POST | Estado y rebuild FAISS vía backend-ia (requiere sesión) |
 
+Las interacciones y el reindexado no tienen aliases públicos `/api/ai/*`. Sus operaciones
+administrativas pasan únicamente por `/api/admin/*`, con sesión validada en backend-portal.
+
 Fuente de verdad del CV: `backend/javascript/portal/data/cv.json`.
 
 ### `backend/javascript/ia/` — `backend-ia`
@@ -65,6 +71,8 @@ Servicio Node.js que actúa como subscriber MQTT y API de administración intern
 - **Al arrancar**: obtiene `cv.json` desde `backend-portal` vía HTTP (10 reintentos × 3 s).
 - **MQTT subscriber** en `ai/ask`: procesa preguntas, publica respuesta en `ai/response/{correlationId}`.
 - **HTTP interno** (solo cluster): `/health`, `/questions`, `/reindex`, `/questions/:id`.
+- El chart mantiene el Service como `ClusterIP` y el Ingress deshabilitado; estas rutas no se
+  publican directamente en Internet.
 
 Orquesta la capa Python via `spawn('python3', ['rag_faiss.py'])` con protocolo JSON por stdin/stdout.
 
@@ -98,6 +106,8 @@ Orquesta la capa Python via `spawn('python3', ['rag_faiss.py'])` con protocolo J
 ```
 
 Timeout de espera: 60 s. Timeout de inactividad WS: 5 min. Ping keepalive: 30 s.
+El servidor limita el frame a 16 KiB, la pregunta a 2.000 caracteres y cada IP a 10 consultas
+cada 15 minutos; solo se aceptan los campos de contacto conocidos y con longitud acotada.
 
 ## Flujo del panel admin
 
@@ -144,6 +154,8 @@ Dockerfile.backend-ia    → imagen delgada <200 MB adicionales
 | Respuesta IA inventada | Prompt con guardrails + fallback determinista + revisión humana |
 | Datos privados del CV expuestos | `/api/cv` filtra `contact.private`; solo aparece en PDF |
 | Panel admin accesible | Cookie de sesión HttpOnly + COOKIE_SECURE=true en prod |
+| Interacciones IA expuestas | Sin rutas públicas de lectura/edición/reindexado; operaciones solo vía `/api/admin/*` autenticadas |
+| Abuso del chat y formularios | Límites de tamaño, validación de campos y rate limits |
 | Imagen IA gigante | Imagen base estática; solo código cambia en cada deploy |
 | MQTT sin autenticación | Broker interno al cluster (ClusterIP), sin exposición externa |
 

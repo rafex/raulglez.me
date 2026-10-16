@@ -1,11 +1,12 @@
 ## Active
 
-_(sin tareas activas)_
+- [blocked] Revisar logs históricos de acceso a `/api/ai/questions`, `/api/ai/questions/:id`, `/api/ai/reindex` y `/api/cv.pdf`; el contexto GKE requiere renovar autenticación de `gcloud`.
 
 ## Completed
 
 - [x] Portal CV raulglez.me — PR #1 merged (40 archivos, 4367 líneas)
 - [x] Herramientas de desarrollo — PR #2 merged (justfile + Makefile + scripts)
+- [x] Mitigar exposición de rutas IA y PDF; límites del chat/formularios y pruebas de regresión.
 
 ## Commands
 

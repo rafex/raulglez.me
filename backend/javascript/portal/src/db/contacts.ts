@@ -70,11 +70,30 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^\+?[\d\s\-().]{7,20}$/;
 
 export function validateContact(data: ContactInput): { ok: boolean; error?: string } {
-  if (!data.name?.trim()) return { ok: false, error: 'El nombre es obligatorio' };
-  if (!data.email?.trim()) return { ok: false, error: 'El correo electrónico es obligatorio' };
+  if (!data || typeof data !== 'object') return { ok: false, error: 'Datos de contacto no válidos' };
+  if (typeof data.name !== 'string') return { ok: false, error: 'El nombre es obligatorio' };
+  if (!data.name.trim()) return { ok: false, error: 'El nombre es obligatorio' };
+  if (data.name.trim().length > 120) {
+    return { ok: false, error: 'El nombre no es válido' };
+  }
+  if (typeof data.email !== 'string') return { ok: false, error: 'El correo electrónico es obligatorio' };
+  if (!data.email.trim()) return { ok: false, error: 'El correo electrónico es obligatorio' };
+  if (data.email.trim().length > 254) {
+    return { ok: false, error: 'El correo electrónico no es válido' };
+  }
   if (!EMAIL_RE.test(data.email.trim())) return { ok: false, error: 'El formato del correo no es válido' };
-  if (!data.phone?.trim()) return { ok: false, error: 'El teléfono es obligatorio' };
+  if (typeof data.phone !== 'string') return { ok: false, error: 'El teléfono es obligatorio' };
+  if (!data.phone.trim()) return { ok: false, error: 'El teléfono es obligatorio' };
+  if (data.phone.trim().length > 32) {
+    return { ok: false, error: 'El teléfono no es válido' };
+  }
   if (!PHONE_RE.test(data.phone.trim())) return { ok: false, error: 'El formato del teléfono no es válido' };
+  if (data.company !== undefined && (typeof data.company !== 'string' || data.company.length > 120)) {
+    return { ok: false, error: 'La empresa no es válida' };
+  }
+  if (data.message !== undefined && (typeof data.message !== 'string' || data.message.length > 2000)) {
+    return { ok: false, error: 'El mensaje excede el límite permitido' };
+  }
   if (data.purpose && !['recruiting', 'speaking', 'workshop', 'help', 'quote'].includes(data.purpose)) {
     return { ok: false, error: 'Propósito no válido' };
   }

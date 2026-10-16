@@ -19,6 +19,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: backend/javascript/portal/package-lock.json
+
+      - name: Install backend portal dependencies
+        working-directory: backend/javascript/portal
+        run: npm ci
+
+      - name: Test and build backend portal
+        working-directory: backend/javascript/portal
+        run: npm test
+
       - name: Set image tags
         id: meta
         run: |

@@ -1,7 +1,7 @@
 {
   "name": "ai-server",
   "version": "1.0.0",
-  "description": "AI server — sirve /ask, /questions, /reindex con Groq + FAISS fallback",
+  "description": "AI server — HTTP interno para administración y MQTT para el chat con Groq + FAISS fallback",
   "private": true,
   "type": "module",
   "scripts": {

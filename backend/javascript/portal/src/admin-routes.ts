@@ -71,8 +71,12 @@ function jsonError(res: http.ServerResponse, status: number, error: string): voi
 
 async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
-    chunks.push(Buffer.from(chunk));
+    const buffer = Buffer.from(chunk);
+    size += buffer.length;
+    if (size > 64 * 1024) throw new Error('Request body too large');
+    chunks.push(buffer);
   }
   const raw = Buffer.concat(chunks).toString('utf-8') || '{}';
   try {

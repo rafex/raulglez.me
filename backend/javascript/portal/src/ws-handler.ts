@@ -14,12 +14,15 @@ import { WebSocketServer, WebSocket } from 'ws';
 import type { IncomingMessage } from 'http';
 import type { Server } from 'http';
 import { randomUUID } from 'node:crypto';
+import { isIP } from 'node:net';
 import mqtt from 'mqtt';
 import { getCurrentPrompt } from './admin-routes.js';
+import { allowChatAsk, validateChatAsk } from './chat-security.js';
 
 const MQTT_URL = process.env.MQTT_URL ?? 'mqtt://mosquitto:1883';
 const MQTT_TOPIC_ASK = 'ai/ask';
 const MQTT_TOPIC_RESPONSE_PREFIX = 'ai/response/';
+const MAX_CHAT_ASKS_PER_CONNECTION = 10;
 
 // ─── Tipos de mensajes WebSocket ─────────────────────────────────────
 
@@ -37,6 +40,16 @@ type WsMessageOut =
 
 // Mapa correlationId → WebSocket cliente que espera la respuesta
 const pendingRequests = new Map<string, WebSocket>();
+function getWsClientIp(req: IncomingMessage): string {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string') {
+    const firstForwardedIp = forwardedFor.split(',')[0]?.trim();
+    if (firstForwardedIp && isIP(firstForwardedIp)) return firstForwardedIp;
+  }
+  const forwardedIp = req.headers['x-real-ip'];
+  if (typeof forwardedIp === 'string' && isIP(forwardedIp.trim())) return forwardedIp.trim();
+  return req.socket.remoteAddress ?? 'unknown';
+}
 
 let mqttClient: mqtt.MqttClient | null = null;
 
@@ -115,7 +128,7 @@ function sendWs(ws: WebSocket, msg: WsMessageOut): void {
 // ─── WebSocket Server ─────────────────────────────────────────────────
 
 export function attachWebSocketServer(server: Server): WebSocketServer {
-  const wss = new WebSocketServer({ noServer: true });
+  const wss = new WebSocketServer({ noServer: true, maxPayload: 16 * 1024 });
 
   // Registrar upgrade solo para /ws/chat
   server.on('upgrade', (req: IncomingMessage, socket, head) => {
@@ -133,7 +146,7 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
   // Inicializar MQTT al arrancar el WS server
   const mq = getMqttClient();
 
-  wss.on('connection', (ws: WebSocket) => {
+  wss.on('connection', (ws: WebSocket, req: IncomingMessage) => {
     const clientId = randomUUID();
     console.log(`[ws-handler] Cliente conectado: ${clientId}`);
 
@@ -142,6 +155,7 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
 
     // Timeout de inactividad: 5 minutos
     let inactivityTimer: NodeJS.Timeout | null = null;
+    let asksThisConnection = 0;
 
     function resetTimer() {
       if (inactivityTimer) clearTimeout(inactivityTimer);
@@ -170,16 +184,25 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
       }
 
       if (msg.type === 'ask') {
-        const { question, contact } = msg.payload ?? {};
+        const ask = validateChatAsk(msg.payload);
+        if (!ask) {
+          sendWs(ws, { type: 'error', message: 'Revisa la pregunta y los datos de contacto e inténtalo de nuevo.' });
+          return;
+        }
+        if (asksThisConnection >= MAX_CHAT_ASKS_PER_CONNECTION || !allowChatAsk(getWsClientIp(req))) {
+          sendWs(ws, { type: 'error', message: 'Has alcanzado el límite temporal de consultas. Intenta más tarde.' });
+          return;
+        }
 
-        if (!question || question.trim().length < 8) {
-          sendWs(ws, { type: 'error', message: 'La pregunta debe tener al menos 8 caracteres' });
+        let pendingForSocket = 0;
+        for (const pendingSocket of pendingRequests.values()) {
+          if (pendingSocket === ws) pendingForSocket++;
+        }
+        if (pendingForSocket >= 2) {
+          sendWs(ws, { type: 'error', message: 'Espera a que termine una de tus consultas antes de enviar otra.' });
           return;
         }
-        if (!contact?.name?.trim() || !contact?.phone?.trim()) {
-          sendWs(ws, { type: 'error', message: 'Nombre y teléfono son obligatorios' });
-          return;
-        }
+        asksThisConnection++;
 
         const correlationId = `${clientId}-${Date.now()}`;
         pendingRequests.set(correlationId, ws);
@@ -195,8 +218,8 @@ export function attachWebSocketServer(server: Server): WebSocketServer {
         // Publicar en MQTT para que backend-ia procese
         const mqPayload = JSON.stringify({
           correlationId,
-          question: question.trim(),
-          contact,
+          question: ask.question,
+          contact: ask.contact,
           systemPrompt: getCurrentPrompt(),
         });
 

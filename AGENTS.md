@@ -17,17 +17,19 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
 ## Estado actual del repo (obligatorio respetar)
 
 - El frontend consume **solo** vista pública desde `GET /api/cv`.
-- El backend genera PDF dinámico en `GET /api/cv.pdf`.
-- El backend expone chat IA en `POST /api/ai/ask` con trazabilidad.
-- La fuente de verdad del contenido es `backend/data/cv.json`.
+- `backend/javascript/portal` genera el PDF dinámicamente y sirve las rutas públicas de contacto y búsqueda.
+- La descarga PDF requiere el token temporal emitido por `POST /api/cv.pdf/request`.
+- El chat IA público usa WebSocket en `/ws/chat` y MQTT hacia `backend/javascript/ia`; no hay alias público `/api/ai/ask`.
+- Las rutas de administración de interacciones e índice viven en `/api/admin/*` y requieren sesión.
+- La fuente de verdad del contenido es `backend/javascript/portal/data/cv.json`.
 - El JSON separa datos visibles por contexto:
   - `contact.public`: se puede mostrar en el sitio.
   - `contact.private`: **no** se muestra en sitio, solo en PDF.
-- El frontend está modularizado en `frontend/src/scripts/modules/`.
+- El frontend público está modularizado en `frontend/portal-publico/src/scripts/modules/`.
 - Existe chat flotante en frontend con captura de lead:
   - obligatorios: `name`, `phone`.
   - opcionales: `email`, `company`, `positionOffer`.
-- Las interacciones de chat se almacenan en SQLite (`backend/data/interactions.sqlite`).
+- Las interacciones de chat se almacenan en SQLite dentro del PVC de `backend-ia` (`/app/data/db/interactions.sqlite`).
 - Modo de respuesta IA:
   - `genai`: Groq.
   - `deterministic`: fallback local con FAISS + respuestas aprobadas.
@@ -84,10 +86,8 @@ Antes de trabajar en cualquier carpeta, leer primero su `README.md`.
   - `ghcr-pull-secret` usando `GHCR_USERNAME` + `GHCR_TOKEN`.
   - `raulglez-me-env` con `GROQ_API_KEY` y `GROQ_MODEL`.
 - El contenedor runtime incluye Python + `backend/ai` para fallback determinista.
-- API de índice FAISS:
-  - `GET /api/ai/reindex`: estado del índice.
-  - `POST /api/ai/reindex`: reconstrucción forzada del índice.
-  - invalidación automática: si cambia `cv.json` o la SQLite, el índice se reconstruye al consultar.
+- API de índice FAISS: `GET|POST /api/admin/reindex`, protegida por sesión; backend-ia permanece interno al clúster.
+- No exponer `/api/ai/questions`, `/api/ai/questions/:id` ni `/api/ai/reindex`; el panel usa `/api/admin/*`.
 
 ## Separacion semantica de documentos
 

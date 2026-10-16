@@ -3,11 +3,11 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { createHmac, timingSafeEqual } from 'crypto';
+import { isIP } from 'node:net';
 import { generateCvPdfBuffer } from './pdf.js';
 import { handleAdminRoute } from './admin-routes.js';
 import { attachWebSocketServer } from './ws-handler.js';
-import { validateContact, createContact, markCvDownloaded, getContactById } from './db/contacts.js';
-import { getCurrentPrompt } from './admin-routes.js';
+import { validateContact, createContact } from './db/contacts.js';
 import { searchCv } from './search.js';
 
 // backend-ia vía HTTP (para rutas de admin que no usan MQTT)
@@ -23,6 +23,7 @@ async function aiFetch(urlPath: string, init?: RequestInit): Promise<any> {
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const PORT = Number(process.env.PORT ?? 3000);
+const MAX_JSON_BODY_BYTES = 64 * 1024;
 const PUBLIC_DIR = process.env.PUBLIC_DIR ?? path.join(__dirname, '..', 'public');
 const DATA_FILE = path.join(__dirname, '..', 'data', 'cv.json');
 
@@ -42,6 +43,17 @@ const MIME: Record<string, string> = {
 
 function readCvData(): string {
   return fs.readFileSync(DATA_FILE, 'utf-8');
+}
+
+function getClientIp(req: http.IncomingMessage): string {
+  const forwardedFor = req.headers['x-forwarded-for'];
+  if (typeof forwardedFor === 'string') {
+    const firstForwardedIp = forwardedFor.split(',')[0]?.trim();
+    if (firstForwardedIp && isIP(firstForwardedIp)) return firstForwardedIp;
+  }
+  const realIp = req.headers['x-real-ip'];
+  if (typeof realIp === 'string' && isIP(realIp.trim())) return realIp.trim();
+  return req.socket.remoteAddress ?? 'unknown';
 }
 
 function toPublicCv(data: any): any {
@@ -87,8 +99,12 @@ function serveStatic(req: http.IncomingMessage, res: http.ServerResponse): void 
 
 async function readJsonBody(req: http.IncomingMessage): Promise<any> {
   const chunks: Buffer[] = [];
+  let size = 0;
   for await (const chunk of req) {
-    chunks.push(Buffer.from(chunk));
+    const buffer = Buffer.from(chunk);
+    size += buffer.length;
+    if (size > MAX_JSON_BODY_BYTES) throw new Error('Request body too large');
+    chunks.push(buffer);
   }
   const raw = Buffer.concat(chunks).toString('utf-8') || '{}';
   return JSON.parse(raw);
@@ -154,8 +170,6 @@ function checkContactRateLimit(ip: string): boolean {
   return true;
 }
 
-// POST /api/ai/ask se maneja ahora vía WebSocket (/ws/chat).
-// Esta ruta HTTP se mantiene como fallback para clientes sin WS.
 const server = http.createServer(async (req, res) => {
   try {
   const method = req.method ?? 'GET';
@@ -189,7 +203,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const ip = req.socket.remoteAddress ?? 'unknown';
+      const ip = getClientIp(req);
       if (!checkContactRateLimit(ip)) {
         res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: 'Demasiadas solicitudes. Intenta en 15 minutos.' }));
@@ -201,14 +215,15 @@ const server = http.createServer(async (req, res) => {
 
       // Generar token JWT
       const token = signPdfToken({ email: body.email.trim(), phone: body.phone.trim() });
-      console.log(`[pdf-token] Token generado para ${body.email}`);
+      console.log('[pdf-token] Token de descarga generado');
 
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ ok: true, token }));
     } catch (err) {
       console.error('[cv.pdf/request] Error:', err);
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Error interno' }));
+      const tooLarge = String(err).includes('Request body too large');
+      res.writeHead(tooLarge ? 413 : 500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: tooLarge ? 'Solicitud demasiado grande' : 'Error interno' }));
     }
     return;
   }
@@ -222,18 +237,16 @@ const server = http.createServer(async (req, res) => {
       const params = new URLSearchParams(queryString);
       const token = params.get('token');
 
-      let requester: { email: string; phone: string } | undefined;
-
-      if (token) {
-        const decoded = verifyPdfToken(token);
-        if (!decoded) {
-          res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
-          res.end(JSON.stringify({ ok: false, error: 'Token inválido o expirado. Solicita uno nuevo.' }));
-          return;
-        }
-        requester = decoded;
-        // Marcar descarga en BD (último contacto con ese email)
-        // No bloqueamos si no encontramos contacto — el token es suficiente
+      if (!token) {
+        res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Se requiere un token. Solicita el PDF desde el formulario.' }));
+        return;
+      }
+      const requester = verifyPdfToken(token);
+      if (!requester) {
+        res.writeHead(401, { 'Content-Type': 'application/json; charset=utf-8' });
+        res.end(JSON.stringify({ ok: false, error: 'Token inválido o expirado. Solicita uno nuevo.' }));
+        return;
       }
 
       const cvData = JSON.parse(readCvData());
@@ -270,7 +283,7 @@ const server = http.createServer(async (req, res) => {
         return;
       }
 
-      const ip = req.socket.remoteAddress ?? 'unknown';
+      const ip = getClientIp(req);
       if (!checkContactRateLimit(ip)) {
         res.writeHead(429, { 'Content-Type': 'application/json; charset=utf-8' });
         res.end(JSON.stringify({ ok: false, error: 'Demasiadas solicitudes. Intenta en 15 minutos.' }));
@@ -278,98 +291,16 @@ const server = http.createServer(async (req, res) => {
       }
 
       const contact = createContact(body);
-      console.log(`[contact] Nuevo contacto: ${body.email} — ${body.purpose ?? 'sin propósito'}`);
+      console.log(`[contact] Nuevo contacto | propósito: ${body.purpose ?? 'sin propósito'}`);
 
       res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
       res.end(JSON.stringify({ ok: true, id: contact.id }));
     } catch (err) {
       console.error('[contact] Error:', err);
-      res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-      res.end(JSON.stringify({ ok: false, error: 'Error interno' }));
+      const tooLarge = String(err).includes('Request body too large');
+      res.writeHead(tooLarge ? 413 : 500, { 'Content-Type': 'application/json; charset=utf-8' });
+      res.end(JSON.stringify({ ok: false, error: tooLarge ? 'Solicitud demasiado grande' : 'Error interno' }));
     }
-    return;
-  }
-
-  if (method === 'POST' && url === '/api/ai/ask') {
-    readJsonBody(req)
-      .then((payload) => {
-        // Inyectar prompt activo desde BD si no viene en el payload
-        if (!payload.systemPrompt) {
-          payload.systemPrompt = getCurrentPrompt();
-        }
-        return aiFetch('/ask', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-        });
-      })
-      .then((result) => {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-        res.end(JSON.stringify({ ok: true, ...result }));
-      })
-      .catch((err) => {
-        const status = /obligatoria|obligatorio|Payload|contact|name|phone/i.test(String(err?.message)) ? 400 : 500;
-        res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(err?.message || err) }));
-      });
-    return;
-  }
-
-  if (method === 'GET' && url === '/api/ai/questions') {
-    aiFetch('/questions')
-      .then((data) => {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-        res.end(JSON.stringify({ ok: true, rows: data.rows }));
-      })
-      .catch((err) => {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(err) }));
-      });
-    return;
-  }
-
-  if (method === 'GET' && url === '/api/ai/reindex') {
-    aiFetch('/reindex')
-      .then((status) => {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-        res.end(JSON.stringify({ ok: true, status }));
-      })
-      .catch((err) => {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(err) }));
-      });
-    return;
-  }
-
-  if (method === 'POST' && url === '/api/ai/reindex') {
-    aiFetch('/reindex', { method: 'POST' })
-      .then((result) => {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
-        res.end(JSON.stringify({ ok: true, result }));
-      })
-      .catch((err) => {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(err) }));
-      });
-    return;
-  }
-
-  const rateMatch = url.match(/^\/api\/ai\/questions\/(\d+)$/);
-  if (method === 'PATCH' && rateMatch) {
-    readJsonBody(req)
-      .then((payload) => aiFetch(`/questions/${rateMatch[1]}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }))
-      .then(() => {
-        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: true }));
-      })
-      .catch((err) => {
-        res.writeHead(500, { 'Content-Type': 'application/json; charset=utf-8' });
-        res.end(JSON.stringify({ ok: false, error: String(err) }));
-      });
     return;
   }
 
@@ -399,6 +330,12 @@ const server = http.createServer(async (req, res) => {
   // ── Rutas del panel admin (protegidas) ──────────────────────────────────────
   const handled = await handleAdminRoute(req, res, method, url);
   if (handled) return;
+
+  if (url.startsWith('/api/ai/')) {
+    res.writeHead(404, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+    res.end(JSON.stringify({ ok: false, error: 'Not found' }));
+    return;
+  }
 
   serveStatic(req, res);
   } catch (err) {

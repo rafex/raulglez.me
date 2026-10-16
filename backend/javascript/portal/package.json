@@ -1,12 +1,13 @@
 {
   "name": "portal-backend",
   "version": "1.0.0",
-  "description": "API backend — sirve /api/cv, /api/cv.pdf, /api/ai/ask (proxy), /health",
+  "description": "API backend — sirve el CV y las rutas administrativas; chat público por WebSocket",
   "private": true,
   "type": "module",
   "scripts": {
     "dev": "node --watch --experimental-strip-types src/server.ts",
     "build": "tsc",
+    "test": "npm run build && node --test tests/*.test.mjs",
     "start": "node dist/server.js"
   },
   "dependencies": {
