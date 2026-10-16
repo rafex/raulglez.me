@@ -60,11 +60,6 @@ jobs:
           fi
           chmod 600 "$HOME/.kube/config"
 
-      - name: Ensure deployment namespace exists
-        run: |
-          kubectl create namespace "$K3S_NAMESPACE" \
-            --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Create GHCR pull secret
         env:
           GHCR_USERNAME: ${{ secrets.GHCR_USERNAME }}
